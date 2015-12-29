@@ -1,12 +1,13 @@
-App.controller('headerController', function($timeout, messageService, $scope){
+App.controller('headerController', function($timeout, $location, messageService, $scope){
 
     var self = this;
 
     self.onSearchKeyPress = function(e) {
         //console.log(self.searchTerm);
         if (e && e.keyCode == 13) {
-            console.log('emit');
-            $scope.$emit('search', {query: self.searchTerm});
+            //console.log('emit');
+            //$scope.$emit('search', {query: self.searchTerm});
+            $location.url('/read?p=' + self.searchTerm);
         }
     };
 
@@ -15,16 +16,6 @@ App.controller('headerController', function($timeout, messageService, $scope){
             left: false,
             right: false
         };
-
-        // Top Search
-        this.openSearch = function(){
-            angular.element('#header').addClass('search-toggled');
-            angular.element('#top-search-wrap').find('input').focus();
-        }
-
-        this.closeSearch = function(){
-            angular.element('#header').removeClass('search-toggled');
-        }
 
         // Get messages and notification for header
         this.img = messageService.img;

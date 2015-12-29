@@ -1,9 +1,36 @@
-<header id="header" ng-include="'module/shared/header.html'" ng-controller="headerController as headerCtrl"
+<header ng-hide="$state.current.data.hideHeader"
+        id="header" ng-include="'module/shared/header.html'" ng-controller="headerController as headerCtrl"
         data-current-skin="blue" style="height: 70px">
 
 </header>
 
-<div ui-view="content"></div>
+<div class="main-content" ui-view="content">
+
+</div>
+<div class="fab-menu">
+    <md-fab-speed-dial md-open="appCtrl.fabMenu.isOpen" md-direction="up" class="md-fling">
+        <md-fab-trigger>
+            <md-button class="md-fab md-warn md-button md-ink-ripple" type="button" aria-label="Add...">
+                <md-icon md-svg-src="/img/icons/add.svg"></md-icon>
+            </md-button>
+        </md-fab-trigger>
+        <md-fab-actions ng-hide="!appCtrl.fabMenu.isOpen">
+            <md-button ng-if="authService.user.is_pastor"
+                       ui-sref="base.sermon-create" class="md-fab md-mini md-button md-ink-ripple" aria-label="Add User">
+                <md-tooltip md-direction="left">
+                    New Sermon
+                </md-tooltip>
+                <md-icon md-svg-src="/img/icons/create.svg"></md-icon>
+            </md-button>
+            <!--<md-button class="md-fab  md-mini md-primary md-button md-ink-ripple" aria-label="Add Group">-->
+            <!--<md-icon icon="/img/icons/add.svg"></md-icon>-->
+            <!--</md-button>-->
+            <!--<md-button class="md-fab md-mini md-primary md-button md-ink-ripple" aria-label="Add Group">-->
+            <!--<md-icon icon="/img/icons/add.svg"></md-icon>-->
+            <!--</md-button>-->
+        </md-fab-actions>
+    </md-fab-speed-dial>
+</div>
 
 <footer id="footer">
     Copyright &copy; 2015 scripturedin
