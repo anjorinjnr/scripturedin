@@ -7,9 +7,6 @@ from google.appengine.ext import ndb
 from webapp2_extras import security
 from webapp2_extras.appengine.auth.models import User as AuthUser
 from google.appengine.api import memcache
-from service import util
-
-
 
 type_string = ndb.StringProperty
 type_int = ndb.IntegerProperty
@@ -18,6 +15,7 @@ type_key = ndb.KeyProperty
 type_struct = ndb.StructuredProperty
 type_bool = ndb.BooleanProperty
 type_date = ndb.DateProperty
+type_datetime = ndb.DateTimeProperty
 
 
 class BaseModel(ndb.Model):
@@ -79,12 +77,13 @@ class SermonPoint(ndb.Model):
 
 class Sermon(BaseModel):
     title = type_string()
-    date = type_date(repeated=True)
-    main_scripture = type_struct(Scripture, repeated=True)
-    points = type_struct(SermonPoint, repeated=True)
+    date = type_datetime(repeated=True)
+    scripture = type_json()
+    notes = type_json()  # list of note objects {content: ''}
+    note = type_string()
     pastor_key = type_key()
     publish = type_bool()
-
+    questions = type_json()
 
 
 class Tags(BaseModel):
@@ -109,16 +108,20 @@ def get_user_by_email(email):
 
 
 def get_object(model, id):
-    return  ndb.Key(model, int(id)).get()
+    return ndb.Key(model, int(id)).get()
+
 
 def get_user_by_id(id):
     return ndb.Key('User', int(id)).get()
 
+
 def get_sermon(id):
     return get_object('Sermon', id)
 
+
 def create_user(first_name, last_name, email):
     user = users.User('email')
+
 
 def get_churches():
     churches = memcache.get('churches')
@@ -179,30 +182,52 @@ def update_user(id, data):
     return user
 
 
-def publish_sermon(data):
+def _update_sermon(user_id, data, publish=False):
+    if not isinstance(data, dict):
+        raise Exception('data should be a dictionary')
     if 'title' not in data or not data['title']:
         raise Exception('sermon requires title')
-    if 'scriptures' not in data or  not isinstance(data['scriptures'], 'list') or not data['scriptures']:
+    if 'scripture' not in data or not isinstance(data['scripture'], list) or not data['scripture']:
         raise Exception('sermon requires at least one scripture')
-    if 'points' not in data or  not isinstance(data['points'], 'list') or not data['points']:
-        raise Exception('sermon requires at least one point')
-    if 'id' in data:
-        sermon = get_sermon(data['id'])
+    if ('notes' not in data or not isinstance(data['notes'], list) or not data['notes']) and (
+                    'note' not in data or not data['note']):
+        raise Exception('sermon requires at a note. Note can be list of notes or free text')
 
-    sermon = sermon or Sermon()
+    user = get_user_by_id(user_id)
+    if not user.is_pastor:
+        raise Exception('user must be a pastor to create a sermon')
+
+    sermon = get_sermon(data['id']) if 'id' in data else Sermon(pastor_key=user.key)
     sermon.title = data['title']
-    if 'dates' in data:
+    sermon.publish = publish
+    if 'date' in data:
         sermon.date = []
-        for d in data['dates']:
+        for d in data['date']:
             date = d.split('/')
-            sermon.data.append(datetime.datetime(date[0], date[1], date[2]))
+            sermon.date.append(datetime.datetime(int(date[0]), int(date[1]), int(date[2])))
+    # @todo validate scripture
+    sermon.scripture = data['scripture']
+    if 'notes' in data:
+        notes = []
+        for n  in data['notes']:
+            if 'content' in n and n['content']:
+                notes.append(n)
+        sermon.notes = notes
+    if 'note' in data:
+        sermon.note = data['note']
+    if 'questions' in data and data['questions']:
+        qsts = []
+        for q in data['questions']:
+            if 'content' in q and q['content']:
+                qsts.append(q)
+        sermon.questions = qsts
+    sermon.key = sermon.put()
+    return sermon
 
-    scripture = Scripture()
+
+def save_sermon(user_id, data):
+    return _update_sermon(user_id, data, False)
 
 
-
-    sermon.dates = []
-
-
-
-
+def publish_sermon(user_id, data):
+    return _update_sermon(user_id, data, True)

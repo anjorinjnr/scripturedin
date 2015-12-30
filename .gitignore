@@ -4,3 +4,4 @@ app/node_modules/
 node_modules/
 app/dev/views/
 app/dev/vendors/
+*.pyc

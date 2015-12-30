@@ -1,8 +1,7 @@
 import unittest
-import webapp2
-import webtest
 import mock
 from google.appengine.ext import testbed
+from models import  scripturedin as model
 
 from service import util
 
@@ -23,6 +22,17 @@ class UtilTestCase(unittest.TestCase):
         self.testbed.activate()
         self.testbed.init_memcache_stub()
         self.testbed.init_datastore_v3_stub()
+
+
+    def test_model_to_dict(self):
+        user = model.User(id=1, first_name='foo', last_name='bar', password='pass', auth_ids=['bla'] )
+        sermon = model.Sermon(id=3, title='title', pastor_key=user.key)
+        sermon_dict = util.model_to_dict(sermon, pastor=user)
+        self.assertEquals(sermon.title, sermon_dict['title'])
+        self.assertEquals(sermon_dict['pastor_key'], user.key.id())
+        self.assertEquals(sermon_dict['pastor'], util.model_to_dict(user))
+        self.assertTrue('passord' not in sermon_dict)
+        self.assertTrue('auth_ids' not in sermon_dict)
 
     @mock.patch('service.util.Config.configs')
     @mock.patch('google.appengine.api.urlfetch.fetch')

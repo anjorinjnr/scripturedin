@@ -3,6 +3,7 @@ import webapp2
 from handlers.auth_handler import AuthHandler
 from handlers.misc_handler import MiscHandler
 from handlers.request_handler import RequestHandler
+from handlers.sermon_handler import SermonHandler
 from handlers.task_handler import TaskHandler
 from handlers.user_handler import UserHandler
 
@@ -44,5 +45,13 @@ ROUTES = [
           handler=MiscHandler,
           handler_method='add_church',
           methods=['POST']),
+    route(r'/api/sermon',
+          handler=SermonHandler,
+          handler_method='save',
+          methods=['POST']),
+    route(r'/api/sermon/publish',
+          handler=SermonHandler,
+          handler_method='publish',
+          methods=['POST'])
 
 ]

@@ -113,7 +113,7 @@ class UserHandlerTestCase(unittest.TestCase):
             'church_id': 1234
         }
         user = model.update_user(2, data)
-        print user.is_pastor
+        #print user.is_pastor
         user_dict = user.to_dict()
         self.assertEquals('f', user_dict['gender'])
         self.assertTrue(user_dict['is_pastor'])

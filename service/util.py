@@ -98,18 +98,45 @@ def model_to_dict(o, **kwargs):
     obj['id'] = o.key.id()
     for k, v in obj.iteritems():
         if isinstance(v, ndb.Key):
+            # value is a key
             obj[k] = v.id()
+        elif isinstance(v, list):
+            # value is a list, so we convert the items appropriately
+            lst = []
+            for i in v:
+                if isinstance(i, datetime.datetime):
+                    lst.append(date_time_to_millis(i))
+                elif isinstance(i, ndb.Key):
+                    lst.append(i.id())
+                else:
+                    lst.append(i)
+            obj[k] = lst
         elif isinstance(v, datetime.datetime):
+            # value is datetime
             obj[k] = date_time_to_millis(v)
 
+    # convert and add the additional(extra) attributes
     for k, v in kwargs.iteritems():
         if isinstance(v, ndb.Key):
             obj[k] = v.id()
+        elif isinstance(v, list):
+            # value is a list, so we convert the items appropriately
+            lst = []
+            for i in v:
+                if isinstance(i, datetime.datetime) or isinstance(i, datetime.date):
+                    lst.append(date_time_to_millis(i))
+                elif isinstance(i, ndb.Key):
+                    lst.append(i.id())
+                else:
+                    lst.append(i)
+            obj[k] = lst
         elif isinstance(v, datetime.datetime):
             obj[k] = date_time_to_millis(v)
+        elif isinstance(v, ndb.Model):
+            obj[k] = model_to_dict(v)
         else:
             obj[k] = v
-    if isinstance(o,  model.User):
+    if isinstance(o, model.User):
         return _secure_user_data(obj)
     else:
         return obj
@@ -124,7 +151,6 @@ def _secure_user_data(user):
 
 
 def encode_model(o, **kwargs):
-    print '222ddd'
     """Encode a model as JSON, adding any additional attributes via kwargs."""
     if isinstance(o, ndb.Model):
         obj = model_to_dict(o, **kwargs)
@@ -139,7 +165,6 @@ def encode_model(o, **kwargs):
         obj = {'kind': o.kind(), 'id': o.id()}
     else:
         obj = o
-
     return NdbModelEncoder().encode(obj)
 
 

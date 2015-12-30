@@ -7,6 +7,12 @@ module.exports = function (config) {
         // base path that will be used to resolve all patterns (eg. files, exclude)
         basePath: '',
 
+        client: {
+            captureConsole: true,
+            mocha: {
+                bail: true
+            }
+        },
 
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
@@ -17,10 +23,15 @@ module.exports = function (config) {
         files: [
             'dev/vendors/bower_components/angular/angular.min.js',
             'dev/vendors/bower_components/angular-mocks/angular-mocks.js',
+            'dev/vendors/bower_components/moment/min/moment.min.js',
+            'dev/vendors/bower_components/lodash/lodash.min.js',
             'tests/*.js',
             'tests/test_app.js',
-            //'dev/module/component/**/*.js',
-            'dev/module/component/bible/bible-service.js'
+            //'dev/module/**/*.js',
+            'dev/module/component/alert/alert-service.js',
+            'dev/module/component/bible/bible-service.js',
+            'dev/module/component/util/util.js',
+            'dev/module/sermon/sermon-controller.js'
         ],
 
 

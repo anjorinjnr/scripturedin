@@ -1,11 +1,10 @@
 /**
  * Created by eanjorin on 12/11/15.
  */
-App.service('bibleService', function ($http, $q, bibleData) {
+App.service('bibleService', function ($http, $q) {
     var BASE_URL = 'https://getbible.net/json?';
     var self = this;
 
-    self.name = 'Ebby';
     var VERSIONS = {
         'kjv': 'King James Version',
         'akjv': 'KJV Easy Read',
@@ -179,7 +178,15 @@ App.service('bibleService', function ($http, $q, bibleData) {
 
     self.versions = function () {
         return VERSIONS;
-    }
+    };
+
+    self.saveSermon = function (sermon) {
+        return $http.post('/api/sermon', sermon);
+    };
+
+    self.publishSermon = function (sermon) {
+        return $http.post('/api/sermon/publish', sermon);
+    };
 
 
 });
