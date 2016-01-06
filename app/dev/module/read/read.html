@@ -1,0 +1,85 @@
+<section id="main">
+
+    <section id="content">
+
+        <div class="container">
+
+            <!--{{readCtrl.bible.data}}-->
+            <div class="card" style="margin-top: 20px;" ng-repeat="(book, book_info) in readCtrl.bible.data">
+                <div class="card-header">
+                    <h2 class="book">{{book}}</h2>
+
+                    <ul class="actions">
+                        <li>
+                            <a href ng-click="readCtrl.askForComment($event)">
+                                <md-tooltip>Ask for comment</md-tooltip>
+                                <i class="zmdi zmdi-comments">
+                                </i>
+
+                            </a>
+                        </li>
+                        <li class="dropdown" uib-dropdown>
+                            <a href="" uib-dropdown-toggle>
+                                <i class="zmdi zmdi-translate"></i>
+                                <md-tooltip>Change translation</md-tooltip>
+                            </a>
+
+                            <ul class="dropdown-menu dropdown-menu-right">
+                                <li ng-repeat="(key, ver) in readCtrl.versions">
+                                    <a href="">{{::ver}}</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="dropdown" uib-dropdown>
+                            <a href="" uib-dropdown-toggle>
+                                <i class="zmdi zmdi-more-vert"></i>
+                            </a>
+
+                            <ul class="dropdown-menu dropdown-menu-right">
+                                <li>
+                                    <a href="">Add Chapter to Favorites</a>
+                                </li>
+                                <li>
+                                    <a href="">Add Selected to Favorites</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card-body">
+                    <!--{{book_info}}-->
+                    <div class="chapter">
+                        <!--<h5>Chapter {{chapter.chapter_nr}}</h5>-->
+
+                        <!--<div  uib-tooltip-classes="" class="in"-->
+                        <!--popover-popup="" title="Popover Title"-->
+                        <!--content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus." placement="top"-->
+                        <!--popup-class="" animation="animation" is-open="isOpen" origin-scope="origScope"-->
+                        <!--style="visibility: visible; display: block; top: 229px; left: 471px;"-->
+                        <!--class="ng-isolate-scope top fade popover in">-->
+                        <!--<div class="arrow"></div>-->
+
+                        <!--<div class="popover-inner">-->
+                        <!--<h3 class="popover-title ng-binding ng-scope">Popover Title</h3>-->
+                        <!--<div class="popover-content ng-binding">Vivamus sagittis lacus vel-->
+                        <!--augue laoreet rutrum faucibus.-->
+                        <!--</div>-->
+                        <!--</div>-->
+                        <!--</div>-->
+
+                        <div id="verses">
+                            <p id="v{{verse}}" class="verse" ng-class="{highlight: readCtrl.selected[book][verse]}"
+                               ng-repeat="(verse, verse_info) in book_info[0].chapter">
+                                <a href="" ng-click="readCtrl.highlight(verse, book)"><span style="margin-right: 15px">v{{verse}}:</span></a>
+                                {{verse_info.verse}}
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</section>

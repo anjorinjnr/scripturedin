@@ -1,0 +1,154 @@
+.chapter {
+    padding: 30px;
+}
+
+h2.book {
+    /*font-family: "medium-content-sans-serif-font","Lucida Grande","Lucida Sans Unicode","Lucida Sans",Geneva,Verdana,sans-serif;*/
+    font-weight: 700;
+    font-style: normal;
+    font-size: 36px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.chapter .verse {
+    /*font-family: "medium-content-serif-font",Georgia,Cambria,"Times New Roman",Times,serif;*/
+    letter-spacing: .01rem;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 21px;
+    line-height: 1.58;
+    letter-spacing: -0.003em;
+}
+
+p.highlight {
+    background: rgba(33, 150, 243, 0.13);
+}
+
+#footer {
+    position: relative;
+}
+
+wysiwyg-edit .tinyeditor .sizer {
+    min-height: 40px;
+    height: 40px;
+    max-height: 100px;
+}
+
+wysiwyg-edit .tinyeditor .tinyeditor-footer {
+    display: none;
+}
+
+body {
+    font-family: roboto;
+}
+
+md-toolbar.md-warn > md-tabs.md-default-theme,
+md-tabs > md-tabs-wrapper > md-tabs-canvas > md-pagination-wrapper > md-tab-item:not([disabled]) {
+    color: #7a7a7a;
+}
+
+md-toolbar.md-warn > md-tabs.md-default-theme,
+md-tabs > md-tabs-wrapper > md-tabs-canvas > md-pagination-wrapper > md-tab-item:not([disabled]).md-active,
+md-toolbar.md-warn > md-tabs.md-default-theme,
+md-tabs > md-tabs-wrapper > md-tabs-canvas > md-pagination-wrapper > md-tab-item:not([disabled]).md-focused {
+    color: #000;
+}
+
+#sermon .md-tab, #sermon h4 {
+    font-size: 16px;
+    text-transform: capitalize;
+
+}
+
+.social-login img {
+    height: 50px;
+}
+
+/*home*/
+body {
+    height: auto;
+    /*background: #fff;*/
+}
+
+#frame {
+
+    /*width: 1024px;*/
+    margin: 0 auto;
+}
+
+#login-signup-reset {
+    /*height: 650px;*/
+    padding-top: 100px;
+
+}
+
+@media (min-width: 600px) {
+    .lc-block {
+        width: 400px;
+    }
+}
+
+@media (max-width: 600px) {
+    .lc-block {
+        width: 300px;
+    }
+}
+
+.lc-block {
+    padding: 15px 25px 15px 10px !important;
+}
+
+.social-login {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    /*position: relative;*/
+    width: 100%;
+    text-align: center;
+    left: 0%;
+    bottom: -45px;
+}
+
+.social-login > li {
+    font-size: 12px;
+    border-radius: 10%;
+    padding: 4px;
+    display: inline-block;
+    margin: 0 2px;
+    cursor: pointer;
+    vertical-align: top;
+    color: #fff;
+    line-height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    text-transform: uppercase;
+}
+
+.input-group {
+    width: 100%;
+}
+.chosen-container-single .chosen-single {
+ font-size: 18px;
+}
+
+.fab-menu {
+    position: fixed;
+    right: 0px;
+    bottom: 0px;
+    z-index: 25;
+}
+.main-content {
+    background-color: #EDECEC;
+}
+
+#calendar .fc-toolbar .fc-center {
+    margin-top: 90px !important;
+}
+#calendar .fc-toolbar {
+    height: 150px !important;
+}
+
+#study-note .sizer {
+    height: 100%;
+}

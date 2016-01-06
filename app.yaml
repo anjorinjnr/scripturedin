@@ -1,0 +1,48 @@
+application: scripturedin
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: /task//.*
+  script: main.app
+  login: admin
+
+- url: /api/.*
+  script: main.app
+  
+- url: /
+  static_files: app/dev/index.html
+  upload: app
+
+- url: (.*)
+  static_files: app/dev\1
+  upload: app
+
+#- url: /
+#  static_files: app/prod/index.html
+#  upload: app
+#
+#
+#- url: (.*)
+#  static_files: app/prod\1
+#  upload: app
+
+
+
+libraries:
+- name: webapp2
+  version: "2.5.2"
+- name: ssl
+  version: latest
+
+skip_files:
+- ^(app/dev/.*)
+- ^(app/node_modules/.*)
+- ^(app/*.js)
+- ^(app/*.json)

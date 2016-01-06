@@ -1,0 +1,54 @@
+<div class="sidebar-inner c-overflow">
+    <div class="profile-menu">
+        <a href="" toggle-submenu>
+            <div class="profile-pic">
+                <img src="img/profile-pics/1.jpg" alt="">
+            </div>
+
+            <div class="profile-info">
+                {{authService.user.first_name + ' ' + authService.user.last_name }}
+
+                <i class="zmdi zmdi-caret-down"></i>
+            </div>
+        </a>
+
+        <ul class="main-menu">
+            <li>
+                <a data-ui-sref="pages.profile.profile-about" data-ng-click="mactrl.sidebarStat($event)"><i
+                        class="zmdi zmdi-account"></i> View Profile</a>
+            </li>
+            <li>
+                <a href=""><i class="zmdi zmdi-input-antenna"></i> Privacy Settings</a>
+            </li>
+            <li>
+                <a href=""><i class="zmdi zmdi-settings"></i> Settings</a>
+            </li>
+            <li>
+                <a href=""><i class="zmdi zmdi-time-restore"></i> Logout</a>
+            </li>
+        </ul>
+    </div>
+
+    <ul class="main-menu">
+
+        <li data-ui-sref-active="active">
+            <a data-ui-sref="home" data-ng-click="mactrl.sidebarStat($event)"><i class="zmdi zmdi-home"></i> Home</a>
+        </li>
+        <li class="sub-menu" data-ng-class="{ 'active toggled': mactrl.$state.includes('headers') }">
+            <a href="" toggle-submenu><i class="zmdi zmdi-view-compact"></i> Headers</a>
+
+            <ul>
+                <li><a data-ui-sref-active="active" data-ui-sref="headers.textual-menu"
+                       data-ng-click="mactrl.sidebarStat($event)">Textual menu</a></li>
+                <li><a data-ui-sref-active="active" data-ui-sref="headers.image-logo"
+                       data-ng-click="mactrl.sidebarStat($event)">Image logo</a></li>
+                <li><a data-ui-sref-active="active" data-ui-sref="headers.mainmenu-on-top"
+                       data-ng-click="mactrl.sidebarStat($event)">Mainmenu on top</a></li>
+            </ul>
+        </li>
+        <li data-ui-sref-active="active">
+            <a data-ui-sref="base.sermon-browse" data-ng-click="appCtrl.sidebarStat($event)"><i
+                    class="zmdi zmdi-format-underlined"></i> Sermons</a>
+        </li>
+    </ul>
+</div>

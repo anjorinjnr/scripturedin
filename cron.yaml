@@ -1,0 +1,4 @@
+cron:
+- description: write data in memcache to datastore
+  url: /tasks/persist-datastore
+  schedule: every 2 mins
