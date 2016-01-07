@@ -20,10 +20,10 @@ App
             return util.toLocalFormat(input, format)
         }
     })
-    .filter('ago', function (util) {
+    .filter('fromNow', function (util) {
         return function (input) {
-            return util.toLocalMoment(input).duration()
+            return util.toLocalMoment(input).fromNow();
         }
     });
-;
+
 

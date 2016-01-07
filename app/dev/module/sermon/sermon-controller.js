@@ -7,6 +7,9 @@ App.controller('sermonController', function ($state, authService, userService, b
                                              sermon, $stateParams, $uibModal) {
         var self = this;
 
+        self.user = authService.user;
+        self.errors = {};
+
         self.scriptureSelect = function (e) {
 
         };
@@ -86,15 +89,40 @@ App.controller('sermonController', function ($state, authService, userService, b
          * Get comments for the current sermon
          */
         self.getSermonComments = function () {
-            self.laodingComments = true;
+            self.loadingComments = true;
             bibleService.getComments(self.sermon.id, 'Sermon').then(function (resp) {
-                self.laodingComments = false;
+                self.loadingComments = false;
                 self.sermonComments = resp.data;
                 console.log(self.sermonComments);
             });
         };
 
 
+        self.likeComment = function (c) {
+
+            var i = c.likes_key.indexOf(self.user.id);
+            if (i >= 0) {
+                  userService.unlikeComment(c.id).then(function (resp) {
+                    if (resp.data.status == 'success') {
+                        c.like_count -= 1;
+                        c.likes_key.splice(i, 1);
+                    }
+                });
+                //unlike
+            } else {
+                userService.likeComment(c.id).then(function (resp) {
+                    if (resp.data.status == 'success') {
+                        c.like_count += 1;
+                        c.likes_key.push(authService.user.id);
+                    }
+                });
+            }
+        };
+
+        /**
+         * Post a reply to a comment
+         * @param c
+         */
         self.postReply = function (c) {
             var data = {
                 comment: c.reply,
@@ -105,6 +133,8 @@ App.controller('sermonController', function ($state, authService, userService, b
                     if (resp.data.id) {
                         c.replies.comments.unshift(resp.data);
                         c.reply = '';
+                        c.replies_key.push(resp.data.id);
+                        c.reply_count++;
                     } else {
                         alertService.danger('Failed to post comment, please try again');
                     }
@@ -169,6 +199,7 @@ App.controller('sermonController', function ($state, authService, userService, b
                 console.log('failed')
             }
         };
+
         /**
          * Publish a sermon so it's available to users
          */
@@ -236,8 +267,6 @@ App.controller('sermonController', function ($state, authService, userService, b
             self.sermon._dates.push({date: d});
         };
 
-        self.user = authService.user;
-        self.errors = {};
 
         if ($state.current.name == 'base.sermon-browse') {
             self.sermons = sermons;

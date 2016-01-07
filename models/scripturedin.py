@@ -79,6 +79,10 @@ class Comment(BaseModel):
     ref_key = type_key()
     comment = type_string()
     reply_to = type_key(kind='Comment')
+    likes_key = type_key(kind='User', repeated=True)
+    like_count = type_int(default=0)
+    replies_key = type_key(kind='Comment', repeated=True)
+    reply_count = type_int(default=0)
 
 
 class Sermon(BaseModel):
@@ -271,6 +275,11 @@ def save_comment(data):
             comment.reply_to = ndb.Key('Comment', int(data['reply_to']))
     comment.created_by = data['user_key']
     comment.id = comment.put()
+    if comment.id and comment.reply_to:
+        parent = comment.reply_to.get()
+        parent.replies_key.append(comment.id)
+        parent.reply_count += 1
+        parent.put()
     return comment
 
 
@@ -304,15 +313,16 @@ def get_sermon_note(user_id, sermon_id):
 
 
 def get_comment_replies(comment_id, cursor=None):
+
     try:
         page_size = 10
         q = Comment.query(Comment.reply_to == ndb.Key('Comment', int(comment_id))).order(-Comment.created_at)
+        #q.map(callback)
         if cursor:
             comments, next_curs, more = q.fetch_page(page_size, start_cursor=cursor)
         else:
             comments, next_curs, more = q.fetch_page(page_size)
 
-        #logging.info(comments)
         return {
             'comments': comments,
             'next': next_curs.url_safe() if more and next_curs else None
@@ -338,3 +348,22 @@ def get_comments(type, id, cursor):
 
 def get_sermon_comments(sermon_id, cursor):
     return get_comments('Sermon', sermon_id, cursor)
+
+
+def like_comment(comment_id, user_id):
+    comment = Comment.get_by_id(int(comment_id))
+    user_key = ndb.Key('User', int(user_id))
+    if user_key not in comment.likes_key:
+        comment.likes_key.append(user_key)
+        comment.like_count += 1
+        comment.put()
+        return True
+
+def unlike_comment(comment_id, user_id):
+    comment = Comment.get_by_id(int(comment_id))
+    user_key = ndb.Key('User', int(user_id))
+    if user_key in comment.likes_key:
+        comment.likes_key.remove(user_key)
+        comment.like_count -= 1
+        comment.put()
+        return True

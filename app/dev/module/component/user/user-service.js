@@ -35,6 +35,12 @@ App.service('userService', function ($http) {
 
     self.saveSermonNote = function (note) {
         return $http.post('/api/sermon/note', note, {ignoreLoadingBar: true});
+    };
 
+    self.likeComment = function (commentId) {
+        return $http.post('/api/comment/' + commentId + '/like', {}, {ignoreLoadingBar: true});
+    };
+    self.unlikeComment = function (commentId) {
+        return $http.post('/api/comment/' + commentId + '/unlike', {}, {ignoreLoadingBar: true});
     };
 });

@@ -11,15 +11,41 @@ import logging
 class CommentHandler(base_handler.BaseHandler):
     @user_required
     def get(self, ref_key):
+        logging.info(ref_key)
         try:
             cors = Cursor(urlsafe=self.request.get('cursor')) if self.request.get('cursor') else None
-            res = model.get_comments(self.request.get('k').strip(), ref_key, cors)
+            comments = model.get_comments(self.request.get('k').strip(), ref_key, cors)
             data = []
-            for c in res['comments']:
-                data.append(util.model_to_dict(c, replies=model.get_comment_replies(c.key.id()),
+            for c in comments['comments']:
+                replies = model.get_comment_replies(c.key.id())
+                rep = []
+                for r in replies['comments']:
+                    o = r.to_dict()
+                    o['user'] = r.created_by.get()
+                    rep.append(o)
+                replies['comments'] = rep
+                data.append(util.model_to_dict(c,
+                                               replies=replies,
                                                user=model.get_user_by_id(c.created_by.id())))
+            comments['comments'] = data
+            self.write_model(comments)
+        except Exception as e:
+            logging.info(e)
+            self.error_response([e.message])
 
-            self.write_model(data)
+    @user_required
+    def like(self, id):
+        try:
+            if model.like_comment(id, self.user.key.id()):
+                self.success_response()
+        except Exception as e:
+            self.error_response([e.message])
+
+    @user_required
+    def unlike(self, id):
+        try:
+            if model.unlike_comment(id, self.user.key.id()):
+                self.success_response()
         except Exception as e:
             self.error_response([e.message])
 

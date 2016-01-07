@@ -53,8 +53,12 @@
 
 
                 <div class="pmo-stat">
-                    <h2 class="m-0 c-white">1562</h2>
-                    Total Connections
+
+                    <h2 class="m-0 c-white">300</h2>
+                   Likes
+
+                    <h2 class="m-0 m-t-10 c-white">30</h2>
+                   Comments
                 </div>
             </div>
 
@@ -95,7 +99,9 @@
 
             <div class="pmb-block">
                 <div class="pmbb-header">
-                    <h1 class="md-display-2">{{::sermonCtrl.sermon.title}}</h1>
+                    <h1 class="md-display-2">{{::sermonCtrl.sermon.title}} <a style="font-size: 35px;"  href ng-click="sermonCtrl.likeComment(c)">
+                        <i class="zmdi zmdi-favorite"></i></a>
+                    </span></h1>
 
                     <!--<blockquote class="m-b-25">-->
                     <md-chips ng-model="sermonCtrl.sermon.scriptures" readonly="true"
@@ -105,20 +111,20 @@
 
                     <ul class="actions">
                         <li><a href="">
-                            <i class="zmdi zmdi-more-vert"></i>
+                            <i class="zmdi zmdi-window-maximize"></i>
                         </a></li>
-                        <li class="dropdown" uib-dropdown>
-                            <a href="" uib-dropdown-toggle>
-                                <i class="zmdi zmdi-more-vert"></i>
-                            </a>
+                        <!--<li class="dropdown" uib-dropdown>-->
+                        <!--<a href="" uib-dropdown-toggle>-->
+                        <!--<i class="zmdi zmdi-more-vert"></i>-->
+                        <!--</a>-->
 
-                            <ul class="dropdown-menu dropdown-menu-right">
+                        <!--<ul class="dropdown-menu dropdown-menu-right">-->
 
-                                <li>
-                                    <a data-ng-click="pctrl.editSummary = 1" href="">Edit</a>
-                                </li>
-                            </ul>
-                        </li>
+                        <!--<li>-->
+                        <!--<a data-ng-click="pctrl.editSummary = 1" href="">Edit</a>-->
+                        <!--</li>-->
+                        <!--</ul>-->
+                        <!--</li>-->
                     </ul>
                 </div>
                 <div class="pmbb-body">
@@ -130,29 +136,16 @@
                                     <!--</md-subheader>-->
 
 
-                                    <md-list-item class="md-3-line md-long-text p-l-0 p-r-0"
+                                    <md-list-item class="md-2-line md-long-text p-l-0 p-r-0"
 
-                                                  ng-repeat="note in sermonCtrl.sermon.notes">
+                                                  ng-repeat="note in ::sermonCtrl.sermon.notes">
                                         <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
                                         <div class="md-list-item-text ">
                                             <div class="row">
                                                 <div class="col-sm-1">{{$index + 1}}</div>
-                                                <div class="col-sm-9">
-                                                    <p ng-mouseover="note.showComment = true">
-                                                        {{note.content}}
-                                                        {{note.showComment}}
+                                                <div class="col-sm-10">
+                                                    <p> {{::note.content}}
                                                     </p>
-                                                </div>
-                                                <div class="col-sm-2" ng-if="note.showComment">
-                                                    <a href popover-placement="right"
-                                                       popover-append-to-body="true"
-                                                       popover-template="'module/sermon/comment_popover.html'"
-                                                       popover-title="Popover Title">
-                                                        <i style="padding-top: 25%"
-                                                           class="zmdi zmdi-comment-alt-text zmdi-hc-fw f-20 c-gray"
-
-                                                        ></i>
-                                                    </a>
                                                 </div>
                                             </div>
 
@@ -162,7 +155,26 @@
                                 </md-content>
                             </md-tab>
                             <md-tab label="Sermon Questions">
-                                <md-content class="md-padding">
+                                <md-content class="md-padding p-l-0 p-r-0">
+                                    <!--<md-subheader class="md-no-sticky">3 line item, long paragraph (see on mobile)-->
+                                    <!--</md-subheader>-->
+
+
+                                    <md-list-item class="md-2-line md-long-text p-l-0 p-r-0"
+                                                  ng-repeat="q in ::sermonCtrl.sermon.questions">
+                                        <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
+                                        <div class="md-list-item-text ">
+                                            <div class="row">
+                                                <div class="col-sm-1">{{$index + 1}}</div>
+                                                <div class="col-sm-10">
+                                                    <p>
+                                                        {{::q.content}}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </md-list-item>
 
                                 </md-content>
                             </md-tab>
@@ -213,11 +225,9 @@
                                             </li>
                                         </ul>
                                     </div>
-
-
-                                    <loading loader="true"></loading>
+                                    <loading loader="sermonCtrl.loadingComments"></loading>
                                     <!-- end new comment -->
-                                    <div class="card" ng-repeat="c in sermonCtrl.sermonComments">
+                                    <div class="card" ng-repeat="c in sermonCtrl.sermonComments.comments">
                                         <div class="card-header">
                                             <div class="media">
                                                 <div class="pull-left">
@@ -241,8 +251,14 @@
 
                                             <ul class="wall-attrs clearfix list-inline list-unstyled">
                                                 <li class="wa-stats">
-                                                    <span><i class="zmdi zmdi-comments"></i> {{c.comment_count}}</span>
-                                                    <span class="active"><i class="zmdi zmdi-favorite"></i> {{c.like__count}}</span>
+                                                    <span ng-if="c.reply_count > 0"><i class="zmdi zmdi-comments"></i> {{c.reply_count}}</span>
+                                                    <span ng-class="{'active': c.likes_key.indexOf(authService.user.id) >= 0}">
+                                                        <a style="color: inherit" href
+                                                           ng-click="sermonCtrl.likeComment(c)"> <i
+                                                                class="zmdi zmdi-favorite"></i> <span
+                                                                ng-if="c.like_count > 0">{{c.like_count}}</span> </a>
+                                                        </span>
+
                                                 </li>
                                                 <!--<li class="wa-users">-->
                                                 <!--<a href=""><img src="img/profile-pics/1.jpg" alt=""></a>-->
@@ -264,43 +280,10 @@
 
                                                     <div class="media-body">
                                                         <a href="" class="a-title">{{r.user.first_name}}
-                                                            {{r.user_last_name}}</a>
-                                                        <small class="c-gray m-l-10">3 mins ago...</small>
+                                                            {{r.user.last_name}}</a>
+                                                        <small class="c-gray m-l-10">{{r.created_at | fromNow}}</small>
                                                         <p class="m-t-5 m-b-0">{{r.comment}}</p>
-                                                        <!--<div class="media">-->
-                                                        <!--<a href="" class="pull-left">-->
-                                                        <!--<img src="img/profile-pics/5.jpg" alt=""-->
-                                                        <!--class="lv-img-sm">-->
-                                                        <!--</a>-->
-
-                                                        <!--<div class="pull-right p-0">-->
-                                                        <!--<ul class="actions">-->
-                                                        <!--<li class="dropdown" uib-dropdown>-->
-                                                        <!--<a href="" uib-dropdown-toggle-->
-                                                        <!--aria-haspopup="true"-->
-                                                        <!--aria-expanded="false">-->
-                                                        <!--<i class="zmdi zmdi-more-vert"></i>-->
-                                                        <!--</a>-->
-
-                                                        <!--<ul class="dropdown-menu dropdown-menu-right">-->
-                                                        <!--<li>-->
-                                                        <!--<a href="">Report</a>-->
-                                                        <!--</li>-->
-                                                        <!--<li>-->
-                                                        <!--<a href="">Delete</a>-->
-                                                        <!--</li>-->
-                                                        <!--</ul>-->
-                                                        <!--</li>-->
-                                                        <!--</ul>-->
-                                                        <!--</div>-->
-
-                                                        <!--<div class="media-body">-->
-                                                        <!--<a href="" class="a-title">Some Dude</a>-->
-                                                        <!--<small class="c-gray m-l-10">3 mins ago...</small>-->
-                                                        <!--<p class="m-t-5 m-b-0">r.commnent</p>-->
-                                                        <!--</div>-->
-                                                        <!--</div>-->
-
+                                                        <!--<p class="m-t-5"><a class="m-r-5" href="">Like</a> <a href="">Reply</a></p>-->
                                                     </div>
                                                 </div>
 
@@ -319,7 +302,7 @@
                                                 <div class="wc-comment" data-ng-if="c.commenting">
                                                     <div class="wcc-inner">
                                                         <textarea class="wcci-text" data-auto-size
-                                                                  ng-model="c.reply"
+                                                                  ng-model="c.reply" data-focus
                                                                   placeholder="Write Something..."></textarea>
                                                     </div>
 
@@ -342,16 +325,6 @@
 
                     </div>
 
-                    <!--<form data-ng-submit="pctrl.submit('profileSummary', 'Profile Summary')" class="pmbb-edit">-->
-                    <!--<div class="fg-line">-->
-                    <!--<textarea data-ng-model="pctrl.profileSummary" class="form-control" rows="5"-->
-                    <!--placeholder="Summary...">Sed eu est vulputate, fringilla ligula ac, maximus arcu. Donec sed felis vel magna mattis ornare ut non turpis. Sed id arcu elit. Sed nec sagittis tortor. Mauris ante urna, ornare sit amet mollis eu, aliquet ac ligula. Nullam dolor metus, suscipit ac imperdiet nec, consectetur sed ex. Sed cursus porttitor leo.</textarea>-->
-                    <!--</div>-->
-                    <!--<div class="m-t-10">-->
-                    <!--<button class="btn btn-primary btn-sm" type="submit">Save</button>-->
-                    <!--<button class="btn btn-link btn-sm" data-ng-click="pctrl.editSummary = 0">Cancel</button>-->
-                    <!--</div>-->
-                    <!--</form>-->
                 </div>
             </div>
 

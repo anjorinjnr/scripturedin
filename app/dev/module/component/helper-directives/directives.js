@@ -27,7 +27,7 @@ App
             scope: {
                 loader: '='
             },
-            template: '  <div style="text-align: center" ng-if="flag"> ' +
+            template: '  <div style="text-align: center" ng-if="loader"> ' +
             '<div class="preloader pls-blue"> ' +
             '<svg class="pl-circular" viewBox="25 25 50 50">' +
             '<circle class="plc-path" cx="50" cy="50" r="20"/>' +
