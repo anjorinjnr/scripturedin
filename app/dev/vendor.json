@@ -3,11 +3,14 @@
     "dev": [
     ],
     "prod": [
+      "dev/vendors/bower_components/angular-material/angular-material.min.css",
       "dev/vendors/bower_components/animate.css/animate.min.css",
       "dev/vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css",
       "dev/vendors/bower_components/bootstrap-sweetalert/lib/sweet-alert.css",
       "dev/vendors/bower_components/angular-loading-bar/src/loading-bar.css",
-      "dev/vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css"
+      "dev/vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css",
+      "dev/vendors/bower_components/ngWYSIWYG/css/editor.css",
+      "dev/vendors/bower_components/fullcalendar/dist/fullcalendar.min.css"
     ]
   },
   "js": {
@@ -29,15 +32,27 @@
       "dev/vendors/bower_components/jquery/dist/jquery.min.js",
       "dev/vendors/bower_components/angular/angular.min.js",
       "dev/vendors/bower_components/angular-animate/angular-animate.min.js",
+      "dev/vendors/bower_components/angular-aria/angular-aria.min.js",
+      "dev/vendors/bower_components/angular-messages/angular-messages.min.js",
       "dev/vendors/bower_components/angular-resource/angular-resource.min.js",
+      "dev/vendors/bower_components/angular-sanitize/angular-sanitize.min.j",
+
+      "dev/vendors/bower_components/angular-local-storage/dist/angular-local-storage.min.js",
       "dev/vendors/bower_components/angular-ui-router/release/angular-ui-router.min.js",
-      "dev/vendors/bower_components/angular-loading-bar/src/loading-bar.js",
+      "dev/vendors/bower_components/angular-loading-bar/src/loading-bar.min.js",
       "dev/vendors/bower_components/oclazyload/dist/ocLazyLoad.min.js",
       "dev/vendors/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js",
+      "dev/vendors/bower_components/angular-material/angular-material.min.js",
+
       "dev/vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js",
       "dev/vendors/bower_components/bootstrap-sweetalert/lib/sweet-alert.min.js",
       "dev/vendors/bower_components/Waves/dist/waves.min.js",
-      "dev/vendors/bootstrap-growl/bootstrap-growl.min.js"
+      "dev/vendors/bootstrap-growl/bootstrap-growl.min.js",
+      "dev/vendors/bower_components/lodash/lodash.min.js",
+      "dev/vendors/bower_components/ngWYSIWYG/js/wysiwyg..min.js",
+      "dev/vendors/bower_components/moment/min/moment.min.js",
+      "dev/vendors/bower_components/autosize/dist/autosize.min.js",
+      "dev/vendors/bower_components/fullcalendar/dist/fullcalendar.min.js"
     ]
   }
 }

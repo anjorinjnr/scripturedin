@@ -8,7 +8,7 @@ var App = angular.module('scripturedIn', [
         'angular-loading-bar',
         'oc.lazyLoad',
         'ngWYSIWYG',
-        'localytics.directives'
+        //'localytics.directives'
         //'nouislider'
         //'ngTable'
     ])
@@ -84,11 +84,26 @@ var App = angular.module('scripturedIn', [
 
 App.controller('appController', function () {
 
-    this.fabMenu = {
+    var self = this;
+    self.fabMenu = {
         isOpen: false
     };
 
-    this.ver = '0.1';
+    self.sidebarToggle = {
+        left: false,
+        right: false
+    };
+
+    //Close sidebar on click
+    self.sidebarStat = function (event) {
+
+        if (!angular.element(event.target).parent().hasClass('active')) {
+            self.sidebarToggle.left = false;
+
+        }
+    };
+
+    self.ver = '0.1';
 
 });
 App.config(["localStorageServiceProvider", function (localStorageServiceProvider) {
@@ -137,7 +152,7 @@ App.config(["localStorageServiceProvider", function (localStorageServiceProvider
                 data: {
                     role: USER_ROLES.user,
                     hideHeader: true,
-                     pageTitle: 'Update your profile'
+                    pageTitle: 'Update your profile'
                 }
             })
             .state('base', {
@@ -163,16 +178,110 @@ App.config(["localStorageServiceProvider", function (localStorageServiceProvider
                 }
             })
             .state('base.sermon-create', {
-                url: '/sermon/create',
+                url: '/sermon/create?date',
                 views: {
                     'content': {
                         templateUrl: 'module/sermon/create.html',
                         controller: 'sermonController as sermonCtrl'
                     }
                 },
+                resolve: {
+                    sermons: function () {
+                        return [];
+                    },
+                    sermon: function () {
+                        return {};
+                    }
+                },
                 data: {
                     role: USER_ROLES.pastor,
                     pageTitle: 'Create new Sermon'
+                }
+            })
+            .state('base.sermon-study', {
+                url: '/sermon/:id/study',
+                views: {
+                    'content': {
+                        templateUrl: 'module/sermon/study.html',
+                        controller: 'sermonController as sermonCtrl'
+                    }
+                },
+                resolve: {
+                    sermons: function () {
+                        return [];
+                    },
+                    sermon: ["bibleService", "$stateParams", "alertService", "$q", function (bibleService, $stateParams, alertService, $q) {
+                        var deferred = $q.defer();
+                        bibleService.getSermon($stateParams.id).then(function (resp) {
+                            if (resp.data.id) {
+                                deferred.resolve(resp.data);
+                            } else {
+                                alertService.danger('Sermon does not exist <br> Redirecting...', {align: 'center', delay:10000});
+                                deferred.reject('bla');
+
+                            }
+                        });
+                        return deferred.promise;
+                    }]
+                },
+                data: {
+                    role: USER_ROLES.user
+                }
+            })
+            .state('base.sermon-browse', {
+                url: '/sermon/browse',
+                views: {
+                    'content': {
+                        templateUrl: 'module/sermon/browse.html',
+                        controller: 'sermonController as sermonCtrl'
+                    }
+                },
+                resolve: {
+                    sermon: function () {
+                        return {};
+                    },
+                    sermons: ["bibleService", "authService", "util", "$q", function (bibleService, authService, util, $q) {
+                        var deferred = $q.defer();
+                        var events = [];
+                        bibleService.getChurchSermons(authService.user.church_key).then(function (resp) {
+                            //util.log(resp.data);
+                            var sermons = resp.data;
+                            sermons.forEach(function (s) {
+                                s.date.forEach(function (d) {
+                                    var event = angular.copy(s);
+                                    event.start = util.toLocalDate(d);
+                                    event.className = 'bgm-cyan';
+                                    events.push(event);
+                                    //console.log(events);
+                                });
+
+                            });
+                            deferred.resolve(events);
+                        });
+                        return deferred.promise;
+                    }],
+                    loadPlugin: ["$ocLazyLoad", function ($ocLazyLoad) {
+                        return $ocLazyLoad.load([
+                            {
+                                name: 'css',
+                                insertBefore: '#app-level',
+                                files: [
+                                    'vendors/bower_components/fullcalendar/dist/fullcalendar.min.css',
+                                ]
+                            },
+                            {
+                                name: 'vendors',
+                                files: [
+                                    // 'vendors/bower_components/moment/min/moment.min.js',
+                                    'vendors/bower_components/fullcalendar/dist/fullcalendar.min.js'
+                                ]
+                            }
+                        ])
+                    }]
+                },
+                data: {
+                    role: USER_ROLES.user,
+                    pageTitle: 'Find a sermon'
                 }
             })
             .state('base.read', {
@@ -185,8 +294,8 @@ App.config(["localStorageServiceProvider", function (localStorageServiceProvider
 
                 }
             });
-    }]);
 
+    }]);
 
 App
 
@@ -748,93 +857,407 @@ App.controller('readController', ["$location", "bibleService", "$mdDialog", "use
 /**
  * Created by eanjorin on 12/14/15.
  */
-App.controller('sermonController', ["$location", "bibleService", "alertService", "$mdDialog", "userService", function ($location, bibleService, alertService,
-                                             $mdDialog, userService) {
-    var self = this;
 
-    self.sermon = {
-        scriptures: [],
-        _dates: [{'date': new Date()}],
-        title: '',
-        notes: [
-            {
-                content: ''
-            }
-        ],
-        questions: [
-            {
-                content: ''
-            }
-        ]
-    };
-    self.errors = {};
+App.controller('sermonController', ["$state", "authService", "userService", "bibleService", "alertService", "util", "sermons", "$scope", "sermon", "$stateParams", "$mdDialog", "$uibModal", function ($state, authService, userService, bibleService,
+                                             alertService, util, sermons, $scope,
+                                             sermon, $stateParams, $mdDialog, $uibModal) {
+        var self = this;
 
-    self.test = function(){
-        return 2;
-    }
+        self.user = authService.user;
+        console.log(self.user);
+        self.errors = {};
 
-    self.scriptureSelect = function (e) {
-        console.log(arguments)
-    };
+        self.showScripture = function (s) {
+            //$mdDialog.show({
+            //    controller: function(){
+            //
+            //    },
+            //    templateUrl:  'module/sermon/scripture_modal.html',// 'dialog1.tmpl.html',
+            //    parent: angular.element(document.body),
+            //    //targetEvent: ev,
+            //    clickOutsideToClose: true,
+            //    fullscreen: false
+            //});
+            var modalInstance = $uibModal.open({
+                animation: false,
+                templateUrl: 'module/sermon/scripture_modal.html',
+                controller: function () {
 
-    self.onScriptureAdd = function (chip) {
-        if (_.isEmpty((bibleService.parseScripture(chip)))) {
-            return null;
-        }
-    };
+                },
+                size: 'sm',
+                backdrop: true,
+                //keyboard: keyboard,
 
-    self._validateSermon = function () {
-        if (!_.isEmpty(self.sermon.title) && self.sermon.scriptures.length > 0
-            && !_.isEmpty(self.sermon.notes[0].content)) {
-            //create scripture objects
-            self.sermon.scripture = self.sermon.scriptures.map(function (s) {
-                return bibleService.parseScripture(s);
+
             });
-            //convert date objects to string repr
-            self.date = self.sermon._dates.map(function (d) {
-                return moment(d).format('YYYY/MM/DD');
-            });
-            return true;
-        }
-        return false;
-    };
-    self.save = function () {
-        self.submitted = true;
-        if (self._validateSermon()) {
-            bibleService.saveSermon(self.sermon).then(function (resp) {
-                resp = resp.data;
-                if (resp.id) {
-                    alertService.info('Sermon saved');
-                    //map the date string to date objects
-                    resp._dates = resp.date.map(function (d) {
-                        var date = resp.date.split('/');
-                        return new Date(date[0], date[1], date[2]);
+
+        };
+
+
+        /**
+         * Set up watcher for sermon note and save to sever on update
+         */
+        self._watchSermonNoteForUpdate = function () {
+            self.savingNote = false;
+            $scope.$watch('sermonCtrl.sermonNote.notes', function (n, o) {
+                if (o != n) {
+                    self.savingNote = true;
+                    userService.saveSermonNote(self.sermonNote).then(function (resp) {
+                        self.savingNote = false;
+                        if (resp.data.id) {
+                            self.sermonNote.id = resp.data.id;
+                            self.sermonNote.user_id = resp.data.created_by;
+                            self.sermonNote.sermon_id = resp.data.sermon_key;
+                            self.sermonNote.modified_at = resp.data.modified_at;
+                        }
+                        //console.log(self.sermonNote);
                     });
-                    self.sermon = resp;
-                    console.log(sermon);
-                } else if (resp.status == 'error') {
-                    alertService.danger(resp.message.join('<br>'));
                 }
+            });
+        };
+        /**
+         * get user's note for the sermon
+         * setup watcher to save user note
+         */
+        self.getUserSermonNote = function () {
+
+            var init = true;
+            self.loadNote = true;
+            userService.getSermonNote(self.user.id, self.sermon.id).then(function (resp) {
+                resp = resp.data;
+                self.loadNote = false;
+                if (!_.isEmpty(resp)) {
+                    self.sermonNote = resp;
+                    self.sermonNote.user_key = self.sermonNote.created_by;
+                }
+                self._watchSermonNoteForUpdate(true)
 
             });
+        };
+
+        /**
+         * Function gets called when a new scripture is added. The scripture text is parsed and null is returned
+         * if the text isn't a valid scripture to avoid adding it.
+         * @param chip
+         * @returns {null}
+         */
+        self.onScriptureAdd = function (chip) {
+            if (_.isEmpty((bibleService.parseScripture(chip)))) {
+                return null;
+            }
+        };
+
+        self._validateSermon = function () {
+            if (!_.isEmpty(self.sermon.title) && self.sermon.scriptures.length > 0
+                && !_.isEmpty(self.sermon.notes[0].content)) {
+                //create scripture objects
+                self.sermon.scripture = self.sermon.scriptures.map(function (s) {
+                    return bibleService.parseScripture(s);
+                });
+                //convert date object1s to utc millisecs
+                self.sermon.date = self.sermon._dates.map(function (d) {
+                    return util.toUtcMilliseconds(d.date);
+                });
+                return true;
+            }
+            return false;
+        };
+
+
+        /**
+         * Get comments for the current sermon
+         */
+        self.getSermonComments = function () {
+            self.loadingComments = true;
+            bibleService.getComments(self.sermon.id, 'Sermon').then(function (resp) {
+                self.loadingComments = false;
+                self.sermonComments = resp.data;
+                console.log(self.sermonComments);
+            });
+        };
+
+        self.busy = false;
+        /**
+         * Like or unlike a sermon
+         */
+        self.likeSermon = function () {
+            if (self.busy) return;
+            if (_.isUndefined(self.user['fav_sermon_keys'])) {
+                self.user.fav_sermon_keys = [];
+            }
+
+            var i = self.user.fav_sermon_keys.indexOf(self.sermon.id);
+            if (i >= 0) {
+                self.busy = true;
+                userService.unlikeSermon(self.sermon.id).then(function (resp) {
+                    self.busy = false;
+                    if (resp.data.status == 'success') {
+                        self.sermon.likes -= 1;
+                        self.user.fav_sermon_keys.splice(i, 1);
+                    }
+                });
+                //unlike
+            } else {
+                self.busy = true;
+                userService.likeSermon(self.sermon.id).then(function (resp) {
+                    self.busy = false;
+                    if (resp.data.status == 'success') {
+                        self.sermon.likes += 1;
+                        self.user.fav_sermon_keys.push(self.sermon.id);
+                    }
+                });
+            }
+        };
+        self.likeComment = function (c) {
+
+            var i = c.likes_key.indexOf(self.user.id);
+            if (i >= 0) {
+                userService.unlikeComment(c.id).then(function (resp) {
+                    if (resp.data.status == 'success') {
+                        c.like_count -= 1;
+                        c.likes_key.splice(i, 1);
+                    }
+                });
+                //unlike
+            } else {
+                userService.likeComment(c.id).then(function (resp) {
+                    if (resp.data.status == 'success') {
+                        c.like_count += 1;
+                        c.likes_key.push(authService.user.id);
+                    }
+                });
+            }
+        };
+
+        /**
+         * Post a reply to a comment
+         * @param c
+         */
+        self.postReply = function (c) {
+            var data = {
+                comment: c.reply,
+                reply_to: c.id
+            };
+            userService.postComment(data, self.sermon.id, 'Sermon').then(function (resp) {
+                    console.log(resp.data);
+                    if (resp.data.id) {
+                        c.replies.comments.unshift(resp.data);
+                        c.reply = '';
+                        c.replies_key.push(resp.data.id);
+                        c.reply_count++;
+                    } else {
+                        alertService.danger('Failed to post comment, please try again');
+                    }
+                }
+            )
+
+        };
+
+        /**
+         * Post sermon comment
+         */
+        self.postComment = function () {
+            if (!_.isEmpty(self.sermonComment.comment)) {
+                userService.postComment(self.sermonComment, self.sermon.id, 'Sermon').then(function (resp) {
+                        console.log(resp.data);
+                        if (resp.data.id) {
+                            self.sermonComments.comments.unshift(resp.data);
+                            self.sermonComment.comment = '';
+                            self.sermon.comments++;
+                        } else {
+                            alertService.danger('Failed to post comment, please try again');
+                        }
+                    }
+                )
+            }
+
+        };
+        /**
+         * Save sermon
+         */
+        self.save = function () {
+
+            self.submitted = true;
+            if (self._validateSermon()) {
+                bibleService.saveSermon(self.sermon).then(function (resp) {
+                    resp = resp.data;
+                    if (resp.id) {
+                        alertService.info('Sermon saved');
+                        //map scripture object to string
+                        resp.scriptures = resp.scripture.map(function (s) {
+                            var tmp = s.book + ' ' + s.chapter;
+                            if (!_.isEmpty(s.verses)) {
+                                tmp += ':' + s.verses.join(',');
+                            }
+                            return tmp;
+                        });
+                        //map the date ms to date objects
+                        resp._dates = resp.date.map(function (d) {
+                            return {date: util.toLocalDate(d)};
+                        });
+                        if (_.isEmpty(resp.questions)) {
+                            resp.questions = [{content: ''}];
+                        }
+                        self.sermon = resp;
+                        util.log(self.sermon);
+
+                    } else if (resp.status == 'error') {
+                        alertService.danger(resp.message.join('<br>'));
+                    }
+
+                });
+            } else {
+                console.log('failed')
+            }
+        };
+
+        /**
+         * Publish a sermon so it's available to users
+         */
+        self.publish = function () {
+            self.submitted = true;
+            var colors = [
+                'bgm-teal',
+                'bgm-red',
+                'bgm-pink',
+                'bgm-blue',
+                'bgm-lime',
+                'bgm-green',
+                'bgm-cyan',
+                'bgm-orange',
+                'bgm-purple',
+                'bgm-gray',
+                'bgm-black'
+            ];
+
+            //console.log(self.sermon);
+            if (self._validateSermon()) {
+                self.sermon.cal_color = _.sample(colors);
+                bibleService.publishSermon(self.sermon).then(function (resp) {
+                    resp = resp.data;
+                    if (resp.id) {
+
+                        swal({
+                            title: resp.title + ' has been published.',
+                            text: 'Do you want to create another sermon?',
+                            type: 'success',
+                            showCancelButton: true,
+                            cancelButtonText: 'Yes!',
+                            confirmButtonColor: '#DD6B55',
+                            confirmButtonText: 'No, go to calender!',
+                            closeOnConfirm: true,
+                        }, function (goToCalendar) {
+                            if (!goToCalendar) {
+                                self.submitted = false;
+                                self.sermon = {
+                                    scriptures: [],
+                                    _dates: [{'date': self.date_}],
+                                    title: '',
+                                    notes: [{content: ''}],
+                                    questions: [{content: ''}]
+                                };
+                            } else {
+                                $state.go('base.sermon-browse')
+                            }
+                        });
+
+                    } else if (resp.status == 'error') {
+                        alertService.danger(resp.message.join('<br>'));
+                    }
+
+                });
+
+            }
+        };
+
+
+        self.addDate = function () {
+            var d = angular.copy(self.date_);
+            d.setHours(0);
+            d.setMinutes(0);
+            self.sermon._dates.push({date: d});
+        };
+
+
+        if ($state.current.name == 'base.sermon-browse') {
+            self.sermons = sermons;
+
+            //Create and add Action button with dropdown in Calendar header.
+            self.month = 'month';
+
+            self.actionMenu = '<ul class="actions actions-alt" id="fc-actions">' +
+                '<li class="dropdown" dropdown>' +
+                '<a href="" dropdown-toggle><i class="zmdi zmdi-more-vert"></i></a>' +
+                '<ul class="dropdown-menu dropdown-menu-right">' +
+                '<li class="active">' +
+                '<a data-calendar-view="month" href="">Month View</a>' +
+                '</li>' +
+                '<li>' +
+                '<a data-calendar-view="basicWeek" href="">Week View</a>' +
+                '</li>' +
+                '<li>' +
+                '<a data-calendar-view="agendaWeek" href="">Agenda Week View</a>' +
+                '</li>' +
+                '<li>' +
+                '<a data-calendar-view="basicDay" href="">Day View</a>' +
+                '</li>' +
+                '<li>' +
+                '<a data-calendar-view="agendaDay" href="">Agenda Day View</a>' +
+                '</li>' +
+                '</ul>' +
+                '</div>' +
+                '</li>';
+
+            self.onEventSelect = function (calEvent, jsEvent, view) {
+                $state.go('base.sermon-study', {id: calEvent.id});
+            };
+
+            //Open new event modal on selecting a day
+            self.onSelect = function (start, end) {
+                if (!self.user.is_pastor) return;
+                $state.go('base.sermon-create', {date: moment(end).unix()});
+            };
         }
-    };
-    /**
-     * Publish a sermon so it's available to users
-     */
-    self.publish = function () {
-        self.submitted = true;
+
+        //console.log($stateParams);
+        self.date_ = $stateParams.date ? moment.unix($stateParams.date).toDate() : new Date();
+        self.date_.setHours(0);
+        self.date_.setMinutes(0);
+
+        self.sermon = (!_.isEmpty(sermon)) ? sermon : {
+            scriptures: [],
+            _dates: [{'date': self.date_}],
+            title: '',
+            notes: [{content: ''}],
+            questions: [{content: ''}]
+        };
+
+        if ($state.current.name == 'base.sermon-study') {
+            self.sermonComments = [];
+            self.sermonComment = {
+                user_key: self.user.id,
+                comment: ''
+            };
+            $state.current.data.pageTitle = self.sermon.title;
+            self.sermon.scriptures = [];
+            self.sermon.scripture.forEach(function (s) {
+                self.sermon.scriptures.push(bibleService.scriptureToText(s));
+            });
+            self.sermonNote = {
+                user_key: self.user.id,
+                sermon_key: self.sermon.id,
+                notes: ''
+            };
+
+            self.getUserSermonNote();
+            self.getSermonComments();
+
+        }
         //console.log(self.sermon);
-        if (!_.isEmpty(self.sermon.title) && self.sermon.scriptures.length > 0
-            && !_.isEmpty(self.sermon.notes[0].content)) {
-            self.sermon.scripture = self.sermon.scriptures.map(function (s) {
-                return bibleService.parseScripture(s);
-            });
-            console.log(self.sermon);
 
-        }
-    }
-}]);
+
+    }]
+);
 App.controller('headerController', ["$timeout", "$location", "messageService", "$scope", function($timeout, $location, messageService, $scope){
 
     var self = this;
@@ -948,7 +1371,7 @@ App.controller('headerController', ["$timeout", "$location", "messageService", "
 App.service('alertService', function () {
     var self = this;
 
-    var config = {
+    var _config = {
         enter: 'animated fadeIn',
         exit: '',
         from: 'top',
@@ -956,13 +1379,17 @@ App.service('alertService', function () {
         delay: 4000,
         icon: ''
     };
-    self.info = function (message) {
-        notify(message, 'inverse')
+    self.info = function (message, config) {
+        var c = _.merge(_config, config);
+        c.type = 'inverse';
+        notify(message, c)
     };
-    self.danger = function (message) {
-        notify(message, 'danger')
+    self.danger = function (message, config) {
+        var c = _.merge(_config, config);
+        c.type = 'danger';
+        notify(message, c)
     };
-    function notify(message, type) {
+    function notify(message, config) {
         $.growl({
             icon: config.icon,
             title: '',
@@ -970,7 +1397,7 @@ App.service('alertService', function () {
             url: ''
         }, {
             element: 'body',
-            type: type,
+            type: config.type,
             allow_dismiss: true,
             placement: {
                 from: config.from,
@@ -1043,10 +1470,8 @@ App.service('authService', ["$http", "$state", "$q", "USER_ROLES", "localStorage
     self.resolveAuth = function () {
         var deferred = $q.defer();
         var user = self.getUser();
-        console.log(self.user);
+        //console.log(self.user);
         if (!_.isEmpty(user)) {
-            deferred.resolve(user);
-        } else {
             self.loadCurrentUser().then(function () {
                 user = self.getUser();
                 if (user) {
@@ -1056,6 +1481,9 @@ App.service('authService', ["$http", "$state", "$q", "USER_ROLES", "localStorage
                     $state.go('login');
                 }
             });
+        } else {
+            deferred.reject();
+            $state.go('login');
         }
         return deferred.promise;
     };
@@ -1109,7 +1537,7 @@ App.service('authService', ["$http", "$state", "$q", "USER_ROLES", "localStorage
      * @returns {boolean}
      */
     self.hasSession = function () {
-        console.log(localStorageService.get('user'));
+        //console.log(localStorageService.get('user'));
         return !_.isEmpty(localStorageService.get('user'));
     };
 
@@ -2152,7 +2580,7 @@ App.factory('bibleData', function () {
 /**
  * Created by eanjorin on 12/11/15.
  */
-App.service('bibleService', ["$http", "$q", "bibleData", function ($http, $q, bibleData) {
+App.service('bibleService', ["$http", "$q", function ($http, $q) {
     var BASE_URL = 'https://getbible.net/json?';
     var self = this;
 
@@ -2188,7 +2616,7 @@ App.service('bibleService', ["$http", "$q", "bibleData", function ($http, $q, bi
      * @param str
      * @returns {{book: string, chapter: number, verses: Array}}
      */
-    self.parseScripture = function scrip(str) {
+    self.parseScripture = function (str) {
         var re = /([1|2]?[\D]+)(\d.*)/;
         var m;
 
@@ -2230,6 +2658,7 @@ App.service('bibleService', ["$http", "$q", "bibleData", function ($http, $q, bi
         }
 
     };
+
     self.addChurch = function (data) {
         return $http.post('/api/church', data);
     };
@@ -2237,94 +2666,39 @@ App.service('bibleService', ["$http", "$q", "bibleData", function ($http, $q, bi
         return $http.get('/api/churches');
     };
 
+    self.scriptureToText = function (s) {
+        var tmp = s.book + ' ' + s.chapter;
+        if (!_.isEmpty(s.verses)) {
+            tmp += ':' + s.verses.join(',');
+        }
+        return tmp;
+    };
+
+    self.getSermon = function (id) {
+        return $http.get('/api/sermon/' + id);
+    };
+
+    self.getSermonComments = function (sermonId) {
+        return $http.get('/api/sermon/' + sermonId + '/comments', {ignoreLoadingBar: true});
+    };
+
+    self.getComments = function (refKey, kind) {
+        return $http.get('/api/comment/' + refKey + '?k=' + kind, {ignoreLoadingBar: true});
+    };
+
+    self.getChurchSermons = function (churchId) {
+        return $http.get('/api/sermon?church_id=' + churchId);
+
+    };
+    /**
+     * Get scripture
+     * @param passage
+     * @param version
+     * @returns {HttpPromise}
+     */
     self.get = function (passage, version) {
         version = version ? version : 'kjv';
         return $http.jsonp(BASE_URL + 'callback=JSON_CALLBACK&passage=' + passage + '&v=' + version);
-        // var def = $q.defer();
-        // def.resolve({ data: {
-        //     "book": [
-        //         {
-        //             "book_ref": "Ac",
-        //             "book_name": "Acts",
-        //             "book_nr": "44",
-        //             "chapter_nr": "3",
-        //             "chapter": {
-        //                 "4": {
-        //                     "verse_nr": "4",
-        //                     "verse": "And Peter, fastening his eyes upon him with John, said, Look on us."
-        //                 },
-        //                 "5": {
-        //                     "verse_nr": 5,
-        //                     "verse": "And he gave heed unto them, expecting to receive something of them."
-        //                 },
-        //                 "6": {
-        //                     "verse_nr": 6,
-        //                     "verse": "Then Peter said, Silver and gold have I none; but such as I have give I thee: In the name of Jesus Christ of Nazareth rise up and walk."
-        //                 },
-        //                 "7": {
-        //                     "verse_nr": 7,
-        //                     "verse": "And he took him by the right hand, and lifted him up: and immediately his feet and ankle bones received strength."
-        //                 },
-        //                 "8": {
-        //                     "verse_nr": 8,
-        //                     "verse": "And he leaping up stood, and walked, and entered with them into the temple, walking, and leaping, and praising God."
-        //                 },
-        //                 "9": {
-        //                     "verse_nr": 9,
-        //                     "verse": "And all the people saw him walking and praising God:"
-        //                 },
-        //                 "10": {
-        //                     "verse_nr": 10,
-        //                     "verse": "And they knew that it was he which sat for alms at the Beautiful gate of the temple: and they were filled with wonder and amazement at that which had happened unto him."
-        //                 },
-        //                 "11": {
-        //                     "verse_nr": 11,
-        //                     "verse": "And as the lame man which was healed held Peter and John, all the people ran together unto them in the porch that is called Solomon's, greatly wondering."
-        //                 },
-        //                 "12": {
-        //                     "verse_nr": 12,
-        //                     "verse": "And when Peter saw it, he answered unto the people, Ye men of Israel, why marvel ye at this? or why look ye so earnestly on us, as though by our own power or holiness we had made this man to walk?"
-        //                 },
-        //                 "13": {
-        //                     "verse_nr": 13,
-        //                     "verse": "The God of Abraham, and of Isaac, and of Jacob, the God of our fathers, hath glorified his Son Jesus; whom ye delivered up, and denied him in the presence of Pilate, when he was determined to let him go."
-        //                 },
-        //                 "14": {
-        //                     "verse_nr": 14,
-        //                     "verse": "But ye denied the Holy One and the Just, and desired a murderer to be granted unto you;"
-        //                 },
-        //                 "15": {
-        //                     "verse_nr": 15,
-        //                     "verse": "And killed the Prince of life, whom God hath raised from the dead; whereof we are witnesses."
-        //                 },
-        //                 "16": {
-        //                     "verse_nr": 16,
-        //                     "verse": "And his name through faith in his name hath made this man strong, whom ye see and know: yea, the faith which is by him hath given him this perfect soundness in the presence of you all."
-        //                 },
-        //                 "17": {
-        //                     "verse_nr": 17,
-        //                     "verse": "And now, brethren, I wot that through ignorance ye did it, as did also your rulers."
-        //                 }
-        //             }
-        //         },
-        //         {
-        //             "book_ref": "Ac",
-        //             "book_name": "Acts",
-        //             "book_nr": "44",
-        //             "chapter_nr": "2",
-        //             "chapter": {
-        //                 "1": {
-        //                     "verse_nr": "1",
-        //                     "verse": "And when the day of Pentecost was fully come, they were all with one accord in one place."
-        //                 }
-        //             }
-        //         }
-        //     ],
-        //     "direction": "LTR",
-        //     "type": "verse",
-        //     "version": "kjv"
-        // }});
-        // return def.promise;
     };
 
     self.versions = function () {
@@ -2337,6 +2711,10 @@ App.service('bibleService', ["$http", "$q", "bibleData", function ($http, $q, bi
 
     self.publishSermon = function (sermon) {
         return $http.post('/api/sermon/publish', sermon);
+    };
+
+    self.logSermonView = function (sermonId) {
+        return $http.post('/api/sermon/' + sermonId + '/log', sermon, {ignoreLoadingBar: true});
     };
 
 
@@ -2354,69 +2732,40 @@ App
         }
 
     })
-    .directive('growlDemo', function(){
+    .directive('autoSize', function () {
         return {
             restrict: 'A',
-            link: function(scope, element, attrs) {
-                function notify(from, align, icon, type, animIn, animOut){
-                    console.log(arguments);
-                    $.growl({
-                        icon: icon,
-                        title: ' Bootstrap Growl ',
-                        message: 'Turning standard Bootstrap alerts into awesome notifications',
-                         url: 'http://google.com'
-                    },{
-                            element: 'body',
-                            type: type,
-                            allow_dismiss: true,
-                            placement: {
-                                    from: from,
-                                    align: align
-                            },
-                            offset: {
-                                x: 20,
-                                y: 85
-                            },
-                            spacing: 10,
-                            z_index: 1031,
-                            delay: 2500,
-                            timer: 1000,
-                            url_target: '_blank',
-                            mouse_over: false,
-                            animate: {
-                                    enter: animIn,
-                                    exit: animOut
-                            },
-                            icon_type: 'class',
-                            template: '<div data-growl="container" class="alert" role="alert">' +
-                                            '<button type="button" class="close" data-growl="dismiss">' +
-                                                '<span aria-hidden="true">&times;</span>' +
-                                                '<span class="sr-only">Close</span>' +
-                                            '</button>' +
-                                            '<span data-growl="icon"></span>' +
-                                            '<span data-growl="title"></span>' +
-                                            '<span data-growl="message"></span>' +
-                                            '<a href="#" data-growl="url"></a>' +
-                                        '</div>'
-                    });
+            link: function (scope, element) {
+                if (element[0]) {
+                    autosize(element);
                 }
-
-                element.on('click', function(e){
-                    e.preventDefault();
-
-                    var nFrom = attrs.from;
-                    var nAlign = attrs.align;
-                    var nIcons = attrs.icon;
-                    var nType = attrs.type;
-                    var nAnimIn = attrs.animationIn;
-                    var nAnimOut = attrs.animationOut;
-
-                    notify(nFrom, nAlign, nIcons, nType, nAnimIn, nAnimOut);
-
-                })
-
-
             }
+        }
+    })
+    .directive('scriptureChip', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, element) {
+               console.log($(element).find('md-chip'));
+              $(element).find('md-chip').on('click', function(){
+                 console.log(123);
+              });
+            }
+        }
+    })
+    .directive('loading', function () {
+        return {
+            restrict: 'EA',
+            scope: {
+                loader: '='
+            },
+            template: '  <div style="text-align: center" ng-if="loader"> ' +
+            '<div class="preloader pls-blue"> ' +
+            '<svg class="pl-circular" viewBox="25 25 50 50">' +
+            '<circle class="plc-path" cx="50" cy="50" r="20"/>' +
+            '</svg>' +
+            '</div>' +
+            '</div>'
         }
     })
     .directive('submitOn', function () {
@@ -2435,7 +2784,144 @@ App
                 });
             }
         };
+    })
+    .directive('calAddSermon', ["authService", function (authService) {
+        return {
+            restrict: 'A',
+            link: function (scope, elm, attrs) {
+                if (authService.user.is_pastor) {
+                    $(elm).on('mouseover', '.fc-day', function (e) {
+                        var elem = e.currentTarget;
+                        $(elem).append("<span style='padding-top: 10%' class='add-sermon-label'><strong>Click to add sermon</strong></span>");
+                    });
+                    $(elm).on('mouseleave', '.fc-day', function (e) {
+                        var elem = e.currentTarget;
+                        $(elem).find('.add-sermon-label').remove();
+                    });
+                }
+
+            }
+        };
+    }])
+    .directive('calendar', ["$compile", function ($compile) {
+        return {
+            restrict: 'A',
+            scope: {
+                select: '&',
+                actionLinks: '=',
+                events: '=',
+                eventClick: '='
+            },
+            link: function (scope, element, attrs) {
+
+                //Generate the Calendar
+                element.fullCalendar({
+                    header: {
+                        right: '',
+                        center: 'prev, title, next',
+                        left: ''
+                    },
+
+                    theme: true, //Do not remove this as it ruin the design
+                    selectable: true,
+                    selectHelper: true,
+                    editable: true,
+
+                    //Add Events
+                    events: scope.events,
+
+                    //On Day Select
+                    select: function (start, end, allDay) {
+                        scope.select({
+                            start: start,
+                            end: end
+                        });
+                    },
+
+                    eventClick: function (calEvent, jsEvent, view) {
+                        console.log(arguments);
+                        scope.eventClick(calEvent, jsEvent, view);
+                    }
+                });
+
+
+                //Add action links in calendar header
+                element.find('.fc-toolbar').append($compile(scope.actionLinks)(scope));
+            }
+        }
+    }])
+    .directive('toggleSidebar', function () {
+        return {
+            restrict: 'A',
+            scope: {
+                modelLeft: '=',
+                modelRight: '='
+            },
+
+            link: function (scope, element, attr) {
+                element.on('click', function () {
+
+                    if (element.data('target') === 'mainmenu') {
+                        if (scope.modelLeft === false) {
+                            scope.$apply(function () {
+                                scope.modelLeft = true;
+                            })
+                        }
+                        else {
+                            scope.$apply(function () {
+                                scope.modelLeft = false;
+                            })
+                        }
+                    }
+
+                    if (element.data('target') === 'chat') {
+                        if (scope.modelRight === false) {
+                            scope.$apply(function () {
+                                scope.modelRight = true;
+                            })
+                        }
+                        else {
+                            scope.$apply(function () {
+                                scope.modelRight = false;
+                            })
+                        }
+
+                    }
+                })
+            }
+        }
     });
+
+/**
+ * Created by eanjorin on 12/11/15.
+ */
+App
+    .filter('sentencecase', function () {
+        return function (input) {
+            if (angular.isString(input)) {
+                var i = input.split(' ');
+                var word = [];
+                i.forEach(function (w) {
+                    word.push(w.charAt(0).toUpperCase() + w.substring(1, w.length).toLowerCase());
+                });
+                return word.join(' ');
+            }
+            return input;
+        }
+    })
+    .filter('formatDate', ["util", function (util) {
+        return function (input, format) {
+            return util.toLocalFormat(input, format)
+        }
+    }])
+    .filter('fromNow', ["util", function (util) {
+        return function (input) {
+            return util.toLocalMoment(input).fromNow();
+        }
+    }]);
+
+
+
 App.directive('toggleSidebar', function () {
     return {
         restrict: 'A',
@@ -2483,40 +2969,98 @@ App.directive('toggleSidebar', function () {
  */
 App.service('userService', ["$http", function ($http) {
 
+    var self = this;
 
-    this.signUp = function (user) {
+    self.signUp = function (user) {
         return $http.post('/api/signup', user);
     };
 
-    this.updateProfile = function (user) {
+    self.updateProfile = function (user) {
         return $http.post('/api/user/profile', user);
     };
 
-    this.requestComment = function (request) {
+    self.requestComment = function (request) {
         return $http.post('/api/request');
 
     };
 
-    this.publishSermon = function (sermon) {
+    self.publishSermon = function (sermon) {
         return $http.post('/api/sermon/publish');
     };
 
-    this.saveSermon = function (sermon) {
+    self.saveSermon = function (sermon) {
         return $http.post('/api/sermon');
     };
+
+    self.postComment = function (comment, refKey, kind) {
+        return $http.post('/api/comment/' + refKey + '?k=' + kind, comment, {ignoreLoadingBar: true});
+    };
+    self.getSermonNote = function (userId, sermonId) {
+        return $http.get('/api/user/' + userId + '/sermon/' + sermonId + '/note', {ignoreLoadingBar: true});
+    };
+
+    self.saveSermonNote = function (note) {
+        return $http.post('/api/sermon/note', note, {ignoreLoadingBar: true});
+    };
+
+    self.likeComment = function (commentId) {
+        return $http.post('/api/comment/' + commentId + '/like', {}, {ignoreLoadingBar: true});
+    };
+    self.unlikeComment = function (commentId) {
+        return $http.post('/api/comment/' + commentId + '/unlike', {}, {ignoreLoadingBar: true});
+    };
+    self.likeSermon = function (sermonId) {
+        return $http.post('/api/sermon/' + sermonId + '/like', {}, {ignoreLoadingBar: true});
+    };
+    self.unlikeSermon = function (sermonId) {
+        return $http.post('/api/sermon/' + sermonId + '/unlike', {}, {ignoreLoadingBar: true});
+    };
 }]);
+/**
+ * Created by ebby on 12/29/2015.
+ */
+App.service('util', function () {
+
+    var self = this;
+
+    self.toLocalFormat = function (ms, format) {
+        var local = moment.utc(parseInt(ms)).local();
+        format = format ? format : 'MM-DD-YYYY';
+        return local.format(format);
+    };
+
+    self.toUtcMilliseconds = function (date) {
+        return moment(date).utc().unix() * 1000;
+    };
+    self.toLocalDate = function (ms) {
+        return self.toLocalMoment(ms).toDate();
+    };
+    self.toLocalMoment = function (ms) {
+        return moment.utc(parseInt(ms)).local();
+    };
+
+    self.log = function (obj) {
+        console.log(JSON.stringify(obj, null, 2));
+    }
+
+});
 angular.module("tskApp").run(["$templateCache", function($templateCache) {$templateCache.put("module/profile-menu.html","<li class=\"btn-wave\" data-ui-sref-active=\"active\"><a data-ui-sref=\"pages.profile.profile-about\">About</a></li>\r\n<li class=\"btn-wave\" data-ui-sref-active=\"active\"><a data-ui-sref=\"pages.profile.profile-timeline\">Timeline</a></li>\r\n<li class=\"btn-wave\" data-ui-sref-active=\"active\"><a data-ui-sref=\"pages.profile.profile-photos\">Photos</a></li>\r\n<li class=\"btn-wave\" data-ui-sref-active=\"active\"><a data-ui-sref=\"pages.profile.profile-connections\">Connections</a></li>\r\n");
-$templateCache.put("module/home/home.html","<section id=\"main\">\n    <aside id=\"sidebar\" data-ng-include=\"\'module/shared/sidebar-left.html\'\"\n           data-ng-class=\"{ \'toggled\': mainCtrl.sidebarToggle.left === true }\"></aside>\n\n    <aside id=\"chat\" data-ng-include=\"\'module/shared/chat.html\'\"\n           data-ng-class=\"{ \'toggled\': mainCtrl.sidebarToggle.right === true }\"></aside>\n\n    <section id=\"content\">\n\n        <div class=\"container\">\n            <div class=\"block-header\">\n                <h2>Dashboard</h2>\n\n                <ul class=\"actions\">\n                    <li>\n                        <a href=\"\">\n                            <i class=\"zmdi zmdi-trending-up\"></i>\n                        </a>\n                    </li>\n                    <li>\n                        <a href=\"\">\n                            <i class=\"zmdi zmdi-check-all\"></i>\n                        </a>\n                    </li>\n                    <li class=\"dropdown\" uib-dropdown>\n                        <a href=\"\" uib-dropdown-toggle>\n                            <i class=\"zmdi zmdi-more-vert\"></i>\n                        </a>\n\n                        <ul class=\"dropdown-menu dropdown-menu-right\">\n                            <li>\n                                <a href=\"\">Refresh</a>\n                            </li>\n                            <li>\n                                <a href=\"\">Manage Widgets</a>\n                            </li>\n                            <li>\n                                <a href=\"\">Widgets Settings</a>\n                            </li>\n                        </ul>\n                    </li>\n                </ul>\n\n            </div>\n\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <h2>Sales Statistics\n                        <small>Vestibulum purus quam scelerisque, mollis nonummy metus</small>\n                    </h2>\n\n                    <ul class=\"actions\">\n                        <li>\n                            <a href=\"\">\n                                <i class=\"zmdi zmdi-refresh-alt\"></i>\n                            </a>\n                        </li>\n                        <li>\n                            <a href=\"\">\n                                <i class=\"zmdi zmdi-download\"></i>\n                            </a>\n                        </li>\n                        <li class=\"dropdown\" uib-dropdown>\n                            <a href=\"\" uib-dropdown-toggle>\n                                <i class=\"zmdi zmdi-more-vert\"></i>\n                            </a>\n\n                            <ul class=\"dropdown-menu dropdown-menu-right\">\n                                <li>\n                                    <a href=\"\">Change Date Range</a>\n                                </li>\n                                <li>\n                                    <a href=\"\">Change Graph Type</a>\n                                </li>\n                                <li>\n                                    <a href=\"\">Other Settings</a>\n                                </li>\n                            </ul>\n                        </li>\n                    </ul>\n                </div>\n\n                <div class=\"card-body\">\n                    <div class=\"chart-edge\">\n                        <div class=\"flot-chart\" data-curvedline-chart></div>\n                    </div>\n                </div>\n            </div>\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <h2>Sales Statistics\n                        <small>Vestibulum purus quam scelerisque, mollis nonummy metus</small>\n                    </h2>\n\n                    <ul class=\"actions\">\n                        <li>\n                            <a href=\"\">\n                                <i class=\"zmdi zmdi-refresh-alt\"></i>\n                            </a>\n                        </li>\n                        <li>\n                            <a href=\"\">\n                                <i class=\"zmdi zmdi-download\"></i>\n                            </a>\n                        </li>\n                        <li class=\"dropdown\" uib-dropdown>\n                            <a href=\"\" uib-dropdown-toggle>\n                                <i class=\"zmdi zmdi-more-vert\"></i>\n                            </a>\n\n                            <ul class=\"dropdown-menu dropdown-menu-right\">\n                                <li>\n                                    <a href=\"\">Change Date Range</a>\n                                </li>\n                                <li>\n                                    <a href=\"\">Change Graph Type</a>\n                                </li>\n                                <li>\n                                    <a href=\"\">Other Settings</a>\n                                </li>\n                            </ul>\n                        </li>\n                    </ul>\n                </div>\n\n                <div class=\"card-body\">\n                    <div class=\"chart-edge\">\n                        <div class=\"flot-chart\" data-curvedline-chart></div>\n                    </div>\n                </div>\n            </div>\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <h2>Sales Statistics\n                        <small>Vestibulum purus quam scelerisque, mollis nonummy metus</small>\n                    </h2>\n\n                    <ul class=\"actions\">\n                        <li>\n                            <a href=\"\">\n                                <i class=\"zmdi zmdi-refresh-alt\"></i>\n                            </a>\n                        </li>\n                        <li>\n                            <a href=\"\">\n                                <i class=\"zmdi zmdi-download\"></i>\n                            </a>\n                        </li>\n                        <li class=\"dropdown\" uib-dropdown>\n                            <a href=\"\" uib-dropdown-toggle>\n                                <i class=\"zmdi zmdi-more-vert\"></i>\n                            </a>\n\n                            <ul class=\"dropdown-menu dropdown-menu-right\">\n                                <li>\n                                    <a href=\"\">Change Date Range</a>\n                                </li>\n                                <li>\n                                    <a href=\"\">Change Graph Type</a>\n                                </li>\n                                <li>\n                                    <a href=\"\">Other Settings</a>\n                                </li>\n                            </ul>\n                        </li>\n                    </ul>\n                </div>\n\n                <div class=\"card-body\">\n                    <div class=\"chart-edge\">\n                        <div class=\"flot-chart\" data-curvedline-chart></div>\n                    </div>\n                </div>\n            </div>\n\n\n        </div>\n    </section>\n</section>");
+$templateCache.put("module/home/home.html","<div class=\"container\">\r\n    <div class=\"block-header\">\r\n        <h2>Dashboard</h2>\r\n\r\n        <ul class=\"actions\">\r\n            <li>\r\n                <a href=\"\">\r\n                    <i class=\"zmdi zmdi-trending-up\"></i>\r\n                </a>\r\n            </li>\r\n            <li>\r\n                <a href=\"\">\r\n                    <i class=\"zmdi zmdi-check-all\"></i>\r\n                </a>\r\n            </li>\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a href=\"\" uib-dropdown-toggle>\r\n                    <i class=\"zmdi zmdi-more-vert\"></i>\r\n                </a>\r\n\r\n                <ul class=\"dropdown-menu dropdown-menu-right\">\r\n                    <li>\r\n                        <a href=\"\">Refresh</a>\r\n                    </li>\r\n                    <li>\r\n                        <a href=\"\">Manage Widgets</a>\r\n                    </li>\r\n                    <li>\r\n                        <a href=\"\">Widgets Settings</a>\r\n                    </li>\r\n                </ul>\r\n            </li>\r\n        </ul>\r\n\r\n    </div>\r\n\r\n    <div class=\"card\">\r\n        <div class=\"card-header\">\r\n            <h2>Sales Statistics\r\n                <small>Vestibulum purus quam scelerisque, mollis nonummy metus</small>\r\n            </h2>\r\n\r\n            <ul class=\"actions\">\r\n                <li>\r\n                    <a href=\"\">\r\n                        <i class=\"zmdi zmdi-refresh-alt\"></i>\r\n                    </a>\r\n                </li>\r\n                <li>\r\n                    <a href=\"\">\r\n                        <i class=\"zmdi zmdi-download\"></i>\r\n                    </a>\r\n                </li>\r\n                <li class=\"dropdown\" uib-dropdown>\r\n                    <a href=\"\" uib-dropdown-toggle>\r\n                        <i class=\"zmdi zmdi-more-vert\"></i>\r\n                    </a>\r\n\r\n                    <ul class=\"dropdown-menu dropdown-menu-right\">\r\n                        <li>\r\n                            <a href=\"\">Change Date Range</a>\r\n                        </li>\r\n                        <li>\r\n                            <a href=\"\">Change Graph Type</a>\r\n                        </li>\r\n                        <li>\r\n                            <a href=\"\">Other Settings</a>\r\n                        </li>\r\n                    </ul>\r\n                </li>\r\n            </ul>\r\n        </div>\r\n\r\n        <div class=\"card-body\">\r\n            <div class=\"chart-edge\">\r\n                <div class=\"flot-chart\" data-curvedline-chart></div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div class=\"card\">\r\n        <div class=\"card-header\">\r\n            <h2>Sales Statistics\r\n                <small>Vestibulum purus quam scelerisque, mollis nonummy metus</small>\r\n            </h2>\r\n\r\n            <ul class=\"actions\">\r\n                <li>\r\n                    <a href=\"\">\r\n                        <i class=\"zmdi zmdi-refresh-alt\"></i>\r\n                    </a>\r\n                </li>\r\n                <li>\r\n                    <a href=\"\">\r\n                        <i class=\"zmdi zmdi-download\"></i>\r\n                    </a>\r\n                </li>\r\n                <li class=\"dropdown\" uib-dropdown>\r\n                    <a href=\"\" uib-dropdown-toggle>\r\n                        <i class=\"zmdi zmdi-more-vert\"></i>\r\n                    </a>\r\n\r\n                    <ul class=\"dropdown-menu dropdown-menu-right\">\r\n                        <li>\r\n                            <a href=\"\">Change Date Range</a>\r\n                        </li>\r\n                        <li>\r\n                            <a href=\"\">Change Graph Type</a>\r\n                        </li>\r\n                        <li>\r\n                            <a href=\"\">Other Settings</a>\r\n                        </li>\r\n                    </ul>\r\n                </li>\r\n            </ul>\r\n        </div>\r\n\r\n        <div class=\"card-body\">\r\n            <div class=\"chart-edge\">\r\n                <div class=\"flot-chart\" data-curvedline-chart></div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div class=\"card\">\r\n        <div class=\"card-header\">\r\n            <h2>Sales Statistics\r\n                <small>Vestibulum purus quam scelerisque, mollis nonummy metus</small>\r\n            </h2>\r\n\r\n            <ul class=\"actions\">\r\n                <li>\r\n                    <a href=\"\">\r\n                        <i class=\"zmdi zmdi-refresh-alt\"></i>\r\n                    </a>\r\n                </li>\r\n                <li>\r\n                    <a href=\"\">\r\n                        <i class=\"zmdi zmdi-download\"></i>\r\n                    </a>\r\n                </li>\r\n                <li class=\"dropdown\" uib-dropdown>\r\n                    <a href=\"\" uib-dropdown-toggle>\r\n                        <i class=\"zmdi zmdi-more-vert\"></i>\r\n                    </a>\r\n\r\n                    <ul class=\"dropdown-menu dropdown-menu-right\">\r\n                        <li>\r\n                            <a href=\"\">Change Date Range</a>\r\n                        </li>\r\n                        <li>\r\n                            <a href=\"\">Change Graph Type</a>\r\n                        </li>\r\n                        <li>\r\n                            <a href=\"\">Other Settings</a>\r\n                        </li>\r\n                    </ul>\r\n                </li>\r\n            </ul>\r\n        </div>\r\n\r\n        <div class=\"card-body\">\r\n            <div class=\"chart-edge\">\r\n                <div class=\"flot-chart\" data-curvedline-chart></div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n\r\n</div>");
 $templateCache.put("module/main/main.html","<section id=\"content\">\r\n\r\n\r\n    <div class=\"container\">\r\n\r\n        <div id=\"login-signup-reset\">\r\n            <div class=\"col-sm-6\" style=\"margin-bottom: 70px\">\r\n                <!--<h2>ScripturedIn</h2>-->\r\n                <!--login -->\r\n                <div ng-if=\"$state.current.name == \'main\' || $state.current.name == \'main.login\'\">\r\n\r\n                    <div class=\"lc-block toggled\" id=\"login\">\r\n                        <div class=\"input-group m-b-20\">\r\n                            <span class=\"input-group-addon\"><i class=\"zmdi zmdi-account\"></i></span>\r\n\r\n                            <div class=\"fg-line\">\r\n                                <input type=\"text\" class=\"form-control\" placeholder=\"Username\">\r\n                            </div>\r\n                        </div>\r\n\r\n                        <div class=\"input-group m-b-20\">\r\n                            <span class=\"input-group-addon\"><i class=\"zmdi zmdi-male\"></i></span>\r\n\r\n                            <div class=\"fg-line\">\r\n                                <input type=\"password\" class=\"form-control\" placeholder=\"Password\">\r\n                            </div>\r\n                        </div>\r\n\r\n                        <div class=\"clearfix\"></div>\r\n\r\n\r\n                        <a href=\"\" class=\"btn btn-login btn-danger btn-float\"><i\r\n                                class=\"zmdi zmdi-arrow-forward\"></i></a>\r\n\r\n                        <p class=\"text-center\"> or login with</p>\r\n                        <ul class=\"social-login\">\r\n                            <li>\r\n                                <!--<div class=\"g-signin2\" data-onsuccess=\"onSignIn\"></div>-->\r\n                                <a href><img src=\"img/social/googleplus-128.png\" alt=\"Google+ Login\"></a>\r\n\r\n                            </li>\r\n                            <li>\r\n                                <a href ng-click=\"mainCtrl.fbLogin()\">\r\n                                    <img src=\"img/social/facebook-128.png\" alt=\"Facebook Login\">\r\n                                </a>\r\n                            </li>\r\n                        </ul>\r\n\r\n                        <p class=\"m-t-10 text-center\">Not a member? <a ui-sref=\"main.signup\">Join Now</a></p>\r\n                    </div>\r\n                </div>\r\n                <div ng-if=\"$state.current.name == \'main.signup\'\"\r\n                     class=\"lc-block toggled\" id=\"sign-up\">\r\n                    <h2 style=\"margin-left: 20px; margin-bottom: 30px\"> Sign Up for ScripturedIn</h2>\r\n\r\n                    <form name=\"signUpForm\" ng-submit=\"mainCtrl.signUp(signUpForm)\" style=\"padding: 15px\">\r\n                        <div class=\"input-group m-b-20\">\r\n                            <!--<span class=\"input-group-addon\"><i class=\"zmdi zmdi-account\"></i></span>-->\r\n\r\n                            <div class=\"fg-line\">\r\n                                <label class=\"control-label\" for=\"firstname\">First Name</label>\r\n                                <input id=\"firstname\" ng-model=\"mainCtrl.user.first_name\" type=\"text\" required\r\n                                       class=\"form-control\">\r\n                            </div>\r\n                        </div>\r\n                        <div class=\"input-group m-b-20\">\r\n                            <!--<span class=\"input-group-addon\"><i class=\"zmdi zmdi-account\"></i></span>-->\r\n\r\n                            <div class=\"fg-line\">\r\n                                <label class=\"control-label\" for=\"lastname\">Last Name</label>\r\n                                <input id=\"lastname\" ng-model=\"mainCtrl.user.last_name\"\r\n                                       type=\"text\" required class=\"form-control\">\r\n                            </div>\r\n                        </div>\r\n\r\n                        <div class=\"input-group m-b-20\">\r\n                            <!--<span class=\"input-group-addon\"><i class=\"zmdi zmdi-email\"></i></span>-->\r\n\r\n                            <div class=\"fg-line\">\r\n                                <label class=\"control-label\" for=\"email\">Email</label>\r\n                                <input type=\"email\"\r\n                                       ng-model=\"mainCtrl.user.last_name\"\r\n                                       required class=\"form-control\" id=\"email\">\r\n                            </div>\r\n                        </div>\r\n\r\n                        <div class=\"input-group m-b-20\" style=\"width: 100%\">\r\n                            <button class=\"btn btn-block btn-primary waves-effect\">Sign Up</button>\r\n                        </div>\r\n\r\n                        <p class=\"text-center\"> or sign up with</p>\r\n                        <ul class=\"social-login\">\r\n                            <li>\r\n                                <!--<div class=\"g-signin2\" data-onsuccess=\"onSignIn\"></div>-->\r\n                                <a href><img src=\"img/social/googleplus-128.png\" alt=\"Google+ Login\"></a>\r\n\r\n                            </li>\r\n                            <li>\r\n                                <a ng-click=\"mainCtrl.fbLogin(\'signup\')\" href>\r\n                                    <img src=\"img/social/facebook-128.png\" alt=\"Facebook Login\">\r\n                                </a>\r\n                            </li>\r\n                        </ul>\r\n\r\n                        <p class=\"m-t-10 text-center\">Already have an account, <a ui-sref=\"main.login\">Sign In</a></p>\r\n                    </form>\r\n\r\n\r\n                </div>\r\n            </div>\r\n            <div class=\"col-sm-6\">\r\n                <h2>Image and stuff here</h2>\r\n            </div>\r\n\r\n        </div>\r\n\r\n\r\n    </div>\r\n\r\n</section>");
 $templateCache.put("module/main/signup-profile.html","<section id=\"main\">\n\n    <section id=\"content\">\n\n        <div class=\"container\">\n\n\n            <div class=\"card\">\n                <div class=\"listview lv-bordered lv-lg\">\n                    <div class=\"lv-header-alt clearfix\">\n                        <h1 class=\"lvh-label\">Welcome {{authService.user.first_name}}, please take a moment to update your\n                            profile.</h1>\n\n                        <!--<ul class=\"lv-actions actions\">-->\n                            <!--<li>-->\n                                <!--<a href=\"\" data-ng-click=\"mactrl.listviewSearchStat = true\">-->\n                                    <!--<i class=\"zmdi zmdi-search\"></i>-->\n                                <!--</a>-->\n                            <!--</li>-->\n\n                        <!--</ul>-->\n                    </div>\n\n                    <div class=\"lv-body\" style=\"padding: 20px;\">\n                        <div class=\"row\">\n                            <div class=\"col-sm-12\">\n                                <form id=\"profile\" name=\"profile\">\n                                    <div class=\"form-group\">\n                                        <div class=\"row m-b-20\">\n                                            <div class=\"col-sm-3\">\n                                                <p>Select your church</p>\n                                            </div>\n                                            <div class=\"col-sm-8\">\n                                                <input type=\"text\" ng-model=\"mainCtrl.user.church\"\n                                                       placeholder=\"Type the name of your church\"\n                                                       uib-typeahead=\"c as c.name + \' (\' +  c.city + \')\' for c in  mainCtrl.getChurch($viewValue)\"\n                                                       typeahead-loading=\"loadingChurches\"\n                                                       typeahead-no-results=\"noResults\" class=\"form-control f-16\">\n                                                <i ng-show=\"loadingChurches\" class=\"glyphicon glyphicon-refresh\"></i>\n\n                                                <div ng-show=\"noResults\" class=\"f-14 c-red\">\n                                                    <i class=\"glyphicon glyphicon-remove\"></i> No church found,\n                                                    click <a href ng-click=\"newChurch=true;\">here</a> to add church</a>\n\n                                                    <div ng-if=\"newChurch\" id=\"new-church\" class=\"m-t-15\">\n                                                        <form name=\"churchForm\" id=\"churchForm\">\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-8\">\n                                                                    <md-input-container class=\"md-block\">\n                                                                        <label>Church name</label>\n                                                                        <input required\n                                                                               name=\"churchname\"\n                                                                               ng-model=\"mainCtrl.newChurch.name\">\n\n                                                                        <div ng-if=\"mainCtrl.newChurch.name.length < 1\"\n                                                                             ng-messages=\"churchForm.churchname.$error\">\n                                                                            <div ng-message=\"required\">This is\n                                                                                required.\n                                                                            </div>\n                                                                        </div>\n                                                                    </md-input-container>\n                                                                </div>\n                                                            </div>\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-8\">\n                                                                    <div class=\"form-group\">\n                                                                        <input type=\"text\"\n                                                                               class=\"form-control input-sm\"\n                                                                               ng-model=\"mainCtrl.newChurch.website\"\n                                                                               placeholder=\"Website\">\n\n                                                                    </div>\n\n                                                                </div>\n                                                            </div>\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-8\">\n                                                                    <div class=\"form-group\">\n                                                                        <input type=\"text\"\n                                                                               name=\"city\"\n                                                                               class=\"form-control input-sm\"\n                                                                               ng-model=\"mainCtrl.newChurch.city\"\n                                                                               placeholder=\"City\">\n\n                                                                    </div>\n\n                                                                </div>\n                                                            </div>\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-8\">\n                                                                    <div class=\"form-group\">\n                                                                        <input type=\"text\"\n                                                                               name=\"state\"\n                                                                               class=\"form-control input-sm\"\n                                                                               ng-model=\"mainCtrl.newChurch.state\"\n                                                                               placeholder=\"State\">\n\n\n                                                                    </div>\n\n                                                                </div>\n                                                            </div>\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-8\">\n                                                                    <div class=\"form-group\">\n                                                                        <input type=\"text\"\n                                                                               name=\"country\"\n                                                                               class=\"form-control input-sm\"\n                                                                               ng-model=\"mainCtrl.newChurch.country\"\n                                                                               placeholder=\"Country\">\n\n                                                                    </div>\n\n                                                                </div>\n                                                            </div>\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-8\">\n                                                                    <div class=\"form-group\">\n                                                                        <md-button\n                                                                                ng-click=\"mainCtrl.addChurch(churchForm)\"\n                                                                                class=\"md-raised c-white bgm-lightblue\">\n                                                                            Add Church\n                                                                        </md-button>\n                                                                        <md-button type=\"button\" class=\"md-raised\">\n                                                                            Close\n                                                                        </md-button>\n                                                                    </div>\n\n                                                                </div>\n                                                            </div>\n                                                        </form>\n\n\n                                                    </div>\n                                                </div>\n                                                <!--<select chosen-->\n                                                <!--data-placeholder=\"Select your church...\"-->\n                                                <!--ng-model=\"selected\"-->\n                                                <!--ng-options=\"c as c.name + \' (\' +  c.city + \')\' for c in mainCtrl.churches\"-->\n                                                <!--class=\"w-100 localytics-chosen\">-->\n                                                <!--<option value=\"\"></option>-->\n                                                <!--</select>-->\n                                            </div>\n                                        </div>\n                                    </div>\n                                    <div class=\"form-group\">\n                                        <div class=\"row\">\n                                            <div class=\"col-sm-3\">\n                                                <p>Are you a pastor?</p>\n\n                                            </div>\n                                            <div class=\"col-sm-8\">\n                                                <label class=\"radio radio-inline m-r-20\">\n                                                    <input type=\"radio\" ng-model=\"mainCtrl.user.is_pastor\"\n                                                           name=\"isPastor\" data-ng-value=\"true\">\n                                                    <i class=\"input-helper\"></i>\n                                                    Yes\n                                                </label>\n                                                <label style=\"margin-left: 0px\" class=\"radio radio-inline m-r-20\">\n                                                    <input type=\"radio\"\n                                                           ng-model=\"mainCtrl.user.is_pastor\"\n                                                           name=\"isPastor\" data-ng-value=\"false\">\n                                                    <i class=\"input-helper\"></i>\n                                                    No\n                                                </label>\n                                            </div>\n                                        </div>\n                                    </div>\n\n                                    <div class=\"form-group\">\n                                        <div class=\"row\">\n                                            <div class=\"col-sm-3\">\n                                                <p>Gender</p>\n                                            </div>\n                                            <div class=\"col-sm-8\">\n                                                <label class=\"radio radio-inline m-r-20\">\n                                                    <input type=\"radio\"\n                                                           ng-model=\"mainCtrl.user.gender\"\n                                                           name=\"gender\" value=\"m\">\n                                                    <i class=\"input-helper\"></i>\n                                                    Male\n                                                </label>\n                                                <label class=\"radio radio-inline m-r-20\">\n\n                                                    <input type=\"radio\"\n                                                           ng-model=\"mainCtrl.user.gender\"\n                                                           name=\"gender\" value=\"f\">\n                                                    <i class=\"input-helper\"></i>\n                                                    Female\n                                                </label>\n                                            </div>\n                                        </div>\n                                    </div>\n                                    <div class=\"form-group\">\n                                        <div class=\"row\">\n                                            <div class=\"col-sm-12\">\n                                                <md-button\n                                                        ng-click=\"mainCtrl.updateProfile()\"\n                                                        class=\"md-raised c-white bgm-blue\">\n                                                    Save\n                                                </md-button>\n                                                <md-button\n                                                        ng-click=\"$state.go(\'base.home\')\"\n                                                        class=\"md-raised\">\n                                                    Skip\n                                                </md-button>\n                                            </div>\n\n                                        </div>\n                                    </div>\n\n                                </form>\n                            </div>\n\n                        </div>\n\n                    </div>\n                </div>\n            </div>\n        </div>\n    </section>\n</section>");
 $templateCache.put("module/read/ask-comment.modal.html","<md-dialog aria-label=\"Mango (Fruit)\" style=\"max-height: 100%\">\n    <md-toolbar style=\"background-color: #f7f7f7\">\n        <div class=\"md-toolbar-tools\">\n            <h2>Ask for Comments</h2>\n            <span flex></span>\n            <md-button class=\"md-icon-button\" ng-click=\"cancel()\">\n                <md-icon md-svg-src=\"img/icons/ic_close_24px.svg\" aria-label=\"Close dialog\"></md-icon>\n            </md-button>\n        </div>\n    </md-toolbar>\n    <form>\n        <md-dialog-content>\n            <div class=\"md-dialog-content\">\n                <p><label>Selected scripture</label><br/>\n                    John 3:16\n                </p>\n\n                <form submit-on=\"submitReqestForm\" id=\"reqForm\" ng-submit=\"reqCtrl.submitForm()\">\n                    <!--<form submit-on=\"submitRequestEvent\" ng-submit=\"reqCtrl.submitForm()\">-->\n                    <submit-on></submit-on>\n                    <div class=\"form-group fg-line\">\n                        <label for=\"headline\">Headline</label>\n                        <input type=\"headline\" class=\"form-control input-sm\" id=\"headline\"\n                               placeholder=\"Enter email\">\n                    </div>\n                    <div class=\"form-group fg-line\">\n                        <label for=\"context\">What\'s on your mind?</label>\n                        <textarea class=\"form-control input-sm\"\n                                  id=\"context\" placeholder=\"\">\n                            </textarea>\n                    </div>\n                    <div class=\"form-group fg-line\">\n                        <label for=\"context\">Tags (e.g finance, relationship, salvation etc)</label>\n                        <md-chips ng-model=\"reqCtrl.tags\">\n                        </md-chips>\n                    </div>\n                    <div class=\"form-group fg-line\">\n                        <label for=\"context\">Commentators</label>\n                        <textarea class=\"form-control input-sm\" ng-model=\"commentators\"\n                                  id=\"commentators\" placeholder=\"who do you want to comment?\">\n                        </textarea>\n\n                    </div>\n                    <!--<div class=\"form-group fg-line\">-->\n                    <!--<md-chips ng-model=\"tags\">-->\n                    <!--</md-chips>-->\n                    <!--</div>-->\n                    <div class=\"form-group\">\n                        <label style=\"padding: 0px\">Can\'t find who you want to comment?\n                            Invite a friend, pastor or spiritual mentor to comment</label>\n\n                        <div class=\"row\" ng-repeat=\"invite in reqCtrl.request.invites\">\n                            <div class=\"col-xs-3\">\n                                <md-input-container>\n                                    <md-select ng-model=\"invite.type\">\n                                        <md-option value=\"email\">email</md-option>\n                                        <md-option value=\"twitter\">twitter</md-option>\n                                    </md-select>\n                                </md-input-container>\n                            </div>\n                            <div class=\"col-xs-6\">\n                                <div class=\"form-group fg-line\" ng-if=\"invite.type==\'email\'\">\n                                    <label class=\"sr-only\">Email address</label>\n                                    <input ng-model=\"invite.email\"\n                                           type=\"email\" class=\"form-control input-sm\" placeholder=\"Enter email\">\n                                </div>\n                                <div class=\"form-group fg-line\" ng-if=\"invite.type==\'twitter\'\">\n                                    <label class=\"sr-only\">Twitter Handle</label>\n                                    <input ng-model=\"invite.handle\"\n                                           type=\"text\" class=\"form-control input-sm\" placeholder=\"@twitter_handle\">\n                                </div>\n                            </div>\n                            <div class=\"col-xs-3\" style=\"padding-top: 5px;\">\n                                <a style=\"font-size:18px\" href ng-click=\"reqCtrl.newInvite()\">\n                                    <i class=\"zmdi zmdi-plus zmdi-hc-fw\"></i>\n                                </a>\n                                <a ng-if=\"$index > 0\" style=\"font-size:18px\" href\n                                   ng-click=\"reqCtrl.removeInvite($index)\">\n                                    <i class=\"zmdi zmdi-minus zmdi-hc-fw\"></i>\n                                </a>\n                            </div>\n                        </div>\n\n                    </div>\n                </form>\n                <!--</form>-->\n            </div>\n        </md-dialog-content>\n        <md-dialog-actions layout=\"row\">\n            <!--<md-button href=\"http://en.wikipedia.org/wiki/Mango\" target=\"_blank\" md-autofocus>-->\n            <!--More on Wikipedia-->\n            <!--</md-button>-->\n            <span flex></span>\n            <md-button class=\"md-primary\" ng-click=\"reqCtrl.$scope.$broadcast(\'submitReqestForm\')\">\n                Post\n            </md-button>\n            <md-button ng-click=\"answer(\'useful\')\" style=\"margin-right:20px;\">\n                Cancel\n            </md-button>\n        </md-dialog-actions>\n    </form>\n</md-dialog>");
 $templateCache.put("module/read/read.html","<section id=\"main\">\n\n    <section id=\"content\">\n\n        <div class=\"container\">\n\n            <!--{{readCtrl.bible.data}}-->\n            <div class=\"card\" style=\"margin-top: 20px;\" ng-repeat=\"(book, book_info) in readCtrl.bible.data\">\n                <div class=\"card-header\">\n                    <h2 class=\"book\">{{book}}</h2>\n\n                    <ul class=\"actions\">\n                        <li>\n                            <a href ng-click=\"readCtrl.askForComment($event)\">\n                                <md-tooltip>Ask for comment</md-tooltip>\n                                <i class=\"zmdi zmdi-comments\">\n                                </i>\n\n                            </a>\n                        </li>\n                        <li class=\"dropdown\" uib-dropdown>\n                            <a href=\"\" uib-dropdown-toggle>\n                                <i class=\"zmdi zmdi-translate\"></i>\n                                <md-tooltip>Change translation</md-tooltip>\n                            </a>\n\n                            <ul class=\"dropdown-menu dropdown-menu-right\">\n                                <li ng-repeat=\"(key, ver) in readCtrl.versions\">\n                                    <a href=\"\">{{::ver}}</a>\n                                </li>\n                            </ul>\n                        </li>\n                        <li class=\"dropdown\" uib-dropdown>\n                            <a href=\"\" uib-dropdown-toggle>\n                                <i class=\"zmdi zmdi-more-vert\"></i>\n                            </a>\n\n                            <ul class=\"dropdown-menu dropdown-menu-right\">\n                                <li>\n                                    <a href=\"\">Add Chapter to Favorites</a>\n                                </li>\n                                <li>\n                                    <a href=\"\">Add Selected to Favorites</a>\n                                </li>\n                            </ul>\n                        </li>\n                    </ul>\n                </div>\n\n                <div class=\"card-body\">\n                    <!--{{book_info}}-->\n                    <div class=\"chapter\">\n                        <!--<h5>Chapter {{chapter.chapter_nr}}</h5>-->\n\n                        <!--<div  uib-tooltip-classes=\"\" class=\"in\"-->\n                        <!--popover-popup=\"\" title=\"Popover Title\"-->\n                        <!--content=\"Vivamus sagittis lacus vel augue laoreet rutrum faucibus.\" placement=\"top\"-->\n                        <!--popup-class=\"\" animation=\"animation\" is-open=\"isOpen\" origin-scope=\"origScope\"-->\n                        <!--style=\"visibility: visible; display: block; top: 229px; left: 471px;\"-->\n                        <!--class=\"ng-isolate-scope top fade popover in\">-->\n                        <!--<div class=\"arrow\"></div>-->\n\n                        <!--<div class=\"popover-inner\">-->\n                        <!--<h3 class=\"popover-title ng-binding ng-scope\">Popover Title</h3>-->\n                        <!--<div class=\"popover-content ng-binding\">Vivamus sagittis lacus vel-->\n                        <!--augue laoreet rutrum faucibus.-->\n                        <!--</div>-->\n                        <!--</div>-->\n                        <!--</div>-->\n\n                        <div id=\"verses\">\n                            <p id=\"v{{verse}}\" class=\"verse\" ng-class=\"{highlight: readCtrl.selected[book][verse]}\"\n                               ng-repeat=\"(verse, verse_info) in book_info[0].chapter\">\n                                <a href=\"\" ng-click=\"readCtrl.highlight(verse, book)\"><span style=\"margin-right: 15px\">v{{verse}}:</span></a>\n                                {{verse_info.verse}}\n                            </p>\n                        </div>\n\n                    </div>\n                </div>\n            </div>\n\n        </div>\n    </section>\n</section>");
-$templateCache.put("module/sermon/create.html","<section id=\"main\">\n\n    <!-- ideas todo\n     show bible in side\n     allow user to specify translation\n      -->\n    <section id=\"content\">\n\n        <div class=\"container\">\n            <div class=\"card\" id=\"sermon\">\n                <form id=\"sermonForm\">\n                    <div class=\"listview lv-bordered lv-lg\">\n                        <div class=\"lv-header-alt clearfix\">\n                            <h2 class=\"lvh-label hidden-xs\">New Sermon</h2>\n                            <div class=\"lvh-search\" data-ng-if=\"mactrl.listviewSearchStat\"\n                                 data-ng-click=\"mactrl.listviewSearchStat\">\n                                <input type=\"text\" placeholder=\"Start typing...\" class=\"lvhs-input\">\n\n                                <i class=\"lvh-search-close\"\n                                   data-ng-click=\"mactrl.listviewSearchStat = false\">&times;</i>\n                            </div>\n                        </div>\n\n                        <div class=\"lv-body\" style=\"padding: 20px\">\n                            <div class=\"row m-b-20\">\n                                <div class=\"col-sm-8\">\n                                    <h4 class=\"m-b-10\">Sermon Title</h4>\n                                    <div class=\"form-group\"\n                                         ng-class=\"{\'has-error\': sermonCtrl.submitted && sermonCtrl.sermon.title.length < 1}\">\n                                        <div class=\"fg-line\">\n                                            <input type=\"text\" class=\"form-control input-sm\"\n                                                   style=\"font-size: 16px\"\n                                                   ng-model=\"sermonCtrl.sermon.title\"\n                                                   placeholder=\"Sermon Title\">\n                                        </div>\n                                        <small ng-show=\"sermonCtrl.submitted && sermonCtrl.sermon.title.length < 1\"\n                                               class=\"help-block\">Sermon title cannot be empty\n                                        </small>\n                                    </div>\n\n                                </div>\n                            </div>\n                            <div class=\"row m-b-20\">\n                                <div class=\"col-sm-8\">\n                                    <h4 class=\"m-b-10\">Sermon Date</h4>\n                                    <div class=\"row\" ng-repeat=\"d in sermonCtrl.sermon._dates\">\n                                        <div class=\"col-sm-6\">\n                                            <div class=\"form-group pull-left \">\n                                                <div class=\"fg-line\">\n                                                    <md-datepicker ng-model=\"d.date\"\n                                                                   md-placeholder=\"Enter date\"></md-datepicker>\n                                                </div>\n                                                <!--<small ng-show=\"sermonCtrl.submitted && sermonCtrl.sermon.title.length < 1\"-->\n                                                       <!--class=\"help-block\">Sermon title cannot be empty-->\n                                                <!--</small>-->\n                                            </div>\n\n                                             <a ng-if=\"$index > 0\" href ng-click=\"sermonCtrl.sermon._dates.splice($index, 1)\">\n                                                            <i class=\"f-18 p-l-10 p-t-15 zmdi zmdi-close zmdi-hc-fw\"></i>\n                                                        </a>\n                                        </div>\n\n                                    </div>\n                                        <a href data-ng-click=\"sermonCtrl.sermon._dates.push({\'date\': \'\'})\">\n                                                    add another date</a>\n                                </div>\n                            </div>\n                            <div class=\"row m-b-20\">\n                                <div class=\"col-sm-8\">\n                                    <h4>Main Scriptures</h4>\n                                    <div class=\"form-group\"\n                                         ng-class=\"{\'has-error\': sermonCtrl.submitted && sermonCtrl.sermon.scriptures.length < 1}\">\n                                        <div class=\"fg-line\">\n                                            <!--<label>Main Scriptures</label>-->\n                                            <md-chips ng-model=\"sermonCtrl.sermon.scriptures\"\n                                                      md-on-select=\"sermonCtrl.scriptureSelect($chip)\"\n                                                      md-transform-chip=\"sermonCtrl.onScriptureAdd($chip)\"\n                                                      placeholder=\"Enter a scripture\"\n                                                      secondary-placeholder=\"e.g John 3:16\"\n\n                                            >\n                                            </md-chips>\n                                        </div>\n                                        <small style=\"color:#9e9e9e; float: right\" class=\"help-block\">Type a\n                                            scripture\n                                            then press enter.\n                                        </small>\n                                        <small ng-show=\"sermonCtrl.submitted && sermonCtrl.sermon.scriptures.length < 1 \"\n                                               class=\"help-block\">This field is required\n                                        </small>\n                                    </div>\n\n                                </div>\n                            </div>\n                            <div class=\"row\">\n                                <div class=\"col-sm-12\">\n                                    <md-tabs md-dynamic-height md-border-bottom>\n                                        <md-tab label=\"Sermon Notes\">\n                                            <md-content class=\"md-padding\">\n                                                <div class=\"row\" ng-repeat=\"note in sermonCtrl.sermon.notes \">\n                                                    <div class=\"col-sm-1\"\n                                                         style=\"padding-top: 20px; text-align: center\">\n                                                        <h4>{{$index + 1}}</h4>\n                                                    </div>\n                                                    <div class=\"col-sm-8\"\n                                                         ng-class=\"{\'has-error\' : sermonCtrl.submitted && note.content.length == 0}\">\n                                                        <div class=\"form-group\">\n                                                            <wysiwyg-edit config=\"editorConfig\"\n                                                                          content=\"note.content\"></wysiwyg-edit>\n                                                        </div>\n                                                        <small ng-if=\"$index == 0 &&\n                                                        sermonCtrl.submitted && note.content.length < 1\"\n                                                               class=\"help-block\">At least one sermon note is\n                                                            required\n                                                        </small>\n                                                    </div>\n                                                    <div class=\"col-sm-2\" style=\"padding-top: 20px\">\n\n                                                        <a style=\"font-size:30px\" href\n                                                           ng-click=\"sermonCtrl.sermon.notes.push({content:\'\'})\">\n                                                            <i class=\"zmdi zmdi-plus zmdi-hc-fw\"></i>\n                                                        </a>\n                                                        <a ng-if=\"$index > 0\" style=\"font-size:30px\" href\n                                                           ng-click=\"sermonCtrl.sermon.notes.splice($index, 1)\">\n                                                            <i class=\"zmdi zmdi-minus zmdi-hc-fw\"></i>\n                                                        </a>\n\n                                                    </div>\n                                                </div>\n                                            </md-content>\n                                        </md-tab>\n                                        <md-tab label=\"Sermon Questions\">\n                                            <md-content class=\"md-padding\">\n                                                <div class=\"row\"\n                                                     ng-repeat=\"question in sermonCtrl.sermon.questions\">\n                                                    <div class=\"col-sm-1\"\n                                                         style=\"padding-top: 20px; text-align: center\">\n                                                        <h4>{{$index + 1}}</h4>\n                                                    </div>\n                                                    <div class=\"col-sm-8\">\n                                                        <div class=\"form-group\">\n                                                            <wysiwyg-edit config=\"editorConfig\"\n                                                                          content=\"question.content\"></wysiwyg-edit>\n                                                        </div>\n                                                    </div>\n                                                    <div class=\"col-sm-2\" style=\"padding-top: 20px\">\n\n                                                        <a style=\"font-size:30px\" href\n                                                           ng-click=\"sermonCtrl.sermon.questions.push({content:\'\'})\">\n                                                            <i class=\"zmdi zmdi-plus zmdi-hc-fw\"></i>\n                                                        </a>\n                                                        <a ng-if=\"$index > 0\" style=\"font-size:30px\" href\n                                                           ng-click=\"sermonCtrl.sermon.questions.splice($index, 1)\">\n                                                            <i class=\"zmdi zmdi-minus zmdi-hc-fw\"></i>\n                                                        </a>\n\n                                                    </div>\n                                                </div>\n                                            </md-content>\n                                        </md-tab>\n                                    </md-tabs>\n                                </div>\n                            </div>\n\n                            <div class=\"row\">\n                                <div class=\"col-sm-12\">\n                                    <md-button\n                                            ng-click=\"sermonCtrl.publish()\"\n                                            class=\"md-raised c-white bgm-blue\">\n                                        Publish\n                                    </md-button>\n                                    <md-button\n                                             ng-click=\"sermonCtrl.save()\"\n                                            class=\"md-raised\">\n                                        Save\n                                    </md-button>\n                                    <a href=\"\" class=\"btn btn-danger\" data-growl-demo data-type=\"danger\">Danger</a>\n                                </div>\n\n                            </div>\n                        </div>\n                    </div>\n                </form>\n            </div>\n\n        </div>\n\n    </section>\n</section>");
-$templateCache.put("module/shared/base.html","<header ng-hide=\"$state.current.data.hideHeader\" autoscroll=\"true\"\n        id=\"header\" ng-include=\"\'module/shared/header.html\'\" ng-controller=\"headerController as headerCtrl\"\n        data-current-skin=\"blue\" style=\"height: 70px\">\n\n</header>\n\n<div class=\"main-content\" ui-view=\"content\">\n\n</div>\n<div class=\"fab-menu\">\n    <md-fab-speed-dial md-open=\"appCtrl.fabMenu.isOpen\" md-direction=\"up\" class=\"md-fling\">\n        <md-fab-trigger>\n            <md-button class=\"md-fab md-warn md-button md-ink-ripple\" type=\"button\" aria-label=\"Add...\">\n                <md-icon md-svg-src=\"/img/icons/add.svg\"></md-icon>\n            </md-button>\n        </md-fab-trigger>\n        <md-fab-actions ng-hide=\"!appCtrl.fabMenu.isOpen\">\n            <md-button ng-if=\"authService.user.is_pastor\"\n                       ui-sref=\"base.sermon-create\" class=\"md-fab md-mini md-button md-ink-ripple\" aria-label=\"Add User\">\n                <md-tooltip md-direction=\"left\">\n                    New Sermon\n                </md-tooltip>\n                <md-icon md-svg-src=\"/img/icons/create.svg\"></md-icon>\n            </md-button>\n            <!--<md-button class=\"md-fab  md-mini md-primary md-button md-ink-ripple\" aria-label=\"Add Group\">-->\n            <!--<md-icon icon=\"/img/icons/add.svg\"></md-icon>-->\n            <!--</md-button>-->\n            <!--<md-button class=\"md-fab md-mini md-primary md-button md-ink-ripple\" aria-label=\"Add Group\">-->\n            <!--<md-icon icon=\"/img/icons/add.svg\"></md-icon>-->\n            <!--</md-button>-->\n        </md-fab-actions>\n    </md-fab-speed-dial>\n</div>\n\n<footer id=\"footer\">\n    Copyright &copy; 2015 scripturedin\n\n    <ul class=\"f-menu\">\n        <li><a href=\"\">Home</a></li>\n        <li><a href=\"\">Dashboard</a></li>\n        <li><a href=\"\">Reports</a></li>\n        <li><a href=\"\">Support</a></li>\n        <li><a href=\"\">Contact</a></li>\n    </ul>\n</footer>");
+$templateCache.put("module/sermon/browse.html","<div class=\"container\">\r\n    <div class=\"block-header\">\r\n        <h2>Calendar\r\n            <small>FullCalendar is a jQuery plugin that provides a full-sized, drag & drop event calendar like the one\r\n                below. It uses AJAX to fetch events on-the-fly and is easily configured to use your own feed format. It\r\n                is visually customizable with a rich API.\r\n            </small>\r\n        </h2>\r\n\r\n        <ul class=\"actions\">\r\n            <li>\r\n                <a href=\"\">\r\n                    <i class=\"zmdi zmdi-trending-up\"></i>\r\n                </a>\r\n            </li>\r\n            <li>\r\n                <a href=\"\">\r\n                    <i class=\"zmdi zmdi-check-all\"></i>\r\n                </a>\r\n            </li>\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a href=\"\" uib-dropdown-toggle>\r\n                    <i class=\"zmdi zmdi-more-vert\"></i>\r\n                </a>\r\n\r\n                <ul class=\"dropdown-menu dropdown-menu-right\">\r\n                    <li>\r\n                        <a href=\"\">Refresh</a>\r\n                    </li>\r\n                    <li>\r\n                        <a href=\"\">Manage Widgets</a>\r\n                    </li>\r\n                    <li>\r\n                        <a href=\"\">Widgets Settings</a>\r\n                    </li>\r\n                </ul>\r\n            </li>\r\n        </ul>\r\n\r\n    </div>\r\n    <div id=\"calendar\" data-calendar\r\n         data-cal-add-sermon\r\n         data-events=\"sermonCtrl.sermons\"\r\n         data-action-links=\"sermonCtrl.actionMenu\"\r\n         data-event-click=\"sermonCtrl.onEventSelect\"\r\n         data-select=\"sermonCtrl.onSelect(start, end)\"\r\n\r\n    ></div>\r\n</div>");
+$templateCache.put("module/sermon/comment_popover.html","<div>\r\n    <div>Vivamus sagittis lacus vel augue laoreet rutrum faucibus.</div>\r\n    <div class=\"form-group fg-line m-b-0 m-t-20\">\r\n        <input type=\"text\" class=\"form-control\" placeholder=\"Just put something...\">\r\n    </div>\r\n</div>");
+$templateCache.put("module/sermon/create.html","<!-- ideas todo\r\n   show bible in side\r\n   allow user to specify translation\r\n    -->\r\n<div class=\"container\">\r\n    <div class=\"card\" id=\"sermon\">\r\n        <form id=\"sermonForm\">\r\n            <div class=\"listview lv-bordered lv-lg\">\r\n                <div class=\"lv-header-alt clearfix\">\r\n                    <h2 class=\"lvh-label hidden-xs\">New Sermon</h2>\r\n                    <div class=\"lvh-search\" data-ng-if=\"mactrl.listviewSearchStat\"\r\n                         data-ng-click=\"mactrl.listviewSearchStat\">\r\n                        <input type=\"text\" placeholder=\"Start typing...\" class=\"lvhs-input\">\r\n                        <i class=\"lvh-search-close\"\r\n                           data-ng-click=\"mactrl.listviewSearchStat = false\">&times;</i>\r\n                    </div>\r\n                </div>\r\n                <div class=\"lv-body\" style=\"padding: 20px\">\r\n                    <div class=\"row m-b-20\">\r\n                        <div class=\"col-sm-8\">\r\n                            <h4 class=\"m-b-10\">Sermon Title</h4>\r\n                            <div class=\"form-group\"\r\n                                 ng-class=\"{\'has-error\': sermonCtrl.submitted && sermonCtrl.sermon.title.length < 1}\">\r\n                                <div class=\"fg-line\">\r\n                                    <input type=\"text\" class=\"form-control input-sm\"\r\n                                           style=\"font-size: 16px\"\r\n                                           ng-model=\"sermonCtrl.sermon.title\"\r\n                                           placeholder=\"Sermon Title\">\r\n                                </div>\r\n                                <small ng-show=\"sermonCtrl.submitted && sermonCtrl.sermon.title.length < 1\"\r\n                                       class=\"help-block\">Sermon title cannot be empty\r\n                                </small>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"row m-b-20\">\r\n                        <div class=\"col-sm-8\">\r\n                            <h4 class=\"m-b-10\">Sermon Date</h4>\r\n                            <div class=\"row\" ng-repeat=\"d in sermonCtrl.sermon._dates\">\r\n                                <div class=\"col-sm-4\">\r\n                                    <div class=\"form-group pull-left p-t-25 p-b-0\">\r\n                                        <p class=\"input-group p-b-0\">\r\n                                            <input type=\"text\" class=\"form-control\"\r\n                                                   uib-datepicker-popup=\"yyyy-MM-dd\" ng-model=\"d.date\"\r\n                                                   is-open=\"status.opened\"\r\n                                                   close-text=\"Close\"/>\r\n                                       <span class=\"input-group-btn\">\r\n                                       <button type=\"button\" class=\"btn btn-default\" ng-click=\"status.opened=true\"><i\r\n                                               class=\"glyphicon glyphicon-calendar\"></i></button>\r\n                                       </span>\r\n                                        </p>\r\n                                        <!--<small ng-show=\"sermonCtrl.submitted && sermonCtrl.sermon.title.length < 1\"-->\r\n                                        <!--class=\"help-block\">Sermon title cannot be empty-->\r\n                                        <!--</small>-->\r\n                                    </div>\r\n                                </div>\r\n                                <div class=\"col-sm-3\">\r\n                                    <p class=\"input-group\">\r\n                                        <uib-timepicker ng-model=\"d.date\" ng-change=\"changed()\"\r\n                                                        minute-step=\"5\"\r\n                                                        show-meridian=\"true\"></uib-timepicker>\r\n                                    </p>\r\n                                </div>\r\n                                <div class=\"col-sm-2 p-t-20\">\r\n                                    <a ng-if=\"$index > 0\" href\r\n                                       ng-click=\"sermonCtrl.sermon._dates.splice($index, 1)\">\r\n                                        <i class=\"f-20  p-t-15 zmdi zmdi-close zmdi-hc-fw\"></i>\r\n                                    </a>\r\n                                </div>\r\n                            </div>\r\n                            <a href data-ng-click=\"sermonCtrl.addDate()\">\r\n                                Add another date</a>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"row m-b-20\">\r\n                        <div class=\"col-sm-8\">\r\n                            <h4>Main Scriptures</h4>\r\n                            <div class=\"form-group\"\r\n                                 ng-class=\"{\'has-error\': sermonCtrl.submitted && sermonCtrl.sermon.scriptures.length < 1}\">\r\n                                <div class=\"fg-line\">\r\n                                    <!--<label>Main Scriptures</label>-->\r\n                                    <md-chips ng-model=\"sermonCtrl.sermon.scriptures\"\r\n                                              md-on-select=\"sermonCtrl.scriptureSelect($chip)\"\r\n                                              md-transform-chip=\"sermonCtrl.onScriptureAdd($chip)\"\r\n                                              placeholder=\"Enter a scripture\"\r\n                                              secondary-placeholder=\"e.g John 3:16\"\r\n                                    >\r\n                                    </md-chips>\r\n                                </div>\r\n                                <small style=\"color:#9e9e9e; float: right\" class=\"help-block\">Type a\r\n                                    scripture\r\n                                    then press enter.\r\n                                </small>\r\n                                <small ng-show=\"sermonCtrl.submitted && sermonCtrl.sermon.scriptures.length < 1 \"\r\n                                       class=\"help-block\">This field is required\r\n                                </small>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"row\">\r\n                        <div class=\"col-sm-12\">\r\n                            <md-tabs md-dynamic-height md-border-bottom>\r\n                                <md-tab label=\"Sermon Notes\">\r\n                                    <md-content class=\"md-padding\">\r\n                                        <div class=\"row\" ng-repeat=\"note in sermonCtrl.sermon.notes \">\r\n                                            <div class=\"col-sm-1\"\r\n                                                 style=\"padding-top: 20px; text-align: center\">\r\n                                                <h4>{{$index + 1}}</h4>\r\n                                            </div>\r\n                                            <div class=\"col-sm-8\"\r\n                                                 ng-class=\"{\'has-error\' : sermonCtrl.submitted && note.content.length == 0}\">\r\n                                                <div class=\"form-group\">\r\n                                                    <wysiwyg-edit config=\"editorConfig\"\r\n                                                                  content=\"note.content\"></wysiwyg-edit>\r\n                                                </div>\r\n                                                <small ng-if=\"$index == 0 &&\r\n                                             sermonCtrl.submitted && note.content.length < 1\"\r\n                                                       class=\"help-block\">At least one sermon note is\r\n                                                    required\r\n                                                </small>\r\n                                            </div>\r\n                                            <div class=\"col-sm-2\" style=\"padding-top: 20px\">\r\n                                                <a style=\"font-size:30px\" href\r\n                                                   ng-click=\"sermonCtrl.sermon.notes.push({content:\'\'})\">\r\n                                                    <i class=\"zmdi zmdi-plus zmdi-hc-fw\"></i>\r\n                                                </a>\r\n                                                <a ng-if=\"$index > 0\" style=\"font-size:30px\" href\r\n                                                   ng-click=\"sermonCtrl.sermon.notes.splice($index, 1)\">\r\n                                                    <i class=\"zmdi zmdi-minus zmdi-hc-fw\"></i>\r\n                                                </a>\r\n                                            </div>\r\n                                        </div>\r\n                                    </md-content>\r\n                                </md-tab>\r\n                                <md-tab label=\"Sermon Questions\">\r\n                                    <md-content class=\"md-padding\">\r\n                                        <div class=\"row\"\r\n                                             ng-repeat=\"question in sermonCtrl.sermon.questions\">\r\n                                            <div class=\"col-sm-1\"\r\n                                                 style=\"padding-top: 20px; text-align: center\">\r\n                                                <h4>{{$index + 1}}</h4>\r\n                                            </div>\r\n                                            <div class=\"col-sm-8\">\r\n                                                <div class=\"form-group\">\r\n                                                    <wysiwyg-edit config=\"editorConfig\"\r\n                                                                  content=\"question.content\"></wysiwyg-edit>\r\n                                                </div>\r\n                                            </div>\r\n                                            <div class=\"col-sm-2\" style=\"padding-top: 20px\">\r\n                                                <a style=\"font-size:30px\" href\r\n                                                   ng-click=\"sermonCtrl.sermon.questions.push({content:\'\'})\">\r\n                                                    <i class=\"zmdi zmdi-plus zmdi-hc-fw\"></i>\r\n                                                </a>\r\n                                                <a ng-if=\"$index > 0\" style=\"font-size:30px\" href\r\n                                                   ng-click=\"sermonCtrl.sermon.questions.splice($index, 1)\">\r\n                                                    <i class=\"zmdi zmdi-minus zmdi-hc-fw\"></i>\r\n                                                </a>\r\n                                            </div>\r\n                                        </div>\r\n                                    </md-content>\r\n                                </md-tab>\r\n                            </md-tabs>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"row\">\r\n                        <div class=\"col-sm-12\">\r\n                            <md-button\r\n                                    ng-click=\"sermonCtrl.publish()\"\r\n                                    class=\"md-raised c-white bgm-blue\">\r\n                                Publish\r\n                            </md-button>\r\n                            <md-button\r\n                                    ng-click=\"sermonCtrl.save()\"\r\n                                    class=\"md-raised\">\r\n                                Save\r\n                            </md-button>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </form>\r\n    </div>\r\n</div>\r\n");
+$templateCache.put("module/sermon/new-sermon-modal.html","<!--<div class=\"modal\">-->\r\n    <!--<div class=\"modal-dialog\">-->\r\n        <!--<div class=\"modal-content\">-->\r\n            <!--<div class=\"modal-header\">-->\r\n                <!--<h4 class=\"modal-title\">Modal title</h4>-->\r\n            <!--</div>-->\r\n            <!--<div class=\"modal-body\">-->\r\n            <!--Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sodales orci ante, sed ornare eros vestibulum ut. Ut accumsan vitae eros sit amet tristique. Nullam scelerisque nunc enim, non dignissim nibh faucibus ullamcorper. Fusce pulvinar libero vel ligula iaculis ullamcorper. Integer dapibus, mi ac tempor varius, purus nibh mattis erat, vitae porta nunc nisi non tellus. Vivamus mollis ante non massa egestas fringilla. Vestibulum egestas consectetur nunc at ultricies. Morbi quis consectetur nunc.-->\r\n            <!--</div>-->\r\n            <!--<div class=\"modal-footer\">-->\r\n                <!--<button type=\"button\" class=\"btn btn-link\">Save changes</button>-->\r\n                <!--<button type=\"button\" class=\"btn btn-link\" data-dismiss=\"modal\">Close</button>-->\r\n            <!--</div>-->\r\n        <!--</div>-->\r\n    <!--</div>-->\r\n<!--</div>-->\r\n<md-dialog aria-label=\"Mango (Fruit)\"  ng-cloak>\r\n  <form>\r\n    <md-toolbar>\r\n      <div class=\"md-toolbar-tools\">\r\n        <h2>Mango (Fruit)</h2>\r\n        <span flex></span>\r\n        <md-button class=\"md-icon-button\" ng-click=\"cancel()\">\r\n          <md-icon md-svg-src=\"img/icons/ic_close_24px.svg\" aria-label=\"Close dialog\"></md-icon>\r\n        </md-button>\r\n      </div>\r\n    </md-toolbar>\r\n    <md-dialog-content>\r\n      <div class=\"md-dialog-content\">\r\n        <h2>Using .md-dialog-content class that sets the padding as the spec</h2>\r\n        <p>\r\n          The mango is a juicy stone fruit belonging to the genus Mangifera, consisting of numerous tropical fruiting trees, cultivated mostly for edible fruit. The majority of these species are found in nature as wild mangoes. They all belong to the flowering plant family Anacardiaceae. The mango is native to South and Southeast Asia, from where it has been distributed worldwide to become one of the most cultivated fruits in the tropics.\r\n        </p>\r\n      </div>\r\n    </md-dialog-content>\r\n    <md-dialog-actions layout=\"row\">\r\n      <md-button href=\"http://en.wikipedia.org/wiki/Mango\" target=\"_blank\" md-autofocus>\r\n        More on Wikipedia\r\n      </md-button>\r\n      <span flex></span>\r\n      <md-button ng-click=\"answer(\'not useful\')\">\r\n       Not Useful\r\n      </md-button>\r\n      <md-button ng-click=\"answer(\'useful\')\" style=\"margin-right:20px;\">\r\n        Useful\r\n      </md-button>\r\n    </md-dialog-actions>\r\n  </form>\r\n</md-dialog>");
+$templateCache.put("module/sermon/scripture_modal.html","<div class=\"modal-dialog\">\r\n    <div class=\"modal-content\">\r\n        <div class=\"modal-header\">\r\n            <h4 class=\"modal-title\">Modal title</h4>\r\n        </div>\r\n        <div class=\"modal-body\">\r\n            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sodales orci ante, sed ornare eros vestibulum\r\n            ut. Ut accumsan vitae eros sit amet tristique. Nullam scelerisque nunc enim, non dignissim nibh faucibus\r\n            ullamcorper. Fusce pulvinar libero vel ligula iaculis ullamcorper. Integer dapibus, mi ac tempor varius,\r\n            purus nibh mattis erat, vitae porta nunc nisi non tellus. Vivamus mollis ante non massa egestas fringilla.\r\n            Vestibulum egestas consectetur nunc at ultricies. Morbi quis consectetur nunc.\r\n        </div>\r\n        <div class=\"modal-footer\">\r\n            <button type=\"button\" class=\"btn btn-link\">Save changes</button>\r\n            <button type=\"button\" class=\"btn btn-link\" data-dismiss=\"modal\">Close</button>\r\n        </div>\r\n    </div>\r\n</div>\r\n");
+$templateCache.put("module/sermon/study.html","<div class=\"container\">\r\n    <div class=\"block-header\">\r\n        <h2>{{::sermonCtrl.sermon.church.name}}</h2>\r\n    </div>\r\n    <div class=\"card\" id=\"profile-main\">\r\n        <div class=\"pm-overview c-overflow\" ng--show=\"true\">\r\n\r\n            <div class=\"pmo-block pmo-contact hidden-xs\">\r\n                <h2>Pastor Info</h2>\r\n                <h5>{{::sermonCtrl.sermon.pastor.first_name | sentencecase}}\r\n                    {{::sermonCtrl.sermon.pastor.last_name | sentencecase}}\r\n                </h5>\r\n                <ul>\r\n                    <li><i class=\"zmdi zmdi-email\"></i> {{ sermonCtrl.sermon.pastor.email }}</li>\r\n                </ul>\r\n            </div>\r\n\r\n            <div class=\"pmo-block  pmo-contact hidden-xs\">\r\n                <h2>Church Info</h2>\r\n\r\n                <h5>{{::sermonCtrl.sermon.church.name | sentencecase}}</h5>\r\n                <ul>\r\n                    <li><i class=\"zmdi zmdi-globe\"></i>\r\n                        <a href=\"{{::sermonCtrl.sermon.church.website}}\"></a> {{sermonCtrl.sermon.church.website }}\r\n                    </li>\r\n                    <li><i class=\"zmdi zmdi-pin\"></i>\r\n                        <address class=\"m-b-0\">\r\n                            {{::sermonCtrl.sermon.church.city }}, <br/>\r\n                            {{::sermonCtrl.sermon.church.state }}, <br/>\r\n                            {{::sermonCtrl.sermon.church.country }}\r\n                        </address>\r\n                    </li>\r\n                </ul>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"pm-body clearfix\">\r\n\r\n            <div class=\"pmb-block\">\r\n                <div class=\"pmbb-header\">\r\n\r\n                    <h1 class=\"md-display-3 m-b-5\">{{::sermonCtrl.sermon.title}}</h1>\r\n\r\n                    <p class=\"p-l-5\">by {{::sermonCtrl.sermon.pastor.first_name | sentencecase}}\r\n                        {{::sermonCtrl.sermon.pastor.last_name | sentencecase}}</p>\r\n\r\n                    <div class=\"m-b-25\">\r\n                        <hr>\r\n                        <ul class=\"list-inline list-unstyled p-l-5 c-black f-15\">\r\n                            <li>\r\n                                <span class=\"c-gray\">{{::sermonCtrl.sermon.views}} Views </span>\r\n                            </li>\r\n                            <li>\r\n                                <a class=\"like\"\r\n                                   ng-class=\"{\'c-gray\': sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) < 0,\r\n                                   \'c-lightblue\': sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) >= 0}\"\r\n                                   href ng-click=\"sermonCtrl.likeSermon()\">\r\n                                    <md-tooltip\r\n                                            ng-if=\" sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) < 0\"\r\n                                            md-direction=\"down\">\r\n                                        Like this sermon\r\n                                    </md-tooltip>\r\n                                    <md-tooltip md-direction=\"down\"\r\n                                                ng-if=\"sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) >= 0\">\r\n                                        Unlike this sermon\r\n                                    </md-tooltip>\r\n                                    <i class=\"m-r-5 m-l-5 zmdi zmdi-thumb-up\"></i> <span\r\n                                        ng-if=\"sermonCtrl.sermon.likes > 0\">{{sermonCtrl.sermon.likes}}</span>\r\n                                    <ng-pluralize\r\n                                            count=\"sermonCtrl.sermon.likes\"\r\n                                            when=\"{\'0\': \'Like\', \'one\': \'Like\',\'other\': \'{} Like\'}\">\r\n                                    </ng-pluralize>\r\n                                </a>\r\n                            </li>\r\n                            <li>\r\n                                <span class=\"c-gray\" ng-if=\"sermonCtrl.sermon.comments > 0\"><i\r\n                                        class=\"m-r-5 m-l-5 zmdi zmdi-comments\"></i> {{sermonCtrl.sermon.comments}} <ng-pluralize\r\n                                        count=\"sermonCtrl.sermon.comments\"\r\n                                        when=\"{\'one\': \'Comment\',\'other\': \'{} Comments\'}\">\r\n                                </ng-pluralize></span>\r\n                            </li>\r\n                        </ul>\r\n                        <hr>\r\n                    </div>\r\n\r\n\r\n                    <div>\r\n                        <h3>Scripture</h3>\r\n                        <md-chips ng-model=\"sermonCtrl.sermon.scriptures\" readonly=\"true\">\r\n                            <md-chip-template ng-click=\"sermonCtrl.showScripture($chip)\">\r\n                                <md-tooltip>\r\n                                    Click to read\r\n                                </md-tooltip>\r\n                                <a href> <strong>{{$chip}}</strong></a>\r\n                            </md-chip-template>\r\n                        </md-chips>\r\n                    </div>\r\n\r\n\r\n                    <ul class=\"actions\">\r\n                        <li><a href=\"\">\r\n                            <i class=\"zmdi zmdi-window-maximize\"></i>\r\n                        </a></li>\r\n                        <!--<li class=\"dropdown\" uib-dropdown>-->\r\n                        <!--<a href=\"\" uib-dropdown-toggle>-->\r\n                        <!--<i class=\"zmdi zmdi-more-vert\"></i>-->\r\n                        <!--</a>-->\r\n\r\n                        <!--<ul class=\"dropdown-menu dropdown-menu-right\">-->\r\n\r\n                        <!--<li>-->\r\n                        <!--<a data-ng-click=\"pctrl.editSummary = 1\" href=\"\">Edit</a>-->\r\n                        <!--</li>-->\r\n                        <!--</ul>-->\r\n                        <!--</li>-->\r\n                    </ul>\r\n                </div>\r\n            </div>\r\n            <div class=\"pmbb-body\">\r\n                <div class=\"pmbb-view\">\r\n                    <md-tabs md-dynamic-height md-border-bottom>\r\n                        <md-tab label=\"Sermon Notes\">\r\n                            <md-content class=\"md-padding p-l-0 p-r-0\">\r\n                                <!--<md-subheader class=\"md-no-sticky\">3 line item, long paragraph (see on mobile)-->\r\n                                <!--</md-subheader>-->\r\n\r\n\r\n                                <md-list-item class=\"md-2-line md-long-text p-l-0 p-r-0\"\r\n\r\n                                              ng-repeat=\"note in ::sermonCtrl.sermon.notes\">\r\n                                    <!--<img ng-src=\"{{todos[0].face}}?25\" class=\"md-avatar\" alt=\"{{todos[0].who}}\"/>-->\r\n                                    <div class=\"md-list-item-text \">\r\n                                        <div class=\"row\">\r\n                                            <div class=\"col-sm-1\">{{$index + 1}}</div>\r\n                                            <div class=\"col-sm-10\">\r\n                                                <p> {{::note.content}}\r\n                                                </p>\r\n                                            </div>\r\n                                        </div>\r\n\r\n                                    </div>\r\n                                </md-list-item>\r\n\r\n                            </md-content>\r\n                        </md-tab>\r\n                        <md-tab label=\"Sermon Questions\">\r\n                            <md-content class=\"md-padding p-l-0 p-r-0\">\r\n                                <!--<md-subheader class=\"md-no-sticky\">3 line item, long paragraph (see on mobile)-->\r\n                                <!--</md-subheader>-->\r\n\r\n\r\n                                <md-list-item class=\"md-2-line md-long-text p-l-0 p-r-0\"\r\n                                              ng-repeat=\"q in ::sermonCtrl.sermon.questions\">\r\n                                    <!--<img ng-src=\"{{todos[0].face}}?25\" class=\"md-avatar\" alt=\"{{todos[0].who}}\"/>-->\r\n                                    <div class=\"md-list-item-text \">\r\n                                        <div class=\"row\">\r\n                                            <div class=\"col-sm-1\">{{$index + 1}}</div>\r\n                                            <div class=\"col-sm-10\">\r\n                                                <p>\r\n                                                    {{::q.content}}\r\n                                                </p>\r\n                                            </div>\r\n                                        </div>\r\n\r\n                                    </div>\r\n                                </md-list-item>\r\n\r\n                            </md-content>\r\n                        </md-tab>\r\n                        <md-tab label=\"My Notes\">\r\n                            <md-content class=\"md-padding\" id=\"study-note\">\r\n                                <div class=\"text-right f-12\" style=\"height: 20px\">\r\n                                    <span ng-show=\"sermonCtrl.savingNote\">Saving...</span>\r\n                                </div>\r\n                                <loading loader=\"sermonCtrl.loadNote\"></loading>\r\n                                <wysiwyg-edit class=\"writenote\" ng-show=\"!sermonCtrl.loadNote\" config=\"editorConfig\"\r\n                                              content=\"sermonCtrl.sermonNote.notes\"></wysiwyg-edit>\r\n\r\n                            </md-content>\r\n                        </md-tab>\r\n                        <md-tab label=\"Comments\">\r\n                            <md-content class=\"md-padding\">\r\n                                <!--- new comment -->\r\n                                <div class=\"card wall-posting\">\r\n                                    <div class=\"card-body card-padding\">\r\n                                            <textarea class=\"wp-text\" data-auto-size\r\n                                                      ng-model=\"sermonCtrl.sermonComment.comment\"\r\n                                                      placeholder=\"Write Something...\"></textarea>\r\n                                    </div>\r\n\r\n                                    <ul class=\"list-unstyled clearfix wpb-actions\">\r\n                                        <!--<li class=\"wpba-attrs\">-->\r\n                                        <!--<ul class=\"list-unstyled list-inline m-l-0 m-t-5\">-->\r\n                                        <!--<li><a data-wpba=\"image\" href=\"\"-->\r\n                                        <!--data-ng-class=\"{ \'active\': mactrl.wallImage }\"-->\r\n                                        <!--data-ng-click=\"mactrl.wallImage = true; mactrl.wallVideo = false; mactrl.wallLink = false\"><i-->\r\n                                        <!--class=\"zmdi zmdi-image\"></i></a></li>-->\r\n                                        <!--<li><a data-wpba=\"video\" href=\"\"-->\r\n                                        <!--data-ng-class=\"{ \'active\': mactrl.wallVideo }\"-->\r\n                                        <!--data-ng-click=\"mactrl.wallVideo= true; mactrl.wallImage = false; mactrl.wallLink = false\"><i-->\r\n                                        <!--class=\"zmdi zmdi-play-circle\"></i></a></li>-->\r\n                                        <!--<li><a data-wpba=\"link\" href=\"\"-->\r\n                                        <!--data-ng-class=\"{ \'active\': mactrl.wallLink }\"-->\r\n                                        <!--data-ng-click=\"mactrl.wallLink = true; mactrl.wallImage = false; mactrl.wallVideo = false\"><i-->\r\n                                        <!--class=\"zmdi zmdi-link\"></i></a></li>-->\r\n                                        <!--</ul>-->\r\n                                        <!--</li>-->\r\n\r\n                                        <li class=\"pull-right\">\r\n                                            <button ng-click=\"sermonCtrl.postComment()\"\r\n                                                    class=\"btn btn-primary btn-sm\">Post\r\n                                            </button>\r\n                                        </li>\r\n                                    </ul>\r\n                                </div>\r\n                                <loading loader=\"sermonCtrl.loadingComments\"></loading>\r\n                                <!-- end new comment -->\r\n                                <div class=\"card\" ng-repeat=\"c in sermonCtrl.sermonComments.comments\">\r\n                                    <div class=\"card-header\">\r\n                                        <div class=\"media\">\r\n                                            <div class=\"pull-left\">\r\n                                                <img class=\"lv-img\" src=\"img/profile-pics/1.jpg\" alt=\"\">\r\n                                            </div>\r\n\r\n                                            <div class=\"media-body m-t-5\">\r\n                                                <h2>{{c.user.first_name}} {{c.user.last_name}}\r\n                                                    <small>Posted on\r\n                                                        {{c.created_at | formatDate:\'Do MMM YYYY [at] h:mm a\' }}\r\n                                                    </small>\r\n                                                </h2>\r\n                                            </div>\r\n                                        </div>\r\n\r\n\r\n                                    </div>\r\n\r\n                                    <div class=\"card-body card-padding\">\r\n                                        <p>{{c.comment}}</p>\r\n\r\n                                        <ul class=\"wall-attrs clearfix list-inline list-unstyled\">\r\n                                            <li class=\"wa-stats\">\r\n                                                <span ng-if=\"c.reply_count > 0\"><i class=\"zmdi zmdi-comments\"></i> {{c.reply_count}}</span>\r\n                                                    <span ng-class=\"{\'active\': c.likes_key.indexOf(authService.user.id) >= 0}\">\r\n                                                        <a style=\"color: inherit\" href\r\n                                                           ng-click=\"sermonCtrl.likeComment(c)\"> <i\r\n                                                                class=\"zmdi zmdi-favorite\"></i> <span\r\n                                                                ng-if=\"c.like_count > 0\">{{c.like_count}}</span> </a>\r\n                                                        </span>\r\n\r\n                                            </li>\r\n                                            <!--<li class=\"wa-users\">-->\r\n                                            <!--<a href=\"\"><img src=\"img/profile-pics/1.jpg\" alt=\"\"></a>-->\r\n                                            <!--<a href=\"\"><img src=\"img/profile-pics/2.jpg\" alt=\"\"></a>-->\r\n                                            <!--<a href=\"\"><img src=\"img/profile-pics/3.jpg\" alt=\"\"></a>-->\r\n                                            <!--<a href=\"\"><img src=\"img/profile-pics/5.jpg\" alt=\"\"></a>-->\r\n                                            <!--</li>-->\r\n                                        </ul>\r\n                                    </div>\r\n\r\n                                    <div class=\"wall-comment-list\">\r\n\r\n                                        <!-- Comment Listing -->\r\n                                        <div class=\"wcl-list\">\r\n                                            <div class=\"media\" ng-repeat=\"r in c.replies.comments\">\r\n                                                <a href=\"\" class=\"pull-left\">\r\n                                                    <img src=\"img/profile-pics/5.jpg\" alt=\"\" class=\"lv-img-sm\">\r\n                                                </a>\r\n\r\n                                                <div class=\"media-body\">\r\n                                                    <a href=\"\" class=\"a-title\">{{r.user.first_name}}\r\n                                                        {{r.user.last_name}}</a>\r\n                                                    <small class=\"c-gray m-l-10\">{{r.created_at | fromNow}}</small>\r\n                                                    <p class=\"m-t-5 m-b-0\">{{r.comment}}</p>\r\n                                                    <!--<p class=\"m-t-5\"><a class=\"m-r-5\" href=\"\">Like</a> <a href=\"\">Reply</a></p>-->\r\n                                                </div>\r\n                                            </div>\r\n\r\n\r\n                                        </div>\r\n\r\n                                        <!-- Comment form -->\r\n                                        <div class=\"wcl-form m-t-10\">\r\n                                            <div class=\"wc-comment\" data-ng-if=\"!c.commenting\"\r\n                                                 data-ng-click=\"c.commenting = true\">\r\n                                                <div class=\"wcc-inner\">\r\n                                                    Write Something...\r\n                                                </div>\r\n                                            </div>\r\n\r\n                                            <div class=\"wc-comment\" data-ng-if=\"c.commenting\">\r\n                                                <div class=\"wcc-inner\">\r\n                                                        <textarea class=\"wcci-text\" data-auto-size\r\n                                                                  ng-model=\"c.reply\" data-focus\r\n                                                                  placeholder=\"Write Something...\"></textarea>\r\n                                                </div>\r\n\r\n                                                <div class=\"m-t-15\">\r\n                                                    <button ng-click=\"sermonCtrl.postReply(c)\"\r\n                                                            class=\"btn btn-sm btn-primary\">Post\r\n                                                    </button>\r\n                                                    <button class=\"btn btn-sm btn-link\"\r\n                                                            data-ng-click=\"c.commenting = false\">Cancel\r\n                                                    </button>\r\n                                                </div>\r\n                                            </div>\r\n                                        </div>\r\n                                    </div>\r\n                                </div>\r\n\r\n                            </md-content>\r\n                        </md-tab>\r\n                    </md-tabs>\r\n\r\n                </div>\r\n\r\n            </div>\r\n        </div>\r\n\r\n\r\n    </div>\r\n</div>\r\n");
+$templateCache.put("module/shared/base.html","<header ng-hide=\"$state.current.data.hideHeader\" autoscroll=\"true\"\r\n        id=\"header\" ng-include=\"\'module/shared/header.html\'\"\r\n        ng-controller=\"headerController as headerCtrl\"\r\n        data-current-skin=\"blue\" style=\"height: 70px\">\r\n\r\n</header>\r\n\r\n<section id=\"main\">\r\n    <aside id=\"sidebar\" data-ng-include=\"\'module/shared/sidebar-left.html\'\"\r\n           data-ng-class=\"{ \'toggled\': appCtrl.sidebarToggle.left === true }\"></aside>\r\n    <section id=\"content\" ui-view=\"content\">\r\n\r\n    </section>\r\n</section>\r\n\r\n\r\n<div class=\"fab-menu\">\r\n    <md-fab-speed-dial md-open=\"appCtrl.fabMenu.isOpen\" md-direction=\"up\" class=\"md-fling\">\r\n        <md-fab-trigger>\r\n            <md-button class=\"md-fab md-warn md-button md-ink-ripple\" type=\"button\" aria-label=\"Add...\">\r\n                <md-icon md-svg-src=\"/img/icons/add.svg\"></md-icon>\r\n            </md-button>\r\n        </md-fab-trigger>\r\n        <md-fab-actions ng-hide=\"!appCtrl.fabMenu.isOpen\">\r\n            <md-button ng-if=\"authService.user.is_pastor\"\r\n                       ui-sref=\"base.sermon-create\" class=\"md-fab md-mini md-button md-ink-ripple\"\r\n                       aria-label=\"Add User\">\r\n                <md-tooltip md-direction=\"left\">\r\n                    New Sermon\r\n                </md-tooltip>\r\n                <md-icon md-svg-src=\"/img/icons/create.svg\"></md-icon>\r\n            </md-button>\r\n            <!--<md-button class=\"md-fab  md-mini md-primary md-button md-ink-ripple\" aria-label=\"Add Group\">-->\r\n            <!--<md-icon icon=\"/img/icons/add.svg\"></md-icon>-->\r\n            <!--</md-button>-->\r\n            <!--<md-button class=\"md-fab md-mini md-primary md-button md-ink-ripple\" aria-label=\"Add Group\">-->\r\n            <!--<md-icon icon=\"/img/icons/add.svg\"></md-icon>-->\r\n            <!--</md-button>-->\r\n        </md-fab-actions>\r\n    </md-fab-speed-dial>\r\n</div>\r\n\r\n<footer id=\"footer\">\r\n    Copyright &copy; 2015 scripturedin {{appCtrl.sidebarToggle.left}}\r\n\r\n    <ul class=\"f-menu\">\r\n        <li><a href=\"\">Home</a></li>\r\n        <li><a href=\"\">Dashboard</a></li>\r\n        <li><a href=\"\">Reports</a></li>\r\n        <li><a href=\"\">Support</a></li>\r\n        <li><a href=\"\">Contact</a></li>\r\n    </ul>\r\n</footer>");
 $templateCache.put("module/shared/chat.html","<div class=\"chat-search\">\n    <div class=\"fg-line\">\n        <input type=\"text\" class=\"form-control\" placeholder=\"Search People\">\n    </div>\n</div>\n\n<div class=\"listview\">\n    <a class=\"lv-item\" href=\"\">\n        <div class=\"media\">\n            <div class=\"pull-left p-relative\">\n                <img class=\"lv-img-sm\" src=\"img/profile-pics/2.jpg\" alt=\"\">\n                <i class=\"chat-status-busy\"></i>\n            </div>\n            <div class=\"media-body\">\n                <div class=\"lv-title\">Jonathan Morris</div>\n                <small class=\"lv-small\">Available</small>\n            </div>\n        </div>\n    </a>\n\n    <a class=\"lv-item\" href=\"\">\n        <div class=\"media\">\n            <div class=\"pull-left\">\n                <img class=\"lv-img-sm\" src=\"img/profile-pics/1.jpg\" alt=\"\">\n            </div>\n            <div class=\"media-body\">\n                <div class=\"lv-title\">David Belle</div>\n                <small class=\"lv-small\">Last seen 3 hours ago</small>\n            </div>\n        </div>\n    </a>\n\n    <a class=\"lv-item\" href=\"\">\n        <div class=\"media\">\n            <div class=\"pull-left p-relative\">\n                <img class=\"lv-img-sm\" src=\"img/profile-pics/3.jpg\" alt=\"\">\n                <i class=\"chat-status-online\"></i>\n            </div>\n            <div class=\"media-body\">\n                <div class=\"lv-title\">Fredric Mitchell Jr.</div>\n                <small class=\"lv-small\">Availble</small>\n            </div>\n        </div>\n    </a>\n\n    <a class=\"lv-item\" href=\"\">\n        <div class=\"media\">\n            <div class=\"pull-left p-relative\">\n                <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\n                <i class=\"chat-status-online\"></i>\n            </div>\n            <div class=\"media-body\">\n                <div class=\"lv-title\">Glenn Jecobs</div>\n                <small class=\"lv-small\">Availble</small>\n            </div>\n        </div>\n    </a>\n\n    <a class=\"lv-item\" href=\"\">\n        <div class=\"media\">\n            <div class=\"pull-left\">\n                <img class=\"lv-img-sm\" src=\"img/profile-pics/5.jpg\" alt=\"\">\n            </div>\n            <div class=\"media-body\">\n                <div class=\"lv-title\">Bill Phillips</div>\n                <small class=\"lv-small\">Last seen 3 days ago</small>\n            </div>\n        </div>\n    </a>\n\n    <a class=\"lv-item\" href=\"\">\n        <div class=\"media\">\n            <div class=\"pull-left\">\n                <img class=\"lv-img-sm\" src=\"img/profile-pics/6.jpg\" alt=\"\">\n            </div>\n            <div class=\"media-body\">\n                <div class=\"lv-title\">Wendy Mitchell</div>\n                <small class=\"lv-small\">Last seen 2 minutes ago</small>\n            </div>\n        </div>\n    </a>\n    <a class=\"lv-item\" href=\"\">\n        <div class=\"media\">\n            <div class=\"pull-left p-relative\">\n                <img class=\"lv-img-sm\" src=\"img/profile-pics/7.jpg\" alt=\"\">\n                <i class=\"chat-status-busy\"></i>\n            </div>\n            <div class=\"media-body\">\n                <div class=\"lv-title\">Teena Bell Ann</div>\n                <small class=\"lv-small\">Busy</small>\n            </div>\n        </div>\n    </a>\n</div>\n");
 $templateCache.put("module/shared/footer.html","<footer id=\"footer\">\r\n    Copyright &copy; 2015 scripturedin ...\r\n\r\n\r\n    <ul class=\"f-menu\">\r\n        <li><a href=\"\">Home</a></li>\r\n        <li><a href=\"\">Dashboard</a></li>\r\n        <li><a href=\"\">Reports</a></li>\r\n        <li><a href=\"\">Support</a></li>\r\n        <li><a href=\"\">Contact</a></li>\r\n    </ul>\r\n</footer>");
 $templateCache.put("module/shared/header-image-logo.html","<ul class=\"header-inner clearfix\">\r\n    <li id=\"menu-trigger\" data-target=\"mainmenu\" data-toggle-sidebar data-model-left=\"mactrl.sidebarToggle.left\" data-ng-class=\"{ \'open\': mactrl.sidebarToggle.left === true }\">\r\n        <div class=\"line-wrap\">\r\n            <div class=\"line top\"></div>\r\n            <div class=\"line center\"></div>\r\n            <div class=\"line bottom\"></div>\r\n        </div>\r\n    </li>\r\n\r\n    <li class=\"hidden-xs\">\r\n        <a href=\"index.html\" class=\"m-l-10\" data-ng-click=\"mactrl.sidebarStat($event)\"><img src=\"img/demo/logo.png\" alt=\"\"></a>\r\n    </li>\r\n\r\n    <li class=\"pull-right\">\r\n        <ul class=\"top-menu\">\r\n            <li id=\"top-search\" data-ng-click=\"hctrl.openSearch()\">\r\n                <a href=\"\"><span class=\"tm-label\">Search</span></a>\r\n            </li>\r\n\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <span class=\"tm-label\">Messages</span>\r\n                </a>\r\n                <div class=\"dropdown-menu dropdown-menu-lg pull-right\">\r\n                    <div class=\"listview\">\r\n                        <div class=\"lv-header\">\r\n                            Messages\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/1.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">David Belle</div>\r\n                                        <small class=\"lv-small\">Cum sociis natoque penatibus et magnis dis parturient montes</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/2.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Jonathan Morris</div>\r\n                                        <small class=\"lv-small\">Nunc quis diam diamurabitur at dolor elementum, dictum turpis vel</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/3.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Fredric Mitchell Jr.</div>\r\n                                        <small class=\"lv-small\">Phasellus a ante et est ornare accumsan at vel magnauis blandit turpis at augue ultricies</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Glenn Jecobs</div>\r\n                                        <small class=\"lv-small\">Ut vitae lacus sem ellentesque maximus, nunc sit amet varius dignissim, dui est consectetur neque</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Bill Phillips</div>\r\n                                        <small class=\"lv-small\">Proin laoreet commodo eros id faucibus. Donec ligula quam, imperdiet vel ante placerat</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                        </div>\r\n                        <a class=\"lv-footer\" href=\"\">View All</a>\r\n                    </div>\r\n                </div>\r\n            </li>\r\n            <li class=\"dropdown hidden-xs\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <span class=\"tm-label\">Notification</span>\r\n                </a>\r\n                <div class=\"dropdown-menu dropdown-menu-lg pull-right\">\r\n                    <div class=\"listview\" id=\"notifications\">\r\n                        <div class=\"lv-header\">\r\n                            Notification\r\n\r\n                            <ul class=\"actions\">\r\n                                <li class=\"dropdown\">\r\n                                    <a href=\"\" data-clear=\"notification\">\r\n                                        <i class=\"zmdi zmdi-check-all\"></i>\r\n                                    </a>\r\n                                </li>\r\n                            </ul>\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/1.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">David Belle</div>\r\n                                        <small class=\"lv-small\">Cum sociis natoque penatibus et magnis dis parturient montes</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/2.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Jonathan Morris</div>\r\n                                        <small class=\"lv-small\">Nunc quis diam diamurabitur at dolor elementum, dictum turpis vel</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/3.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Fredric Mitchell Jr.</div>\r\n                                        <small class=\"lv-small\">Phasellus a ante et est ornare accumsan at vel magnauis blandit turpis at augue ultricies</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Glenn Jecobs</div>\r\n                                        <small class=\"lv-small\">Ut vitae lacus sem ellentesque maximus, nunc sit amet varius dignissim, dui est consectetur neque</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Bill Phillips</div>\r\n                                        <small class=\"lv-small\">Proin laoreet commodo eros id faucibus. Donec ligula quam, imperdiet vel ante placerat</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                        </div>\r\n\r\n                        <a class=\"lv-footer\" href=\"\">View Previous</a>\r\n                    </div>\r\n\r\n                </div>\r\n            </li>\r\n            <li class=\"hidden-xs\">\r\n                <a target=\"_blank\" href=\"https://wrapbootstrap.com/theme/superflat-simple-responsive-admin-theme-WB082P91H\">\r\n                    <span class=\"tm-label\">Link</span>\r\n                </a>\r\n            </li>\r\n        </ul>\r\n    </li>\r\n</ul>\r\n\r\n\r\n<!-- Top Search Content -->\r\n<div id=\"top-search-wrap\">\r\n    <div class=\"tsw-inner\">\r\n        <i id=\"top-search-close\" data-ng-click=\"hctrl.closeSearch()\" class=\"zmdi zmdi-arrow-left\"></i>\r\n        <input type=\"text\">\r\n    </div>\r\n</div>\r\n\r\n\r\n");
 $templateCache.put("module/shared/header-textual-menu.html","<ul class=\"header-inner clearfix\">\r\n    <li id=\"menu-trigger\" data-target=\"mainmenu\" data-toggle-sidebar data-model-left=\"mactrl.sidebarToggle.left\" data-ng-class=\"{ \'open\': mactrl.sidebarToggle.left === true }\">\r\n        <div class=\"line-wrap\">\r\n            <div class=\"line top\"></div>\r\n            <div class=\"line center\"></div>\r\n            <div class=\"line bottom\"></div>\r\n        </div>\r\n    </li>\r\n\r\n    <li class=\"logo hidden-xs\">\r\n        <a data-ui-sref=\"home\" data-ng-click=\"mactrl.sidebarStat($event)\">Material Admin</a>\r\n    </li>\r\n\r\n    <li class=\"pull-right\">\r\n        <ul class=\"top-menu\">\r\n            <li id=\"top-search\" data-ng-click=\"hctrl.openSearch()\">\r\n                <a href=\"\"><span class=\"tm-label\">Search</span></a>\r\n            </li>\r\n\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <span class=\"tm-label\">Messages</span>\r\n                </a>\r\n                <div class=\"dropdown-menu dropdown-menu-lg pull-right\">\r\n                    <div class=\"listview\">\r\n                        <div class=\"lv-header\">\r\n                            Messages\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/1.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">David Belle</div>\r\n                                        <small class=\"lv-small\">Cum sociis natoque penatibus et magnis dis parturient montes</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/2.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Jonathan Morris</div>\r\n                                        <small class=\"lv-small\">Nunc quis diam diamurabitur at dolor elementum, dictum turpis vel</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/3.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Fredric Mitchell Jr.</div>\r\n                                        <small class=\"lv-small\">Phasellus a ante et est ornare accumsan at vel magnauis blandit turpis at augue ultricies</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Glenn Jecobs</div>\r\n                                        <small class=\"lv-small\">Ut vitae lacus sem ellentesque maximus, nunc sit amet varius dignissim, dui est consectetur neque</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Bill Phillips</div>\r\n                                        <small class=\"lv-small\">Proin laoreet commodo eros id faucibus. Donec ligula quam, imperdiet vel ante placerat</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                        </div>\r\n                        <a class=\"lv-footer\" href=\"\">View All</a>\r\n                    </div>\r\n                </div>\r\n            </li>\r\n            <li class=\"dropdown hidden-xs\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <span class=\"tm-label\">Notification</span>\r\n                </a>\r\n                <div class=\"dropdown-menu dropdown-menu-lg pull-right\">\r\n                    <div class=\"listview\" id=\"notifications\">\r\n                        <div class=\"lv-header\">\r\n                            Notification\r\n\r\n                            <ul class=\"actions\">\r\n                                <li class=\"dropdown\">\r\n                                    <a href=\"\" data-clear=\"notification\">\r\n                                        <i class=\"zmdi zmdi-check-all\"></i>\r\n                                    </a>\r\n                                </li>\r\n                            </ul>\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/1.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">David Belle</div>\r\n                                        <small class=\"lv-small\">Cum sociis natoque penatibus et magnis dis parturient montes</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/2.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Jonathan Morris</div>\r\n                                        <small class=\"lv-small\">Nunc quis diam diamurabitur at dolor elementum, dictum turpis vel</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/3.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Fredric Mitchell Jr.</div>\r\n                                        <small class=\"lv-small\">Phasellus a ante et est ornare accumsan at vel magnauis blandit turpis at augue ultricies</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Glenn Jecobs</div>\r\n                                        <small class=\"lv-small\">Ut vitae lacus sem ellentesque maximus, nunc sit amet varius dignissim, dui est consectetur neque</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Bill Phillips</div>\r\n                                        <small class=\"lv-small\">Proin laoreet commodo eros id faucibus. Donec ligula quam, imperdiet vel ante placerat</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                        </div>\r\n\r\n                        <a class=\"lv-footer\" href=\"\">View Previous</a>\r\n                    </div>\r\n\r\n                </div>\r\n            </li>\r\n            <li class=\"hidden-xs\">\r\n                <a target=\"_blank\" href=\"https://wrapbootstrap.com/theme/superflat-simple-responsive-admin-theme-WB082P91H\">\r\n                    <span class=\"tm-label\">Link</span>\r\n                </a>\r\n            </li>\r\n        </ul>\r\n    </li>\r\n</ul>\r\n\r\n\r\n<!-- Top Search Content -->\r\n<div id=\"top-search-wrap\">\r\n    <div class=\"tsw-inner\">\r\n        <i id=\"top-search-close\" data-ng-click=\"hctrl.closeSearch()\" class=\"zmdi zmdi-arrow-left\"></i>\r\n        <input type=\"text\">\r\n    </div>\r\n</div>\r\n\r\n\r\n");
 $templateCache.put("module/shared/header-top-menu.html","<ul class=\"header-inner clearfix\">\r\n    <li id=\"menu-trigger\" data-trigger=\".ha-menu\" class=\"visible-xs\">\r\n        <div class=\"line-wrap\">\r\n            <div class=\"line top\"></div>\r\n            <div class=\"line center\"></div>\r\n            <div class=\"line bottom\"></div>\r\n        </div>\r\n    </li>\r\n\r\n    <li class=\"logo hidden-xs\">\r\n        <a data-ui-sref=\"home\">Material Admin</a>\r\n    </li>\r\n\r\n    <li class=\"pull-right\">\r\n        <ul class=\"top-menu\">\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <i class=\"tmn-counts\">6</i>\r\n                    <i class=\"tm-icon zmdi zmdi-email\"></i>\r\n                </a>\r\n                <div class=\"dropdown-menu dropdown-menu-lg pull-right\">\r\n                    <div class=\"listview\">\r\n                        <div class=\"lv-header\">\r\n                            Messages\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/1.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">David Belle</div>\r\n                                        <small class=\"lv-small\">Cum sociis natoque penatibus et magnis dis parturient montes</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/2.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Jonathan Morris</div>\r\n                                        <small class=\"lv-small\">Nunc quis diam diamurabitur at dolor elementum, dictum turpis vel</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/3.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Fredric Mitchell Jr.</div>\r\n                                        <small class=\"lv-small\">Phasellus a ante et est ornare accumsan at vel magnauis blandit turpis at augue ultricies</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Glenn Jecobs</div>\r\n                                        <small class=\"lv-small\">Ut vitae lacus sem ellentesque maximus, nunc sit amet varius dignissim, dui est consectetur neque</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Bill Phillips</div>\r\n                                        <small class=\"lv-small\">Proin laoreet commodo eros id faucibus. Donec ligula quam, imperdiet vel ante placerat</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                        </div>\r\n                        <a class=\"lv-footer\" href=\"\">View All</a>\r\n                    </div>\r\n                </div>\r\n            </li>\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a uib-dropdown-toggle>\r\n                    <i class=\"tmn-counts\">9</i>\r\n                    <i class=\"tm-icon zmdi zmdi-notifications\"></i>\r\n                </a>\r\n                <div class=\"dropdown-menu dropdown-menu-lg pull-right\">\r\n                    <div class=\"listview\" id=\"notifications\">\r\n                        <div class=\"lv-header\">\r\n                            Notification\r\n\r\n                            <ul class=\"actions\">\r\n                                <li class=\"dropdown\">\r\n                                    <a href=\"\" data-clear=\"notification\">\r\n                                        <i class=\"zmdi zmdi-check-all\"></i>\r\n                                    </a>\r\n                                </li>\r\n                            </ul>\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/1.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">David Belle</div>\r\n                                        <small class=\"lv-small\">Cum sociis natoque penatibus et magnis dis parturient montes</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/2.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Jonathan Morris</div>\r\n                                        <small class=\"lv-small\">Nunc quis diam diamurabitur at dolor elementum, dictum turpis vel</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/3.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Fredric Mitchell Jr.</div>\r\n                                        <small class=\"lv-small\">Phasellus a ante et est ornare accumsan at vel magnauis blandit turpis at augue ultricies</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Glenn Jecobs</div>\r\n                                        <small class=\"lv-small\">Ut vitae lacus sem ellentesque maximus, nunc sit amet varius dignissim, dui est consectetur neque</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                            <a class=\"lv-item\" href=\"\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" src=\"img/profile-pics/4.jpg\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">Bill Phillips</div>\r\n                                        <small class=\"lv-small\">Proin laoreet commodo eros id faucibus. Donec ligula quam, imperdiet vel ante placerat</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                        </div>\r\n\r\n                        <a class=\"lv-footer\" href=\"\">View Previous</a>\r\n                    </div>\r\n\r\n                </div>\r\n            </li>\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <i class=\"tmn-counts\">2</i>\r\n                    <i class=\"tm-icon zmdi zmdi-view-list-alt\"></i>\r\n                </a>\r\n                <div class=\"dropdown-menu pull-right dropdown-menu-lg\">\r\n                    <div class=\"listview\">\r\n                        <div class=\"lv-header\">\r\n                            Tasks\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">HTML5 Validation Report</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar\" role=\"progressbar\" aria-valuenow=\"95\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 95%\">\r\n                                        <span class=\"sr-only\">95% Complete (success)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Google Chrome Extension</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-success\" role=\"progressbar\" aria-valuenow=\"80\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 80%\">\r\n                                        <span class=\"sr-only\">80% Complete (success)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Social Intranet Projects</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-info\" role=\"progressbar\" aria-valuenow=\"20\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 20%\">\r\n                                        <span class=\"sr-only\">20% Complete</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Bootstrap Admin Template</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-warning\" role=\"progressbar\" aria-valuenow=\"60\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 60%\">\r\n                                        <span class=\"sr-only\">60% Complete (warning)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Youtube Client App</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-danger\" role=\"progressbar\" aria-valuenow=\"80\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 80%\">\r\n                                        <span class=\"sr-only\">80% Complete (danger)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n\r\n                        <a class=\"lv-footer\" href=\"\">View All</a>\r\n                    </div>\r\n                </div>\r\n            </li>\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\"><i class=\"tm-icon zmdi zmdi-more-vert\"></i></a>\r\n                <ul class=\"dropdown-menu dm-icon pull-right\">\r\n                    <li class=\"hidden-xs\">\r\n                        <a data-ng-click=\"hctrl.fullScreen()\" href=\"\"><i class=\"zmdi zmdi-fullscreen\"></i> Toggle Fullscreen</a>\r\n                    </li>\r\n                    <li>\r\n                        <a data-ng-click=\"hctrl.clearLocalStorage()\" href=\"\"><i class=\"zmdi zmdi-delete\"></i> Clear Local Storage</a>\r\n                    </li>\r\n                    <li>\r\n                        <a href=\"\"><i class=\"zmdi zmdi-face\"></i> Privacy Settings</a>\r\n                    </li>\r\n                    <li>\r\n                        <a href=\"\"><i class=\"zmdi zmdi-settings\"></i> Other Settings</a>\r\n                    </li>\r\n                </ul>\r\n            </li>\r\n        </ul>\r\n    </li>\r\n</ul>\r\n\r\n<div class=\"search\">\r\n    <div class=\"fg-line\">\r\n        <input type=\"text\" class=\"form-control\" placeholder=\"Search...\">\r\n    </div>\r\n</div>\r\n\r\n<nav class=\"ha-menu\">\r\n    <ul>\r\n        <li class=\"waves-effect\" data-ui-sref-active=\"active\">\r\n            <a data-ui-sref=\"home\" data-ng-click=\"mactrl.sidebarStat($event)\">Home</a>\r\n        </li>\r\n\r\n        <li class=\"dropdown\" uib-dropdown data-ng-class=\"{ \'active\': mactrl.$state.includes(\'headers\') }\">\r\n            <div class=\"waves-effect\" uib-dropdown-toggle>Headers</div>\r\n\r\n            <ul class=\"dropdown-menu\">\r\n                <li data-ui-sref-active=\"active\" ><a data-ui-sref=\"headers.textual-menu\">Textual menu</a></li>\r\n                <li data-ui-sref-active=\"active\" ><a data-ui-sref=\"headers.image-logo\">Image logo</a></li>\r\n                <li data-ui-sref-active=\"active\" ><a data-ui-sref=\"headers.mainmenu-on-top\">Mainmenu on top</a></li>\r\n            </ul>\r\n        </li>\r\n\r\n        <li class=\"waves-effect\" data-ui-sref-active=\"active\">\r\n            <a data-ui-sref=\"typography\">Typography</a>\r\n        </li>\r\n\r\n        <li class=\"dropdown\" uib-dropdown>\r\n            <div class=\"waves-effect\" uib-dropdown-toggle>Widgets</div>\r\n            <ul class=\"dropdown-menu\">\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"widgets.widget-templates\">Templates</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"widgets.widgets\">Widgets</a></li>\r\n            </ul>\r\n        </li>\r\n\r\n        <li class=\"dropdown\" uib-dropdown>\r\n            <div class=\"waves-effect\" uib-dropdown-toggle>Tables</div>\r\n            <ul class=\"dropdown-menu\">\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"tables.tables\">Normal Tables</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"tables.data-table\">Data Tables</a></li>\r\n            </ul>\r\n        </li>\r\n\r\n        <li class=\"dropdown\" uib-dropdown>\r\n            <div class=\"waves-effect\" uib-dropdown-toggle>Forms</div>\r\n            <ul class=\"dropdown-menu\">\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"form.basic-form-elements\">Basic Form Elements</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"form.form-components\">Form Components</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"form.form-examples\">Form Examples</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"form.form-validations\">Form Validation</a></li>\r\n            </ul>\r\n        </li>\r\n        <li class=\"dropdown\" uib-dropdown>\r\n            <div class=\"waves-effect\" uib-dropdown-toggle>User Interface</div>\r\n            <ul class=\"dropdown-menu\">\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.ui-bootstrap\">UI Bootstrap</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.colors\">Colors</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.animations\">Animations</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.box-shadow\">Box Shadow</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.buttons\">Buttons</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.icons\">Icons</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.alerts\">Alerts</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.preloaders\">Preloaders</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.notifications-dialogs\">Notifications & Dialogs</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.media\">Media</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"user-interface.other-components\">Others</a></li>\r\n            </ul>\r\n        </li>\r\n        <li class=\"dropdown\" uib-dropdown>\r\n            <div class=\"waves-effect\" uib-dropdown-toggle>Charts</div>\r\n            <ul class=\"dropdown-menu\">\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"charts.flot-charts\">Flot Charts</a></li>\r\n                <li data-ui-sref-active=\"active\"><a data-ui-sref=\"charts.other-charts\">Other Charts</a></li>\r\n            </ul>\r\n        </li>\r\n        <li class=\"waves-effect\" data-ui-sref-active=\"active\"><a data-ui-sref=\"calendar\">Calendar</a></li>\r\n    </ul>\r\n</nav>\r\n\r\n<div class=\"skin-switch dropdown hidden-xs\" uib-dropdown>\r\n    <button uib-dropdown-toggle class=\"btn ss-icon\"><i class=\"zmdi zmdi-palette\"></i></button>\r\n    <div class=\"dropdown-menu\">\r\n        <span ng-repeat=\"w in mactrl.skinList\" class=\"ss-skin bgm-{{ w }}\" data-ng-click=\"mactrl.skinSwitch(w)\"></span>\r\n    </div>\r\n</div>\r\n");
-$templateCache.put("module/shared/header.html","<ul class=\"header-inner clearfix\">\r\n    <li id=\"menu-trigger\" data-target=\"mainmenu\"\r\n        data-toggle-sidebar\r\n        data-model-left=\"mactrl.sidebarToggle.left\"\r\n        data-ng-class=\"{ \'open\': mactrl.sidebarToggle.left === true }\">\r\n        <div class=\"line-wrap\">\r\n            <div class=\"line top\"></div>\r\n            <div class=\"line center\"></div>\r\n            <div class=\"line bottom\"></div>\r\n        </div>\r\n    </li>\r\n\r\n    <li class=\"logo hidden-xs\">\r\n        <a href=\"/#/home\">scripturedIn</a>\r\n    </li>\r\n\r\n\r\n    <li class=\"pull-right\">\r\n        <ul class=\"top-menu\">\r\n\r\n            <!--<li id=\"toggle-width\">-->\r\n                <!--<div class=\"toggle-switch\">-->\r\n                    <!--<input id=\"tw-switch\" type=\"checkbox\" hidden=\"hidden\" data-change-layout=\"mactrl.layoutType\">-->\r\n                    <!--<label for=\"tw-switch\" class=\"ts-helper\"></label>-->\r\n                <!--</div>-->\r\n            <!--</li>-->\r\n\r\n            <!--<li id=\"top-search\">-->\r\n            <!--<a href=\"\" data-ng-click=\"hctrl.openSearch()\"><i class=\"tm-icon zmdi zmdi-search\"></i></a>-->\r\n            <!--</li>-->\r\n            <!--<li class=\"dropdown\" uib-dropdown>-->\r\n                <!--<a uib-dropdown-toggle href=\"\">-->\r\n                    <!--<i class=\"tm-icon zmdi zmdi-email\"></i>-->\r\n                    <!--<i class=\"tmn-counts\">6</i>-->\r\n                <!--</a>-->\r\n\r\n                <!--<div class=\"dropdown-menu dropdown-menu-lg stop-propagate pull-right\">-->\r\n                    <!--<div class=\"listview\">-->\r\n                        <!--<div class=\"lv-header\">-->\r\n                            <!--Messages-->\r\n                        <!--</div>-->\r\n                        <!--<div class=\"lv-body\">-->\r\n                            <!--<a class=\"lv-item\" ng-href=\"\" ng-repeat=\"w in hctrl.messageResult.list\">-->\r\n                                <!--<div class=\"media\">-->\r\n                                    <!--<div class=\"pull-left\">-->\r\n                                        <!--<img class=\"lv-img-sm\" ng-src=\"img/profile-pics/{{ w.img }}\" alt=\"\">-->\r\n                                    <!--</div>-->\r\n                                    <!--<div class=\"media-body\">-->\r\n                                        <!--<div class=\"lv-title\">{{ w.user }}</div>-->\r\n                                        <!--<small class=\"lv-small\">{{ w.text }}</small>-->\r\n                                    <!--</div>-->\r\n                                <!--</div>-->\r\n                            <!--</a>-->\r\n                        <!--</div>-->\r\n\r\n                        <!--<div class=\"clearfix\"></div>-->\r\n\r\n                        <!--<a class=\"lv-footer\" href=\"\">View All</a>-->\r\n                    <!--</div>-->\r\n                <!--</div>-->\r\n            <!--</li>-->\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <i class=\"tm-icon zmdi zmdi-notifications\"></i>\r\n                    <i class=\"tmn-counts\">9</i>\r\n                </a>\r\n\r\n                <div class=\"dropdown-menu dropdown-menu-lg stop-propagate pull-right\">\r\n                    <div class=\"listview\" id=\"notifications\">\r\n                        <div class=\"lv-header\">\r\n                            Notification\r\n\r\n                            <ul class=\"actions\">\r\n                                <li>\r\n                                    <a href=\"\" data-ng-click=\"hctrl.clearNotification($event)\">\r\n                                        <i class=\"zmdi zmdi-check-all\"></i>\r\n                                    </a>\r\n                                </li>\r\n                            </ul>\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <a class=\"lv-item\" ng-href=\"\" ng-repeat=\"w in hctrl.messageResult.list\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" ng-src=\"img/profile-pics/{{ w.img }}\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">{{ w.user }}</div>\r\n                                        <small class=\"lv-small\">{{ w.text }}</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                        </div>\r\n\r\n                        <div class=\"clearfix\"></div>\r\n\r\n                        <a class=\"lv-footer\" href=\"\">View Previous</a>\r\n                    </div>\r\n\r\n                </div>\r\n            </li>\r\n            <li class=\"dropdown hidden-xs\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <i class=\"tm-icon zmdi zmdi-view-list-alt\"></i>\r\n                    <i class=\"tmn-counts\">2</i>\r\n                </a>\r\n\r\n                <div class=\"dropdown-menu pull-right dropdown-menu-lg\">\r\n                    <div class=\"listview\">\r\n                        <div class=\"lv-header\">\r\n                            Tasks\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">HTML5 Validation Report</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar\" role=\"progressbar\" aria-valuenow=\"95\"\r\n                                         aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 95%\">\r\n                                        <span class=\"sr-only\">95% Complete (success)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Google Chrome Extension</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-success\" role=\"progressbar\"\r\n                                         aria-valuenow=\"80\" aria-valuemin=\"0\" aria-valuemax=\"100\"\r\n                                         style=\"width: 80%\">\r\n                                        <span class=\"sr-only\">80% Complete (success)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Social Intranet Projects</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-info\" role=\"progressbar\"\r\n                                         aria-valuenow=\"20\" aria-valuemin=\"0\" aria-valuemax=\"100\"\r\n                                         style=\"width: 20%\">\r\n                                        <span class=\"sr-only\">20% Complete</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Bootstrap Admin Template</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-warning\" role=\"progressbar\"\r\n                                         aria-valuenow=\"60\" aria-valuemin=\"0\" aria-valuemax=\"100\"\r\n                                         style=\"width: 60%\">\r\n                                        <span class=\"sr-only\">60% Complete (warning)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Youtube Client App</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-danger\" role=\"progressbar\"\r\n                                         aria-valuenow=\"80\" aria-valuemin=\"0\" aria-valuemax=\"100\"\r\n                                         style=\"width: 80%\">\r\n                                        <span class=\"sr-only\">80% Complete (danger)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n\r\n                        <div class=\"clearfix\"></div>\r\n\r\n                        <a class=\"lv-footer\" href=\"\">View All</a>\r\n                    </div>\r\n                </div>\r\n            </li>\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <i class=\"tm-icon zmdi zmdi-more-vert\"></i>\r\n                </a>\r\n                <ul class=\"dropdown-menu dm-icon pull-right\">\r\n                    <li class=\"skin-switch hidden-xs\">\r\n                            <span ng-repeat=\"w in mactrl.skinList | limitTo : 6\" class=\"ss-skin bgm-{{ w }}\"\r\n                                  data-ng-click=\"mactrl.skinSwitch(w)\"></span>\r\n                    </li>\r\n                    <li class=\"divider hidden-xs\"></li>\r\n                    <li class=\"hidden-xs\">\r\n                        <a data-ng-click=\"hctrl.fullScreen()\" href=\"\"><i class=\"zmdi zmdi-fullscreen\"></i> Toggle\r\n                            Fullscreen</a>\r\n                    </li>\r\n                    <li>\r\n                        <a data-ng-click=\"hctrl.clearLocalStorage()\" href=\"\"><i class=\"zmdi zmdi-delete\"></i> Clear\r\n                            Local Storage</a>\r\n                    </li>\r\n                    <li>\r\n                        <a href=\"\"><i class=\"zmdi zmdi-face\"></i> Privacy Settings</a>\r\n                    </li>\r\n                    <li>\r\n                        <a href=\"\"><i class=\"zmdi zmdi-settings\"></i> Other Settings</a>\r\n                    </li>\r\n                </ul>\r\n            </li>\r\n            <li class=\"hidden-xs\" data-target=\"chat\" data-toggle-sidebar\r\n                data-model-right=\"mactrl.sidebarToggle.right\"\r\n                data-ng-class=\"{ \'open\': mactrl.sidebarToggle.right === true }\">\r\n                <a href=\"\"><i class=\"tm-icon zmdi zmdi-comment-alt-text\"></i></a>\r\n            </li>\r\n        </ul>\r\n    </li>\r\n</ul>\r\n\r\n<!-- when mobile, reduce width and float right -->\r\n<div id=\"top-search-wrap\" style=\"position: relative; background: none;opacity:1;margin: 0 auto; width: 600px;\">\r\n    <div class=\"tsw-inner\" style=\"max-width: 500px\">\r\n        <!--<i id=\"top-search-close\" class=\"zmdi zmdi-arrow-left\" data-ng-click=\"hctrl.closeSearch()\"></i>-->\r\n        <input focus type=\"text\"\r\n               data-ng-keypress=\"headerCtrl.onSearchKeyPress($event)\"\r\n               data-ng-model=\"headerCtrl.searchTerm\"\r\n               placeholder=\"Search for bible verse e.g john 3:16\"\r\n               style=\"padding: 0 10px 0 20px; font-size: 14px\">\r\n    </div>\r\n</div>\r\n");
-$templateCache.put("module/shared/sidebar-left.html","<div class=\"sidebar-inner c-overflow\">    \n    <div class=\"profile-menu\">\n        <a href=\"\" toggle-submenu>\n            <div class=\"profile-pic\">\n                <img src=\"img/profile-pics/1.jpg\" alt=\"\">\n            </div>\n\n            <div class=\"profile-info\">\n                Malinda Hollaway\n\n                <i class=\"zmdi zmdi-caret-down\"></i>\n            </div>\n        </a>\n\n        <ul class=\"main-menu\">\n            <li>\n                <a data-ui-sref=\"pages.profile.profile-about\" data-ng-click=\"mactrl.sidebarStat($event)\"><i class=\"zmdi zmdi-account\"></i> View Profile</a>\n            </li>\n            <li>\n                <a href=\"\"><i class=\"zmdi zmdi-input-antenna\"></i> Privacy Settings</a>\n            </li>\n            <li>\n                <a href=\"\"><i class=\"zmdi zmdi-settings\"></i> Settings</a>\n            </li>\n            <li>\n                <a href=\"\"><i class=\"zmdi zmdi-time-restore\"></i> Logout</a>\n            </li>\n        </ul>\n    </div>\n\n    <ul class=\"main-menu\">\n        \n        <li data-ui-sref-active=\"active\">\n            <a data-ui-sref=\"home\" data-ng-click=\"mactrl.sidebarStat($event)\"><i class=\"zmdi zmdi-home\"></i> Home</a>\n        </li>\n        <li class=\"sub-menu\" data-ng-class=\"{ \'active toggled\': mactrl.$state.includes(\'headers\') }\">\n            <a href=\"\" toggle-submenu><i class=\"zmdi zmdi-view-compact\"></i> Headers</a>\n\n            <ul>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"headers.textual-menu\" data-ng-click=\"mactrl.sidebarStat($event)\">Textual menu</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"headers.image-logo\" data-ng-click=\"mactrl.sidebarStat($event)\">Image logo</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"headers.mainmenu-on-top\" data-ng-click=\"mactrl.sidebarStat($event)\">Mainmenu on top</a></li>\n            </ul>\n        </li>\n        <li data-ui-sref-active=\"active\">\n            <a data-ui-sref=\"typography\" data-ng-click=\"mactrl.sidebarStat($event)\"><i class=\"zmdi zmdi-format-underlined\"></i> Typography</a>\n        </li>\n        <li class=\"sub-menu\" data-ng-class=\"{ \'active toggled\': mactrl.$state.includes(\'widgets\') }\">\n            <a href=\"\" toggle-submenu><i class=\"zmdi zmdi-widgets\"></i> Widgets</a>\n\n            <ul>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"widgets.widget-templates\" data-ng-click=\"mactrl.sidebarStat($event)\">Templates</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"widgets.widgets\" data-ng-click=\"mactrl.sidebarStat($event)\">Widgets</a></li>\n            </ul>\n        </li>\n        \n        <li class=\"sub-menu\" data-ng-class=\"{ \'active toggled\': mactrl.$state.includes(\'tables\') }\">\n            <a href=\"\" toggle-submenu><i class=\"zmdi zmdi-view-list\"></i> Tables</a>\n\n            <ul>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"tables.tables\" data-ng-click=\"mactrl.sidebarStat($event)\">Tables</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"tables.data-table\" data-ng-click=\"mactrl.sidebarStat($event)\">Data Tables</a></li>\n            </ul>\n        </li>\n        \n        <li class=\"sub-menu\" data-ng-class=\"{ \'active toggled\': mactrl.$state.includes(\'form\') }\">\n            <a href=\"\" toggle-submenu><i class=\"zmdi zmdi-collection-text\"></i> Forms</a>\n\n            <ul>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"form.basic-form-elements\" data-ng-click=\"mactrl.sidebarStat($event)\">Basic Form Elements</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"form.form-components\" data-ng-click=\"mactrl.sidebarStat($event)\">Form Components</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"form.form-examples\" data-ng-click=\"mactrl.sidebarStat($event)\">Form Examples</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"form.form-validations\" data-ng-click=\"mactrl.sidebarStat($event)\">Form Validation</a></li>\n            </ul>\n        </li>\n\n        <li class=\"sub-menu\" data-ng-class=\"{ \'active toggled\': mactrl.$state.includes(\'user-interface\') }\">\n            <a href=\"\" toggle-submenu><i class=\"zmdi zmdi-swap-alt\"></i>User Interface</a>\n            <ul>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.ui-bootstrap\" data-ng-click=\"mactrl.sidebarStat($event)\">UI Bootstrap</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.colors\" data-ng-click=\"mactrl.sidebarStat($event)\">Colors</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.animations\" data-ng-click=\"mactrl.sidebarStat($event)\">Animations</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.box-shadow\" data-ng-click=\"mactrl.sidebarStat($event)\">Box Shadow</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.buttons\" data-ng-click=\"mactrl.sidebarStat($event)\">Buttons</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.icons\" data-ng-click=\"mactrl.sidebarStat($event)\">Icons</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.alerts\" data-ng-click=\"mactrl.sidebarStat($event)\">Alerts</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.preloaders\" data-ng-click=\"mactrl.sidebarStat($event)\">Preloaders</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.notifications-dialogs\" data-ng-click=\"mactrl.sidebarStat($event)\">Notifications & Dialogs</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.media\" data-ng-click=\"mactrl.sidebarStat($event)\">Media</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"user-interface.other-components\" data-ng-click=\"mactrl.sidebarStat($event)\">Others</a></li>\n            </ul>\n        </li>\n        <li class=\"sub-menu\" data-ng-class=\"{ \'active toggled\': mactrl.$state.includes(\'charts\') }\">\n            <a href=\"\" toggle-submenu><i class=\"zmdi zmdi-trending-up\"></i>Charts</a>\n            <ul>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"charts.flot-charts\" data-ng-click=\"mactrl.sidebarStat($event)\">Flot Charts</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"charts.other-charts\" data-ng-click=\"mactrl.sidebarStat($event)\">Other Charts</a></li>\n            </ul>\n        </li>\n\n        <li data-ui-sref-active=\"active\">\n            <a data-ui-sref=\"calendar\" data-ng-click=\"mactrl.sidebarStat($event)\"><i class=\"zmdi zmdi-calendar\"></i> Calendar</a>\n        </li>\n        \n        <li class=\"sub-menu\" data-ng-class=\"{ \'active toggled\': mactrl.$state.includes(\'photo-gallery\') }\">\n            <a href=\"\" toggle-submenu><i class=\"zmdi zmdi-image\"></i>Photo Gallery</a>\n            <ul>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"photo-gallery.photos\" data-ng-click=\"mactrl.sidebarStat($event)\">Default</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"photo-gallery.timeline\" data-ng-click=\"mactrl.sidebarStat($event)\">Timeline</a></li>\n            </ul>\n        </li>\n\n        \n        <li data-ui-sref-active=\"active\">\n            <a data-ui-sref=\"generic-classes\" data-ng-click=\"mactrl.sidebarStat($event)\"><i class=\"zmdi zmdi-layers\"></i> Generic Classes</a>\n        </li>\n\n        <li class=\"sub-menu\" data-ng-class=\"{ \'active toggled\': mactrl.$state.includes(\'pages\') }\">\n            <a href=\"\" toggle-submenu><i class=\"zmdi zmdi-collection-item\"></i> Sample Pages</a>\n            <ul>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"pages.profile.profile-about\" data-ng-click=\"mactrl.sidebarStat($event)\">Profile</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"pages.listview\" data-ng-click=\"mactrl.sidebarStat($event)\">List View</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"pages.messages\" data-ng-click=\"mactrl.sidebarStat($event)\">Messages</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"pages.pricing-table\" data-ng-click=\"mactrl.sidebarStat($event)\">Pricing Table</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"pages.contacts\" data-ng-click=\"mactrl.sidebarStat($event)\">Contacts</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"pages.invoice\" data-ng-click=\"mactrl.sidebarStat($event)\">Invoice</a></li>\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"pages.wall\" data-ng-click=\"mactrl.sidebarStat($event)\">Wall</a></li>\n                <li><a href=\"login.html\">Login and Sign Up</a></li>\n                <li><a href=\"lockscreen.html\">Lockscreen</a></li>\n                <li><a href=\"404.html\">Error 404</a></li>\n            </ul>\n        </li>\n        <li class=\"sub-menu\">\n            <a href=\"\" toggle-submenu><i class=\"zmdi zmdi-menu\"></i> 3 Level Menu</a>\n\n            <ul>\n                <li><a href=\"\">Level 2 link</a></li>\n                <li><a href=\"\">Another level 2 Link</a></li>\n                <li class=\"sub-menu\">\n                    <a href=\"\" toggle-submenu>I have children too</a>\n\n                    <ul>\n                        <li><a href=\"\">Level 3 link</a></li>\n                        <li><a href=\"\">Another Level 3 link</a></li>\n                        <li><a href=\"\">Third one</a></li>\n                    </ul>\n                </li>\n                <li><a href=\"\">One more 2</a></li>\n            </ul>\n        </li>\n        <li>\n            <a href=\"https://wrapbootstrap.com/theme/material-admin-responsive-angularjs-WB011H985\"><i class=\"zmdi zmdi-money\"></i> Buy this template</a>\n        </li>\n    </ul>\n</div>\n");}]);
+$templateCache.put("module/shared/header.html","<ul class=\"header-inner clearfix\">\r\n    <li id=\"menu-trigger\" data-target=\"mainmenu\"\r\n        data-toggle-sidebar\r\n        data-model-left=\"appCtrl.sidebarToggle.left\"\r\n        data-ng-class=\"{ \'open\': appCtrl.sidebarToggle.left === true }\">\r\n        <div class=\"line-wrap\">\r\n            <div class=\"line top\"></div>\r\n            <div class=\"line center\"></div>\r\n            <div class=\"line bottom\"></div>\r\n        </div>\r\n    </li>\r\n\r\n    <li class=\"logo hidden-xs\">\r\n        <a href=\"/#/home\">scripturedIn</a>\r\n    </li>\r\n\r\n\r\n    <li class=\"pull-right\">\r\n        <ul class=\"top-menu\">\r\n\r\n            <!--<li id=\"toggle-width\">-->\r\n                <!--<div class=\"toggle-switch\">-->\r\n                    <!--<input id=\"tw-switch\" type=\"checkbox\" hidden=\"hidden\" data-change-layout=\"mactrl.layoutType\">-->\r\n                    <!--<label for=\"tw-switch\" class=\"ts-helper\"></label>-->\r\n                <!--</div>-->\r\n            <!--</li>-->\r\n\r\n            <!--<li id=\"top-search\">-->\r\n            <!--<a href=\"\" data-ng-click=\"hctrl.openSearch()\"><i class=\"tm-icon zmdi zmdi-search\"></i></a>-->\r\n            <!--</li>-->\r\n            <!--<li class=\"dropdown\" uib-dropdown>-->\r\n                <!--<a uib-dropdown-toggle href=\"\">-->\r\n                    <!--<i class=\"tm-icon zmdi zmdi-email\"></i>-->\r\n                    <!--<i class=\"tmn-counts\">6</i>-->\r\n                <!--</a>-->\r\n\r\n                <!--<div class=\"dropdown-menu dropdown-menu-lg stop-propagate pull-right\">-->\r\n                    <!--<div class=\"listview\">-->\r\n                        <!--<div class=\"lv-header\">-->\r\n                            <!--Messages-->\r\n                        <!--</div>-->\r\n                        <!--<div class=\"lv-body\">-->\r\n                            <!--<a class=\"lv-item\" ng-href=\"\" ng-repeat=\"w in hctrl.messageResult.list\">-->\r\n                                <!--<div class=\"media\">-->\r\n                                    <!--<div class=\"pull-left\">-->\r\n                                        <!--<img class=\"lv-img-sm\" ng-src=\"img/profile-pics/{{ w.img }}\" alt=\"\">-->\r\n                                    <!--</div>-->\r\n                                    <!--<div class=\"media-body\">-->\r\n                                        <!--<div class=\"lv-title\">{{ w.user }}</div>-->\r\n                                        <!--<small class=\"lv-small\">{{ w.text }}</small>-->\r\n                                    <!--</div>-->\r\n                                <!--</div>-->\r\n                            <!--</a>-->\r\n                        <!--</div>-->\r\n\r\n                        <!--<div class=\"clearfix\"></div>-->\r\n\r\n                        <!--<a class=\"lv-footer\" href=\"\">View All</a>-->\r\n                    <!--</div>-->\r\n                <!--</div>-->\r\n            <!--</li>-->\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <i class=\"tm-icon zmdi zmdi-notifications\"></i>\r\n                    <i class=\"tmn-counts\">9</i>\r\n                </a>\r\n\r\n                <div class=\"dropdown-menu dropdown-menu-lg stop-propagate pull-right\">\r\n                    <div class=\"listview\" id=\"notifications\">\r\n                        <div class=\"lv-header\">\r\n                            Notification\r\n\r\n                            <ul class=\"actions\">\r\n                                <li>\r\n                                    <a href=\"\" data-ng-click=\"hctrl.clearNotification($event)\">\r\n                                        <i class=\"zmdi zmdi-check-all\"></i>\r\n                                    </a>\r\n                                </li>\r\n                            </ul>\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <a class=\"lv-item\" ng-href=\"\" ng-repeat=\"w in hctrl.messageResult.list\">\r\n                                <div class=\"media\">\r\n                                    <div class=\"pull-left\">\r\n                                        <img class=\"lv-img-sm\" ng-src=\"img/profile-pics/{{ w.img }}\" alt=\"\">\r\n                                    </div>\r\n                                    <div class=\"media-body\">\r\n                                        <div class=\"lv-title\">{{ w.user }}</div>\r\n                                        <small class=\"lv-small\">{{ w.text }}</small>\r\n                                    </div>\r\n                                </div>\r\n                            </a>\r\n                        </div>\r\n\r\n                        <div class=\"clearfix\"></div>\r\n\r\n                        <a class=\"lv-footer\" href=\"\">View Previous</a>\r\n                    </div>\r\n\r\n                </div>\r\n            </li>\r\n            <li class=\"dropdown hidden-xs\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <i class=\"tm-icon zmdi zmdi-view-list-alt\"></i>\r\n                    <i class=\"tmn-counts\">2</i>\r\n                </a>\r\n\r\n                <div class=\"dropdown-menu pull-right dropdown-menu-lg\">\r\n                    <div class=\"listview\">\r\n                        <div class=\"lv-header\">\r\n                            Tasks\r\n                        </div>\r\n                        <div class=\"lv-body\">\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">HTML5 Validation Report</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar\" role=\"progressbar\" aria-valuenow=\"95\"\r\n                                         aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 95%\">\r\n                                        <span class=\"sr-only\">95% Complete (success)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Google Chrome Extension</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-success\" role=\"progressbar\"\r\n                                         aria-valuenow=\"80\" aria-valuemin=\"0\" aria-valuemax=\"100\"\r\n                                         style=\"width: 80%\">\r\n                                        <span class=\"sr-only\">80% Complete (success)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Social Intranet Projects</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-info\" role=\"progressbar\"\r\n                                         aria-valuenow=\"20\" aria-valuemin=\"0\" aria-valuemax=\"100\"\r\n                                         style=\"width: 20%\">\r\n                                        <span class=\"sr-only\">20% Complete</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Bootstrap Admin Template</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-warning\" role=\"progressbar\"\r\n                                         aria-valuenow=\"60\" aria-valuemin=\"0\" aria-valuemax=\"100\"\r\n                                         style=\"width: 60%\">\r\n                                        <span class=\"sr-only\">60% Complete (warning)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"lv-item\">\r\n                                <div class=\"lv-title m-b-5\">Youtube Client App</div>\r\n\r\n                                <div class=\"progress\">\r\n                                    <div class=\"progress-bar progress-bar-danger\" role=\"progressbar\"\r\n                                         aria-valuenow=\"80\" aria-valuemin=\"0\" aria-valuemax=\"100\"\r\n                                         style=\"width: 80%\">\r\n                                        <span class=\"sr-only\">80% Complete (danger)</span>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n\r\n                        <div class=\"clearfix\"></div>\r\n\r\n                        <a class=\"lv-footer\" href=\"\">View All</a>\r\n                    </div>\r\n                </div>\r\n            </li>\r\n            <li class=\"dropdown\" uib-dropdown>\r\n                <a uib-dropdown-toggle href=\"\">\r\n                    <i class=\"tm-icon zmdi zmdi-more-vert\"></i>\r\n                </a>\r\n                <ul class=\"dropdown-menu dm-icon pull-right\">\r\n                    <li class=\"skin-switch hidden-xs\">\r\n                            <span ng-repeat=\"w in mactrl.skinList | limitTo : 6\" class=\"ss-skin bgm-{{ w }}\"\r\n                                  data-ng-click=\"mactrl.skinSwitch(w)\"></span>\r\n                    </li>\r\n                    <li class=\"divider hidden-xs\"></li>\r\n                    <li class=\"hidden-xs\">\r\n                        <a data-ng-click=\"hctrl.fullScreen()\" href=\"\"><i class=\"zmdi zmdi-fullscreen\"></i> Toggle\r\n                            Fullscreen</a>\r\n                    </li>\r\n                    <li>\r\n                        <a data-ng-click=\"hctrl.clearLocalStorage()\" href=\"\"><i class=\"zmdi zmdi-delete\"></i> Clear\r\n                            Local Storage</a>\r\n                    </li>\r\n                    <li>\r\n                        <a href=\"\"><i class=\"zmdi zmdi-face\"></i> Privacy Settings</a>\r\n                    </li>\r\n                    <li>\r\n                        <a href=\"\"><i class=\"zmdi zmdi-settings\"></i> Other Settings</a>\r\n                    </li>\r\n                </ul>\r\n            </li>\r\n            <li class=\"hidden-xs\" data-target=\"chat\" data-toggle-sidebar\r\n                data-model-right=\"mactrl.sidebarToggle.right\"\r\n                data-ng-class=\"{ \'open\': mactrl.sidebarToggle.right === true }\">\r\n                <a href=\"\"><i class=\"tm-icon zmdi zmdi-comment-alt-text\"></i></a>\r\n            </li>\r\n        </ul>\r\n    </li>\r\n</ul>\r\n\r\n<!-- when mobile, reduce width and float right -->\r\n<div id=\"top-search-wrap\"  class=\"hidden-xs\" style=\"position: relative; background: none;opacity:1;margin: 0 auto; width: 600px;\">\r\n    <div class=\"tsw-inner\" style=\"max-width: 500px\">\r\n        <!--<i id=\"top-search-close\" class=\"zmdi zmdi-arrow-left\" data-ng-click=\"hctrl.closeSearch()\"></i>-->\r\n        <input focus type=\"text\"\r\n               data-ng-keypress=\"headerCtrl.onSearchKeyPress($event)\"\r\n               data-ng-model=\"headerCtrl.searchTerm\"\r\n               placeholder=\"Search for bible verse e.g john 3:16\"\r\n               style=\"padding: 0 10px 0 20px; font-size: 14px\">\r\n    </div>\r\n</div>\r\n");
+$templateCache.put("module/shared/sidebar-left.html","<div class=\"sidebar-inner c-overflow\">\r\n    <div class=\"profile-menu\">\r\n        <a href=\"\" toggle-submenu>\r\n            <div class=\"profile-pic\">\r\n                <img src=\"img/profile-pics/1.jpg\" alt=\"\">\r\n            </div>\r\n\r\n            <div class=\"profile-info\">\r\n                {{authService.user.first_name + \' \' + authService.user.last_name }}\r\n\r\n                <i class=\"zmdi zmdi-caret-down\"></i>\r\n            </div>\r\n        </a>\r\n\r\n        <ul class=\"main-menu\">\r\n            <li>\r\n                <a data-ui-sref=\"pages.profile.profile-about\" data-ng-click=\"mactrl.sidebarStat($event)\"><i\r\n                        class=\"zmdi zmdi-account\"></i> View Profile</a>\r\n            </li>\r\n            <li>\r\n                <a href=\"\"><i class=\"zmdi zmdi-input-antenna\"></i> Privacy Settings</a>\r\n            </li>\r\n            <li>\r\n                <a href=\"\"><i class=\"zmdi zmdi-settings\"></i> Settings</a>\r\n            </li>\r\n            <li>\r\n                <a href=\"\"><i class=\"zmdi zmdi-time-restore\"></i> Logout</a>\r\n            </li>\r\n        </ul>\r\n    </div>\r\n\r\n    <ul class=\"main-menu\">\r\n\r\n        <li data-ui-sref-active=\"active\">\r\n            <a data-ui-sref=\"home\" data-ng-click=\"mactrl.sidebarStat($event)\"><i class=\"zmdi zmdi-home\"></i> Home</a>\r\n        </li>\r\n        <li class=\"sub-menu\" data-ng-class=\"{ \'active toggled\': mactrl.$state.includes(\'headers\') }\">\r\n            <a href=\"\" toggle-submenu><i class=\"zmdi zmdi-view-compact\"></i> Headers</a>\r\n\r\n            <ul>\r\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"headers.textual-menu\"\r\n                       data-ng-click=\"mactrl.sidebarStat($event)\">Textual menu</a></li>\r\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"headers.image-logo\"\r\n                       data-ng-click=\"mactrl.sidebarStat($event)\">Image logo</a></li>\r\n                <li><a data-ui-sref-active=\"active\" data-ui-sref=\"headers.mainmenu-on-top\"\r\n                       data-ng-click=\"mactrl.sidebarStat($event)\">Mainmenu on top</a></li>\r\n            </ul>\r\n        </li>\r\n        <li data-ui-sref-active=\"active\">\r\n            <a data-ui-sref=\"base.sermon-browse\" data-ng-click=\"appCtrl.sidebarStat($event)\"><i\r\n                    class=\"zmdi zmdi-format-underlined\"></i> Sermons</a>\r\n        </li>\r\n    </ul>\r\n</div>\r\n");}]);
