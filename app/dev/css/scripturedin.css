@@ -29,15 +29,17 @@ p.highlight {
     position: relative;
 }
 
+
 wysiwyg-edit .tinyeditor .sizer {
-    min-height: 40px;
-    height: 40px;
+    min-height: 100px;
+    height: 100px;
     max-height: 100px;
 }
 
 wysiwyg-edit .tinyeditor .tinyeditor-footer {
     display: none;
 }
+
 
 body {
     font-family: roboto;
@@ -150,5 +152,17 @@ body {
 }
 
 #study-note .sizer {
-    height: 100%;
+   min-height: 400px;
+}
+a.like {
+    color: inherit;
+}
+
+@media (max-width: 767px) {
+    #profile-main .pm-overview {
+        width: 100%;
+        background: transparent !important;
+        /*background: #333;*/
+        text-align: center;
+    }
 }

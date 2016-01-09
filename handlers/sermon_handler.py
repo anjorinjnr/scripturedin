@@ -9,6 +9,33 @@ import logging
 
 
 class SermonHandler(base_handler.BaseHandler):
+
+
+    @user_required
+    def like(self, sermon_id):
+        try:
+            if model.like_sermon(sermon_id, self.user.key.id()):
+                self.success_response()
+        except Exception as e:
+            self.error_response([e.message])
+
+    @user_required
+    def log_view(self, sermon_id):
+        try:
+            if model.log_sermon_view(sermon_id, self.user.key.id()):
+                self.success_response()
+        except Exception as e:
+            self.error_response([e.message])
+
+    @user_required
+    def unlike(self, sermon_id):
+        try:
+            if model.unlike_sermon(sermon_id, self.user.key.id()):
+                self.success_response()
+        except Exception as e:
+            self.error_response([e.message])
+
+
     @user_required
     def save(self):
         data = self.request_data()
@@ -24,6 +51,10 @@ class SermonHandler(base_handler.BaseHandler):
         if sermon_id:
             sermon = model.get_sermon(sermon_id)
             if sermon:
+                if self.user.key not in sermon.viewers_key:
+                    sermon.viewers_key.append(self.user.key)
+                    sermon.views += 1
+                    sermon.put()
                 self.write_model(sermon, pastor=model.get_user_by_id(sermon.pastor_key.id()),
                                  church=model.get_church(sermon.church_key.id()))
             else:

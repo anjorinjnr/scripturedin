@@ -4,13 +4,36 @@
 
 App.controller('sermonController', function ($state, authService, userService, bibleService,
                                              alertService, util, sermons, $scope,
-                                             sermon, $stateParams, $uibModal) {
+                                             sermon, $stateParams, $mdDialog, $uibModal) {
         var self = this;
 
         self.user = authService.user;
+        console.log(self.user);
         self.errors = {};
 
-        self.scriptureSelect = function (e) {
+        self.showScripture = function (s) {
+            //$mdDialog.show({
+            //    controller: function(){
+            //
+            //    },
+            //    templateUrl:  'module/sermon/scripture_modal.html',// 'dialog1.tmpl.html',
+            //    parent: angular.element(document.body),
+            //    //targetEvent: ev,
+            //    clickOutsideToClose: true,
+            //    fullscreen: false
+            //});
+            var modalInstance = $uibModal.open({
+                animation: false,
+                templateUrl: 'module/sermon/scripture_modal.html',
+                controller: function () {
+
+                },
+                size: 'sm',
+                backdrop: true,
+                //keyboard: keyboard,
+
+
+            });
 
         };
 
@@ -97,12 +120,43 @@ App.controller('sermonController', function ($state, authService, userService, b
             });
         };
 
+        self.busy = false;
+        /**
+         * Like or unlike a sermon
+         */
+        self.likeSermon = function () {
+            if (self.busy) return;
+            if (_.isUndefined(self.user['fav_sermon_keys'])) {
+                self.user.fav_sermon_keys = [];
+            }
 
+            var i = self.user.fav_sermon_keys.indexOf(self.sermon.id);
+            if (i >= 0) {
+                self.busy = true;
+                userService.unlikeSermon(self.sermon.id).then(function (resp) {
+                    self.busy = false;
+                    if (resp.data.status == 'success') {
+                        self.sermon.likes -= 1;
+                        self.user.fav_sermon_keys.splice(i, 1);
+                    }
+                });
+                //unlike
+            } else {
+                self.busy = true;
+                userService.likeSermon(self.sermon.id).then(function (resp) {
+                    self.busy = false;
+                    if (resp.data.status == 'success') {
+                        self.sermon.likes += 1;
+                        self.user.fav_sermon_keys.push(self.sermon.id);
+                    }
+                });
+            }
+        };
         self.likeComment = function (c) {
 
             var i = c.likes_key.indexOf(self.user.id);
             if (i >= 0) {
-                  userService.unlikeComment(c.id).then(function (resp) {
+                userService.unlikeComment(c.id).then(function (resp) {
                     if (resp.data.status == 'success') {
                         c.like_count -= 1;
                         c.likes_key.splice(i, 1);
@@ -153,6 +207,7 @@ App.controller('sermonController', function ($state, authService, userService, b
                         if (resp.data.id) {
                             self.sermonComments.comments.unshift(resp.data);
                             self.sermonComment.comment = '';
+                            self.sermon.comments++;
                         } else {
                             alertService.danger('Failed to post comment, please try again');
                         }

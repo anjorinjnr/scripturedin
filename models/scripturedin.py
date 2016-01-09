@@ -39,7 +39,7 @@ class User(AuthUser):
     gender = type_string(choices=('f', 'm'))
     church_key = type_key()
     is_pastor = type_bool()
-
+    fav_sermon_keys = type_key(kind='Sermon', repeated=True)
     # def get_id(self):
     #     return self.id
 
@@ -96,8 +96,10 @@ class Sermon(BaseModel):
     publish = type_bool()
     questions = type_json()
     cal_color = type_string()  # calendar color
-    comments = type_int()
-    likes = type_int()
+    comments = type_int(default=0)
+    likes = type_int(default=0)
+    views = type_int(default=0)
+    viewers_key = type_key(kind='User', repeated=True)
 
 
 class Tags(BaseModel):
@@ -350,6 +352,31 @@ def get_sermon_comments(sermon_id, cursor):
     return get_comments('Sermon', sermon_id, cursor)
 
 
+def like_sermon(sermon_id, user_id):
+    logging.info(sermon_id)
+    logging.info(user_id)
+    user = User.get_by_id(int(user_id))
+    sermon = Sermon.get_by_id(int(sermon_id))
+    if sermon.key not in user.fav_sermon_keys:
+        user.fav_sermon_keys.append(sermon.key)
+        if not sermon.likes:
+            sermon.likes = 0
+        sermon.likes += 1
+        sermon.put()
+        user.put()
+        return True
+
+
+def unlike_sermon(sermon_id, user_id):
+    user = User.get_by_id(int(user_id))
+    sermon = Sermon.get_by_id(int(sermon_id))
+    if sermon.key in user.fav_sermon_keys:
+        user.fav_sermon_keys.remove(sermon.key)
+        sermon.likes -= 1
+        sermon.put()
+        user.put()
+        return True
+
 def like_comment(comment_id, user_id):
     comment = Comment.get_by_id(int(comment_id))
     user_key = ndb.Key('User', int(user_id))
@@ -366,4 +393,13 @@ def unlike_comment(comment_id, user_id):
         comment.likes_key.remove(user_key)
         comment.like_count -= 1
         comment.put()
+        return True
+
+def log_sermon_view(sermon_id, user_id):
+    sermon = Sermon.get_by_id(int(sermon_id))
+    user = User.get_by_id(int(user_id))
+    if user and sermon and user.key not in sermon.viewers_key:
+        sermon.viewers_key.append(user.key)
+        sermon.views = len(sermon.viewers_key)
+        sermon.put()
         return True

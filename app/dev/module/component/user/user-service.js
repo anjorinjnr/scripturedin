@@ -43,4 +43,10 @@ App.service('userService', function ($http) {
     self.unlikeComment = function (commentId) {
         return $http.post('/api/comment/' + commentId + '/unlike', {}, {ignoreLoadingBar: true});
     };
+    self.likeSermon = function (sermonId) {
+        return $http.post('/api/sermon/' + sermonId + '/like', {}, {ignoreLoadingBar: true});
+    };
+    self.unlikeSermon = function (sermonId) {
+        return $http.post('/api/sermon/' + sermonId + '/unlike', {}, {ignoreLoadingBar: true});
+    };
 });

@@ -8,7 +8,7 @@ import logging
 class UserHandler(base_handler.BaseHandler):
     def current_user(self):
         if self.user:
-            self.write_response(self._user_to_dict((self.user)))
+          self.write_model(self.user)
         else:
             self.write_response({'status': 'no active user session'})
 

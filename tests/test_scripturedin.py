@@ -97,12 +97,12 @@ class ScripturedinTestCase(unittest.TestCase):
         self.assertEquals(comment.ref_key, data['ref_key'])
         self.assertEquals(data['comment'], comment.comment)
         data = {'comment': 'some comment with reply', 'user_key': ndb.Key('User', 5360119185408000),
-                'ref_key': ndb.Key('Sermon', 5733953138851840), 'reply_to': 5360119185123000L}
+                'ref_key': ndb.Key('Sermon', 5733953138851840), 'reply_to': comment.key}
         comment = model.save_comment(data)
         self.assertEquals(comment.created_by, data['user_key'])
         self.assertEquals(comment.ref_key, data['ref_key'])
         self.assertEquals(comment.comment, data['comment'])
-        self.assertEquals(comment.reply_to, ndb.Key('Comment', data['reply_to']))
+        self.assertEquals(comment.reply_to, data['reply_to'])
 
     @mock.patch('models.scripturedin.Sermon.get_by_id')
     @mock.patch('models.scripturedin.User.get_by_id')
@@ -182,3 +182,37 @@ class ScripturedinTestCase(unittest.TestCase):
         data = {}
         church = model.save_church(data)
         self.assertFalse(church)
+
+    @mock.patch('models.scripturedin.Sermon.get_by_id')
+    @mock.patch('models.scripturedin.User.get_by_id')
+    def test_like_sermon(self, mock_user_get, mock_sermon_get):
+        user = model.User(id=123)
+        sermon = model.Sermon(id=456)
+        mock_user_get.return_value = user
+        mock_sermon_get.return_value = sermon
+
+        resp = model.like_sermon(456, 123)
+        mock_user_get.assert_called_once_with(123)
+        mock_sermon_get.assert_called_once_with(456)
+        self.assertEqual([sermon.key], user.fav_sermon_keys )
+        self.assertEqual(1, sermon.likes)
+
+    @mock.patch('models.scripturedin.Sermon.get_by_id')
+    @mock.patch('models.scripturedin.User.get_by_id')
+    def test_log_sermon_view(self, mock_user_get, mock_sermon_get):
+        user = model.User(id=123)
+        sermon = model.Sermon(id=456)
+        mock_user_get.return_value = user
+        mock_sermon_get.return_value = sermon
+
+        resp = model.log_sermon_view(456, 123)
+        mock_user_get.assert_called_once_with(123)
+        mock_sermon_get.assert_called_once_with(456)
+        self.assertTrue(resp)
+        self.assertEqual([user.key], sermon.viewers_key )
+        self.assertEqual(1, sermon.views)
+
+        resp = model.log_sermon_view(456, 123)
+        self.assertEqual([user.key], sermon.viewers_key )
+        self.assertEqual(1, sermon.views)
+

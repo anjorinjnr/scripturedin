@@ -134,5 +134,9 @@ App.service('bibleService', function ($http, $q) {
         return $http.post('/api/sermon/publish', sermon);
     };
 
+    self.logSermonView = function (sermonId) {
+        return $http.post('/api/sermon/' + sermonId + '/log', sermon, {ignoreLoadingBar: true});
+    };
+
 
 });

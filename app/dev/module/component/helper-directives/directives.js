@@ -21,6 +21,17 @@ App
             }
         }
     })
+    .directive('scriptureChip', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, element) {
+               console.log($(element).find('md-chip'));
+              $(element).find('md-chip').on('click', function(){
+                 console.log(123);
+              });
+            }
+        }
+    })
     .directive('loading', function () {
         return {
             restrict: 'EA',

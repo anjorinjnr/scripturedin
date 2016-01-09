@@ -1,94 +1,33 @@
 <div class="container">
-
     <div class="block-header">
-        <h2>Malinda Hollaway
-            <small>Web/UI Developer, Dubai, United Arab Emirates</small>
-        </h2>
-
-        <ul class="actions m-t-20 hidden-xs">
-            <li class="dropdown" uib-dropdown>
-                <a href="" uib-dropdown-toggle>
-                    <i class="zmdi zmdi-more-vert"></i>
-                </a>
-
-                <ul class="dropdown-menu dropdown-menu-right">
-                    <li>
-                        <a href="">Privacy Settings</a>
-                    </li>
-                    <li>
-                        <a href="">Account Settings</a>
-                    </li>
-                    <li>
-                        <a href="">Other Settings</a>
-                    </li>
-                </ul>
-            </li>
-        </ul>
+        <h2>{{::sermonCtrl.sermon.church.name}}</h2>
     </div>
-
     <div class="card" id="profile-main">
         <div class="pm-overview c-overflow" ng--show="true">
-            <div class="pmo-pic">
-                <div class="p-relative">
-                    <!--<a href="">-->
-                    <!--<img class="img-responsive" src="img/profile-pics/profile-pic-2.jpg" alt="">-->
-                    <!--</a>-->
-
-                    <!--<div class="dropdown pmop-message" uib-dropdown>-->
-                    <!--<button uib-dropdown-toggle class="btn bgm-white btn-float">-->
-                    <!--<i class="zmdi zmdi-comment-text-alt"></i>-->
-                    <!--</button>-->
-
-                    <!--<div class="dropdown-menu stop-propagate">-->
-                    <!--<textarea placeholder="Write something..."></textarea>-->
-
-                    <!--<button class="btn bgm-green btn-float"><i class="zmdi zmdi-mail-send"></i></button>-->
-                    <!--</div>-->
-                    <!--</div>-->
-
-                    <!--<a href="" class="pmop-edit">-->
-                    <!--<i class="zmdi zmdi-camera"></i> <span class="hidden-xs">Update Profile Picture</span>-->
-                    <!--</a>-->
-                </div>
-
-
-                <div class="pmo-stat">
-
-                    <h2 class="m-0 c-white">300</h2>
-                   Likes
-
-                    <h2 class="m-0 m-t-10 c-white">30</h2>
-                   Comments
-                </div>
-            </div>
 
             <div class="pmo-block pmo-contact hidden-xs">
                 <h2>Pastor Info</h2>
-                <h5>{{sermonCtrl.sermon.pastor.first_name | sentencecase}}
-                    {{sermonCtrl.sermon.pastor.last_name | sentencecase}}
+                <h5>{{::sermonCtrl.sermon.pastor.first_name | sentencecase}}
+                    {{::sermonCtrl.sermon.pastor.last_name | sentencecase}}
                 </h5>
                 <ul>
-
-                    <!--<li><i class="zmdi zmdi-phone"></i> {{ pctrl.mobileNumber }}</li>-->
                     <li><i class="zmdi zmdi-email"></i> {{ sermonCtrl.sermon.pastor.email }}</li>
-                    <!--<li><i class="zmdi zmdi-facebook-box"></i> {{ pctrl.skype }}</li>-->
-                    <!--<li><i class="zmdi zmdi-twitter"></i> {{ pctrl.twitter }} (twitter.com/malinda)</li>-->
                 </ul>
             </div>
 
             <div class="pmo-block  pmo-contact hidden-xs">
                 <h2>Church Info</h2>
 
-                <h5>{{sermonCtrl.sermon.church.name | sentencecase}}</h5>
+                <h5>{{::sermonCtrl.sermon.church.name | sentencecase}}</h5>
                 <ul>
                     <li><i class="zmdi zmdi-globe"></i>
-                        <a href="{{sermonCtrl.sermon.church.website}}"></a> {{sermonCtrl.sermon.church.website }}
+                        <a href="{{::sermonCtrl.sermon.church.website}}"></a> {{sermonCtrl.sermon.church.website }}
                     </li>
                     <li><i class="zmdi zmdi-pin"></i>
                         <address class="m-b-0">
-                            {{ sermonCtrl.sermon.church.city }}, <br/>
-                            {{ sermonCtrl.sermon.church.state }}, <br/>
-                            {{sermonCtrl.sermon.church.country }}
+                            {{::sermonCtrl.sermon.church.city }}, <br/>
+                            {{::sermonCtrl.sermon.church.state }}, <br/>
+                            {{::sermonCtrl.sermon.church.country }}
                         </address>
                     </li>
                 </ul>
@@ -99,15 +38,64 @@
 
             <div class="pmb-block">
                 <div class="pmbb-header">
-                    <h1 class="md-display-2">{{::sermonCtrl.sermon.title}} <a style="font-size: 35px;"  href ng-click="sermonCtrl.likeComment(c)">
-                        <i class="zmdi zmdi-favorite"></i></a>
-                    </span></h1>
 
-                    <!--<blockquote class="m-b-25">-->
-                    <md-chips ng-model="sermonCtrl.sermon.scriptures" readonly="true"
-                              md-on-select="sermonCtrl.test()">
-                    </md-chips>
-                    <!--</blockquote>-->
+                    <h1 class="md-display-3 m-b-5">{{::sermonCtrl.sermon.title}}</h1>
+
+                    <p class="p-l-5">by {{::sermonCtrl.sermon.pastor.first_name | sentencecase}}
+                        {{::sermonCtrl.sermon.pastor.last_name | sentencecase}}</p>
+
+                    <div class="m-b-25">
+                        <hr>
+                        <ul class="list-inline list-unstyled p-l-5 c-black f-15">
+                            <li>
+                                <span class="c-gray">{{::sermonCtrl.sermon.views}} Views </span>
+                            </li>
+                            <li>
+                                <a class="like"
+                                   ng-class="{'c-gray': sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) < 0,
+                                   'c-lightblue': sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) >= 0}"
+                                   href ng-click="sermonCtrl.likeSermon()">
+                                    <md-tooltip
+                                            ng-if=" sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) < 0"
+                                            md-direction="down">
+                                        Like this sermon
+                                    </md-tooltip>
+                                    <md-tooltip md-direction="down"
+                                                ng-if="sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) >= 0">
+                                        Unlike this sermon
+                                    </md-tooltip>
+                                    <i class="m-r-5 m-l-5 zmdi zmdi-thumb-up"></i> <span
+                                        ng-if="sermonCtrl.sermon.likes > 0">{{sermonCtrl.sermon.likes}}</span>
+                                    <ng-pluralize
+                                            count="sermonCtrl.sermon.likes"
+                                            when="{'0': 'Like', 'one': 'Like','other': '{} Like'}">
+                                    </ng-pluralize>
+                                </a>
+                            </li>
+                            <li>
+                                <span class="c-gray" ng-if="sermonCtrl.sermon.comments > 0"><i
+                                        class="m-r-5 m-l-5 zmdi zmdi-comments"></i> {{sermonCtrl.sermon.comments}} <ng-pluralize
+                                        count="sermonCtrl.sermon.comments"
+                                        when="{'one': 'Comment','other': '{} Comments'}">
+                                </ng-pluralize></span>
+                            </li>
+                        </ul>
+                        <hr>
+                    </div>
+
+
+                    <div>
+                        <h3>Scripture</h3>
+                        <md-chips ng-model="sermonCtrl.sermon.scriptures" readonly="true">
+                            <md-chip-template ng-click="sermonCtrl.showScripture($chip)">
+                                <md-tooltip>
+                                    Click to read
+                                </md-tooltip>
+                                <a href> <strong>{{$chip}}</strong></a>
+                            </md-chip-template>
+                        </md-chips>
+                    </div>
+
 
                     <ul class="actions">
                         <li><a href="">
@@ -127,131 +115,131 @@
                         <!--</li>-->
                     </ul>
                 </div>
-                <div class="pmbb-body">
-                    <div class="pmbb-view">
-                        <md-tabs md-dynamic-height md-border-bottom>
-                            <md-tab label="Sermon Notes">
-                                <md-content class="md-padding p-l-0 p-r-0">
-                                    <!--<md-subheader class="md-no-sticky">3 line item, long paragraph (see on mobile)-->
-                                    <!--</md-subheader>-->
+            </div>
+            <div class="pmbb-body">
+                <div class="pmbb-view">
+                    <md-tabs md-dynamic-height md-border-bottom>
+                        <md-tab label="Sermon Notes">
+                            <md-content class="md-padding p-l-0 p-r-0">
+                                <!--<md-subheader class="md-no-sticky">3 line item, long paragraph (see on mobile)-->
+                                <!--</md-subheader>-->
 
 
-                                    <md-list-item class="md-2-line md-long-text p-l-0 p-r-0"
+                                <md-list-item class="md-2-line md-long-text p-l-0 p-r-0"
 
-                                                  ng-repeat="note in ::sermonCtrl.sermon.notes">
-                                        <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
-                                        <div class="md-list-item-text ">
-                                            <div class="row">
-                                                <div class="col-sm-1">{{$index + 1}}</div>
-                                                <div class="col-sm-10">
-                                                    <p> {{::note.content}}
-                                                    </p>
-                                                </div>
+                                              ng-repeat="note in ::sermonCtrl.sermon.notes">
+                                    <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
+                                    <div class="md-list-item-text ">
+                                        <div class="row">
+                                            <div class="col-sm-1">{{$index + 1}}</div>
+                                            <div class="col-sm-10">
+                                                <p> {{::note.content}}
+                                                </p>
                                             </div>
-
                                         </div>
-                                    </md-list-item>
 
-                                </md-content>
-                            </md-tab>
-                            <md-tab label="Sermon Questions">
-                                <md-content class="md-padding p-l-0 p-r-0">
-                                    <!--<md-subheader class="md-no-sticky">3 line item, long paragraph (see on mobile)-->
-                                    <!--</md-subheader>-->
-
-
-                                    <md-list-item class="md-2-line md-long-text p-l-0 p-r-0"
-                                                  ng-repeat="q in ::sermonCtrl.sermon.questions">
-                                        <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
-                                        <div class="md-list-item-text ">
-                                            <div class="row">
-                                                <div class="col-sm-1">{{$index + 1}}</div>
-                                                <div class="col-sm-10">
-                                                    <p>
-                                                        {{::q.content}}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                    </md-list-item>
-
-                                </md-content>
-                            </md-tab>
-                            <md-tab label="My Notes">
-                                <md-content class="md-padding" id="study-note">
-                                    <div class="text-right f-12" style="height: 20px">
-                                        <span ng-show="sermonCtrl.savingNote">Saving...</span>
                                     </div>
-                                    <loading loader="sermonCtrl.loadNote"></loading>
-                                    <wysiwyg-edit ng-show="!sermonCtrl.loadNote" config="editorConfig"
-                                                  style="height: 100%"
-                                                  content="sermonCtrl.sermonNote.notes"></wysiwyg-edit>
+                                </md-list-item>
 
-                                </md-content>
-                            </md-tab>
-                            <md-tab label="Comments">
-                                <md-content class="md-padding">
-                                    <!--- new comment -->
-                                    <div class="card wall-posting">
-                                        <div class="card-body card-padding">
+                            </md-content>
+                        </md-tab>
+                        <md-tab label="Sermon Questions">
+                            <md-content class="md-padding p-l-0 p-r-0">
+                                <!--<md-subheader class="md-no-sticky">3 line item, long paragraph (see on mobile)-->
+                                <!--</md-subheader>-->
+
+
+                                <md-list-item class="md-2-line md-long-text p-l-0 p-r-0"
+                                              ng-repeat="q in ::sermonCtrl.sermon.questions">
+                                    <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
+                                    <div class="md-list-item-text ">
+                                        <div class="row">
+                                            <div class="col-sm-1">{{$index + 1}}</div>
+                                            <div class="col-sm-10">
+                                                <p>
+                                                    {{::q.content}}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </md-list-item>
+
+                            </md-content>
+                        </md-tab>
+                        <md-tab label="My Notes">
+                            <md-content class="md-padding" id="study-note">
+                                <div class="text-right f-12" style="height: 20px">
+                                    <span ng-show="sermonCtrl.savingNote">Saving...</span>
+                                </div>
+                                <loading loader="sermonCtrl.loadNote"></loading>
+                                <wysiwyg-edit class="writenote" ng-show="!sermonCtrl.loadNote" config="editorConfig"
+                                              content="sermonCtrl.sermonNote.notes"></wysiwyg-edit>
+
+                            </md-content>
+                        </md-tab>
+                        <md-tab label="Comments">
+                            <md-content class="md-padding">
+                                <!--- new comment -->
+                                <div class="card wall-posting">
+                                    <div class="card-body card-padding">
                                             <textarea class="wp-text" data-auto-size
                                                       ng-model="sermonCtrl.sermonComment.comment"
                                                       placeholder="Write Something..."></textarea>
-                                        </div>
-
-                                        <ul class="list-unstyled clearfix wpb-actions">
-                                            <!--<li class="wpba-attrs">-->
-                                            <!--<ul class="list-unstyled list-inline m-l-0 m-t-5">-->
-                                            <!--<li><a data-wpba="image" href=""-->
-                                            <!--data-ng-class="{ 'active': mactrl.wallImage }"-->
-                                            <!--data-ng-click="mactrl.wallImage = true; mactrl.wallVideo = false; mactrl.wallLink = false"><i-->
-                                            <!--class="zmdi zmdi-image"></i></a></li>-->
-                                            <!--<li><a data-wpba="video" href=""-->
-                                            <!--data-ng-class="{ 'active': mactrl.wallVideo }"-->
-                                            <!--data-ng-click="mactrl.wallVideo= true; mactrl.wallImage = false; mactrl.wallLink = false"><i-->
-                                            <!--class="zmdi zmdi-play-circle"></i></a></li>-->
-                                            <!--<li><a data-wpba="link" href=""-->
-                                            <!--data-ng-class="{ 'active': mactrl.wallLink }"-->
-                                            <!--data-ng-click="mactrl.wallLink = true; mactrl.wallImage = false; mactrl.wallVideo = false"><i-->
-                                            <!--class="zmdi zmdi-link"></i></a></li>-->
-                                            <!--</ul>-->
-                                            <!--</li>-->
-
-                                            <li class="pull-right">
-                                                <button ng-click="sermonCtrl.postComment()"
-                                                        class="btn btn-primary btn-sm">Post
-                                                </button>
-                                            </li>
-                                        </ul>
                                     </div>
-                                    <loading loader="sermonCtrl.loadingComments"></loading>
-                                    <!-- end new comment -->
-                                    <div class="card" ng-repeat="c in sermonCtrl.sermonComments.comments">
-                                        <div class="card-header">
-                                            <div class="media">
-                                                <div class="pull-left">
-                                                    <img class="lv-img" src="img/profile-pics/1.jpg" alt="">
-                                                </div>
 
-                                                <div class="media-body m-t-5">
-                                                    <h2>{{c.user.first_name}} {{c.user.last_name}}
-                                                        <small>Posted on
-                                                            {{c.created_at | formatDate:'Do MMM YYYY [at] h:mm a' }}
-                                                        </small>
-                                                    </h2>
-                                                </div>
+                                    <ul class="list-unstyled clearfix wpb-actions">
+                                        <!--<li class="wpba-attrs">-->
+                                        <!--<ul class="list-unstyled list-inline m-l-0 m-t-5">-->
+                                        <!--<li><a data-wpba="image" href=""-->
+                                        <!--data-ng-class="{ 'active': mactrl.wallImage }"-->
+                                        <!--data-ng-click="mactrl.wallImage = true; mactrl.wallVideo = false; mactrl.wallLink = false"><i-->
+                                        <!--class="zmdi zmdi-image"></i></a></li>-->
+                                        <!--<li><a data-wpba="video" href=""-->
+                                        <!--data-ng-class="{ 'active': mactrl.wallVideo }"-->
+                                        <!--data-ng-click="mactrl.wallVideo= true; mactrl.wallImage = false; mactrl.wallLink = false"><i-->
+                                        <!--class="zmdi zmdi-play-circle"></i></a></li>-->
+                                        <!--<li><a data-wpba="link" href=""-->
+                                        <!--data-ng-class="{ 'active': mactrl.wallLink }"-->
+                                        <!--data-ng-click="mactrl.wallLink = true; mactrl.wallImage = false; mactrl.wallVideo = false"><i-->
+                                        <!--class="zmdi zmdi-link"></i></a></li>-->
+                                        <!--</ul>-->
+                                        <!--</li>-->
+
+                                        <li class="pull-right">
+                                            <button ng-click="sermonCtrl.postComment()"
+                                                    class="btn btn-primary btn-sm">Post
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <loading loader="sermonCtrl.loadingComments"></loading>
+                                <!-- end new comment -->
+                                <div class="card" ng-repeat="c in sermonCtrl.sermonComments.comments">
+                                    <div class="card-header">
+                                        <div class="media">
+                                            <div class="pull-left">
+                                                <img class="lv-img" src="img/profile-pics/1.jpg" alt="">
                                             </div>
 
-
+                                            <div class="media-body m-t-5">
+                                                <h2>{{c.user.first_name}} {{c.user.last_name}}
+                                                    <small>Posted on
+                                                        {{c.created_at | formatDate:'Do MMM YYYY [at] h:mm a' }}
+                                                    </small>
+                                                </h2>
+                                            </div>
                                         </div>
 
-                                        <div class="card-body card-padding">
-                                            <p>{{c.comment}}</p>
 
-                                            <ul class="wall-attrs clearfix list-inline list-unstyled">
-                                                <li class="wa-stats">
-                                                    <span ng-if="c.reply_count > 0"><i class="zmdi zmdi-comments"></i> {{c.reply_count}}</span>
+                                    </div>
+
+                                    <div class="card-body card-padding">
+                                        <p>{{c.comment}}</p>
+
+                                        <ul class="wall-attrs clearfix list-inline list-unstyled">
+                                            <li class="wa-stats">
+                                                <span ng-if="c.reply_count > 0"><i class="zmdi zmdi-comments"></i> {{c.reply_count}}</span>
                                                     <span ng-class="{'active': c.likes_key.indexOf(authService.user.id) >= 0}">
                                                         <a style="color: inherit" href
                                                            ng-click="sermonCtrl.likeComment(c)"> <i
@@ -259,76 +247,75 @@
                                                                 ng-if="c.like_count > 0">{{c.like_count}}</span> </a>
                                                         </span>
 
-                                                </li>
-                                                <!--<li class="wa-users">-->
-                                                <!--<a href=""><img src="img/profile-pics/1.jpg" alt=""></a>-->
-                                                <!--<a href=""><img src="img/profile-pics/2.jpg" alt=""></a>-->
-                                                <!--<a href=""><img src="img/profile-pics/3.jpg" alt=""></a>-->
-                                                <!--<a href=""><img src="img/profile-pics/5.jpg" alt=""></a>-->
-                                                <!--</li>-->
-                                            </ul>
-                                        </div>
+                                            </li>
+                                            <!--<li class="wa-users">-->
+                                            <!--<a href=""><img src="img/profile-pics/1.jpg" alt=""></a>-->
+                                            <!--<a href=""><img src="img/profile-pics/2.jpg" alt=""></a>-->
+                                            <!--<a href=""><img src="img/profile-pics/3.jpg" alt=""></a>-->
+                                            <!--<a href=""><img src="img/profile-pics/5.jpg" alt=""></a>-->
+                                            <!--</li>-->
+                                        </ul>
+                                    </div>
 
-                                        <div class="wall-comment-list">
+                                    <div class="wall-comment-list">
 
-                                            <!-- Comment Listing -->
-                                            <div class="wcl-list">
-                                                <div class="media" ng-repeat="r in c.replies.comments">
-                                                    <a href="" class="pull-left">
-                                                        <img src="img/profile-pics/5.jpg" alt="" class="lv-img-sm">
-                                                    </a>
+                                        <!-- Comment Listing -->
+                                        <div class="wcl-list">
+                                            <div class="media" ng-repeat="r in c.replies.comments">
+                                                <a href="" class="pull-left">
+                                                    <img src="img/profile-pics/5.jpg" alt="" class="lv-img-sm">
+                                                </a>
 
-                                                    <div class="media-body">
-                                                        <a href="" class="a-title">{{r.user.first_name}}
-                                                            {{r.user.last_name}}</a>
-                                                        <small class="c-gray m-l-10">{{r.created_at | fromNow}}</small>
-                                                        <p class="m-t-5 m-b-0">{{r.comment}}</p>
-                                                        <!--<p class="m-t-5"><a class="m-r-5" href="">Like</a> <a href="">Reply</a></p>-->
-                                                    </div>
+                                                <div class="media-body">
+                                                    <a href="" class="a-title">{{r.user.first_name}}
+                                                        {{r.user.last_name}}</a>
+                                                    <small class="c-gray m-l-10">{{r.created_at | fromNow}}</small>
+                                                    <p class="m-t-5 m-b-0">{{r.comment}}</p>
+                                                    <!--<p class="m-t-5"><a class="m-r-5" href="">Like</a> <a href="">Reply</a></p>-->
                                                 </div>
-
-
                                             </div>
 
-                                            <!-- Comment form -->
-                                            <div class="wcl-form m-t-10">
-                                                <div class="wc-comment" data-ng-if="!c.commenting"
-                                                     data-ng-click="c.commenting = true">
-                                                    <div class="wcc-inner">
-                                                        Write Something...
-                                                    </div>
-                                                </div>
 
-                                                <div class="wc-comment" data-ng-if="c.commenting">
-                                                    <div class="wcc-inner">
+                                        </div>
+
+                                        <!-- Comment form -->
+                                        <div class="wcl-form m-t-10">
+                                            <div class="wc-comment" data-ng-if="!c.commenting"
+                                                 data-ng-click="c.commenting = true">
+                                                <div class="wcc-inner">
+                                                    Write Something...
+                                                </div>
+                                            </div>
+
+                                            <div class="wc-comment" data-ng-if="c.commenting">
+                                                <div class="wcc-inner">
                                                         <textarea class="wcci-text" data-auto-size
                                                                   ng-model="c.reply" data-focus
                                                                   placeholder="Write Something..."></textarea>
-                                                    </div>
+                                                </div>
 
-                                                    <div class="m-t-15">
-                                                        <button ng-click="sermonCtrl.postReply(c)"
-                                                                class="btn btn-sm btn-primary">Post
-                                                        </button>
-                                                        <button class="btn btn-sm btn-link"
-                                                                data-ng-click="c.commenting = false">Cancel
-                                                        </button>
-                                                    </div>
+                                                <div class="m-t-15">
+                                                    <button ng-click="sermonCtrl.postReply(c)"
+                                                            class="btn btn-sm btn-primary">Post
+                                                    </button>
+                                                    <button class="btn btn-sm btn-link"
+                                                            data-ng-click="c.commenting = false">Cancel
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                </md-content>
-                            </md-tab>
-                        </md-tabs>
-
-                    </div>
+                            </md-content>
+                        </md-tab>
+                    </md-tabs>
 
                 </div>
+
             </div>
-
-
         </div>
+
+
     </div>
 </div>

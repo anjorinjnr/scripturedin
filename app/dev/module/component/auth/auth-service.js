@@ -39,8 +39,6 @@ App.service('authService', function ($http,
         var user = self.getUser();
         //console.log(self.user);
         if (!_.isEmpty(user)) {
-            deferred.resolve(user);
-        } else {
             self.loadCurrentUser().then(function () {
                 user = self.getUser();
                 if (user) {
@@ -50,6 +48,9 @@ App.service('authService', function ($http,
                     $state.go('login');
                 }
             });
+        } else {
+            deferred.reject();
+            $state.go('login');
         }
         return deferred.promise;
     };
