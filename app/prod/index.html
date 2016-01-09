@@ -1,12 +1,22 @@
 <!DOCTYPE html>
 
-<html data-ng-app="tskApp" data-ng-controller="mainController as mactrl">
+<!--[if IE 9 ]>
+<html class="ie9" data-ng-app="scripturedIn"
+      data-ng-controller="appController as appCtrl">
+<![endif]-->
+<![if IE 9 ]>
+<html data-ng-app="scripturedIn" ng-controller="appController as appCtrl">
+<![endif]>
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Material Admin</title>
+    <meta name="google-signin-client_id"
+          content="153948310480-t6ragv3oundj31e93qq9q1e2tode7q6g.apps.googleusercontent.com">
+    <title ng-bind="$state.current.data.pageTitle ? $state.current.data.pageTitle : 'ScriptureIn: Connect with the word.'">
+    </title>
+
 
     <!-- Vendor CSS -->
     <link href="vendor.min.css" rel="stylesheet">

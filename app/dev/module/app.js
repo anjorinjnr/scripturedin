@@ -8,7 +8,7 @@ var App = angular.module('scripturedIn', [
         'angular-loading-bar',
         'oc.lazyLoad',
         'ngWYSIWYG',
-        'localytics.directives'
+        //'localytics.directives'
         //'nouislider'
         //'ngTable'
     ])
