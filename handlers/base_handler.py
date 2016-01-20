@@ -22,6 +22,7 @@ def user_required(handler):
     def check_login(self, *args, **kwargs):
         auth = self.auth
         if not auth.get_user_by_session():
+            self.response.status = 401
             self.response.headers['Content-Type'] = 'application/json'
             self.response.out.write(json.dumps({'status': 'error', 'message': 'login required'}))
         else:

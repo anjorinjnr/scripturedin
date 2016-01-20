@@ -15,7 +15,8 @@ handlers:
 
 - url: /api/.*
   script: main.app
-  
+
+#uncomment for local dev
 - url: /
   static_files: app/dev/index.html
   upload: app
@@ -24,6 +25,7 @@ handlers:
   static_files: app/dev\1
   upload: app
 
+#uncomment for prod
 #- url: /
 #  static_files: app/prod/index.html
 #  upload: app
@@ -32,8 +34,8 @@ handlers:
 #- url: (.*)
 #  static_files: app/prod\1
 #  upload: app
-
-
+#
+#
 
 libraries:
 - name: webapp2

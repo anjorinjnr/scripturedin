@@ -57,6 +57,7 @@ class Scripture(ndb.Model):
     chapter = type_int()
     verses = type_string(repeated=True)
     translation = type_string()
+    language = type_string(default='eng')
 
 
 class Church(BaseModel):
@@ -138,13 +139,7 @@ def create_user(first_name, last_name, email):
 
 
 def get_churches():
-    churches = memcache.get('churches')
-    if churches is not None:
-        return churches
-    else:
-        churches = Church.query().fetch()
-        memcache.set('churches', churches)
-        return churches
+    return Church.query().fetch()
 
 
 def get_church(id):

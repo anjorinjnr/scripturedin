@@ -1,6 +1,7 @@
 import webapp2
 
 from handlers.auth_handler import AuthHandler
+from handlers.bible_handler import BibleHandler
 from handlers.comment_handler import CommentHandler
 from handlers.misc_handler import MiscHandler
 from handlers.request_handler import RequestHandler
@@ -33,10 +34,6 @@ ROUTES = [
     route(r'/api/signup',
           handler=UserHandler,
           handler_method='signup',
-          methods=['POST']),
-    route(r'/api/task/load-church',
-          handler=TaskHandler,
-          handler_method='load_church',
           methods=['POST']),
     route(r'/api/churches',
           handler=MiscHandler,
@@ -102,6 +99,17 @@ ROUTES = [
           handler=SermonHandler,
           handler_method='unlike',
           methods=['POST']),
+
+    (r'/api/bible', BibleHandler),
+    # tasks,
+    route(r'/api/task/load-church',
+          handler=TaskHandler,
+          handler_method='load_church',
+          methods=['POST']),
+    route(r'/api/task/books',
+          handler=TaskHandler,
+          handler_method='build_map',
+          methods=['GET']),
     # cron tasks
     route(r'/tasks/persist-datastore',
           handler=TaskHandler,

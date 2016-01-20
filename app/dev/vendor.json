@@ -35,11 +35,11 @@
       "dev/vendors/bower_components/angular-aria/angular-aria.min.js",
       "dev/vendors/bower_components/angular-messages/angular-messages.min.js",
       "dev/vendors/bower_components/angular-resource/angular-resource.min.js",
-      "dev/vendors/bower_components/angular-sanitize/angular-sanitize.min.j",
+      "dev/vendors/bower_components/angular-sanitize/angular-sanitize.min.js",
 
       "dev/vendors/bower_components/angular-local-storage/dist/angular-local-storage.min.js",
       "dev/vendors/bower_components/angular-ui-router/release/angular-ui-router.min.js",
-      "dev/vendors/bower_components/angular-loading-bar/src/loading-bar.min.js",
+      "dev/vendors/bower_components/angular-loading-bar/src/loading-bar.js",
       "dev/vendors/bower_components/oclazyload/dist/ocLazyLoad.min.js",
       "dev/vendors/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js",
       "dev/vendors/bower_components/angular-material/angular-material.min.js",
@@ -49,7 +49,7 @@
       "dev/vendors/bower_components/Waves/dist/waves.min.js",
       "dev/vendors/bootstrap-growl/bootstrap-growl.min.js",
       "dev/vendors/bower_components/lodash/lodash.min.js",
-      "dev/vendors/bower_components/ngWYSIWYG/js/wysiwyg..min.js",
+      "dev/vendors/bower_components/ngWYSIWYG/js/wysiwyg.js",
       "dev/vendors/bower_components/moment/min/moment.min.js",
       "dev/vendors/bower_components/autosize/dist/autosize.min.js",
       "dev/vendors/bower_components/fullcalendar/dist/fullcalendar.min.js"

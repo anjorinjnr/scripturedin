@@ -19,13 +19,50 @@
 
 
     <!-- Vendor CSS -->
-    <link href="vendor.min.css" rel="stylesheet">
+    <link href="vendor.css" rel="stylesheet">
     <link href="app.min.1.css" rel="stylesheet">
     <link href="app.min.2.css" rel="stylesheet">
+     <link href="scripturedin.css" rel="stylesheet">
 
 </head>
 
-<body data-ng-class="{ 'sw-toggled': mactrl.layoutType === '1'}">
+<body>
+<script>
+    window.fbAsyncInit = function () {
+        FB.init({
+            appId: '1637149913216948',
+            xfbml: true,
+            version: 'v2.5'
+        });
+//        FB.getLoginStatus(function (response) {
+//            if (response.status === 'connected') {
+//                // Logged into your app and Facebook.
+//                FB.api('/me', function (response) {
+//                     console.log(JSON.stringify(response));H
+//                });
+//            } else if (response.status === 'not_authorized') {
+//                // The person is logged into Facebook, but not your app.
+//                console.log('Please log into this app.');
+//            } else {
+//                // The person is not logged into Facebook, so we're not sure if
+//                // they are logged into this app or not.
+//                console.log('Please log into Facebook.');
+//            }
+//        });
+    };
+
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "//connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+</script>
 
 <data ui-view></data>
 
@@ -82,8 +119,7 @@
 
 
 <script src="vendor.min.js"></script>
-<script src="tsk.min.js"></script>
+<script src="app.min.js"></script>
 
 </body>
 </html>
-

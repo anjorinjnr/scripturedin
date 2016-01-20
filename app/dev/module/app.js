@@ -15,7 +15,7 @@ var App = angular.module('scripturedIn', [
     .constant('USER_ROLES', {
         guest: 'guest',
         pastor: 'pastor',
-        user: 'user',
+        user: 'user'
     })
     .run(function ($rootScope, authService, $state, $mdToast) {
             {

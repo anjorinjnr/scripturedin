@@ -12,28 +12,28 @@ App.controller('sermonController', function ($state, authService, userService, b
         self.errors = {};
 
         self.showScripture = function (s) {
-            //$mdDialog.show({
-            //    controller: function(){
-            //
-            //    },
-            //    templateUrl:  'module/sermon/scripture_modal.html',// 'dialog1.tmpl.html',
-            //    parent: angular.element(document.body),
-            //    //targetEvent: ev,
-            //    clickOutsideToClose: true,
-            //    fullscreen: false
-            //});
-            var modalInstance = $uibModal.open({
-                animation: false,
-                templateUrl: 'module/sermon/scripture_modal.html',
-                controller: function () {
+            $mdDialog.show({
+                controller: function(){
 
                 },
-                size: 'sm',
-                backdrop: true,
-                //keyboard: keyboard,
-
-
+                templateUrl:  'module/sermon/scripture_modal.html',// 'dialog1.tmpl.html',
+                parent: angular.element(document.body),
+                //targetEvent: ev,
+                clickOutsideToClose: true,
+                fullscreen: false
             });
+            //var modalInstance = $uibModal.open({
+            //    animation: false,
+            //    templateUrl: 'module/sermon/scripture_modal.html',
+            //    controller: function () {
+            //
+            //    },
+            //    size: 'sm',
+            //    backdrop: true,
+            //    //keyboard: keyboard,
+            //
+            //
+            //});
 
         };
 

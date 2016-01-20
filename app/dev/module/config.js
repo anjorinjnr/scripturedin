@@ -107,7 +107,10 @@ App.config(function (localStorageServiceProvider) {
                             if (resp.data.id) {
                                 deferred.resolve(resp.data);
                             } else {
-                                alertService.danger('Sermon does not exist <br> Redirecting...', {align: 'center', delay:10000});
+                                alertService.danger('Sermon does not exist <br> Redirecting...', {
+                                    align: 'center',
+                                    delay: 10000
+                                });
                                 deferred.reject('bla');
 
                             }
@@ -134,21 +137,26 @@ App.config(function (localStorageServiceProvider) {
                     sermons: function (bibleService, authService, util, $q) {
                         var deferred = $q.defer();
                         var events = [];
-                        bibleService.getChurchSermons(authService.user.church_key).then(function (resp) {
-                            //util.log(resp.data);
-                            var sermons = resp.data;
-                            sermons.forEach(function (s) {
-                                s.date.forEach(function (d) {
-                                    var event = angular.copy(s);
-                                    event.start = util.toLocalDate(d);
-                                    event.className = 'bgm-cyan';
-                                    events.push(event);
-                                    //console.log(events);
-                                });
+                        if (authService.user.church_key) {
+                            bibleService.getChurchSermons(authService.user.church_key).then(function (resp) {
+                                //util.log(resp.data);
+                                var sermons = resp.data;
+                                sermons.forEach(function (s) {
+                                    s.date.forEach(function (d) {
+                                        var event = angular.copy(s);
+                                        event.start = util.toLocalDate(d);
+                                        event.className = 'bgm-cyan';
+                                        events.push(event);
+                                        //console.log(events);
+                                    });
 
+                                });
+                                deferred.resolve(events);
                             });
-                            deferred.resolve(events);
-                        });
+                        } else {
+                            deferred.resolve([]);
+                        }
+
                         return deferred.promise;
                     },
                     loadPlugin: function ($ocLazyLoad) {

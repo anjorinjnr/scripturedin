@@ -1,0 +1,278 @@
+{
+  "gw": {
+    "lang": "English",
+    "id": 70,
+    "abbr": "GW",
+    "title": "GOD'S WORD Translation"
+  },
+  "hcsb": {
+    "lang": "English",
+    "id": 72,
+    "abbr": "HCSB",
+    "title": "Holman Christian Standard Bible"
+  },
+  "wmbbe": {
+    "lang": "English",
+    "id": 1207,
+    "abbr": "WMBBE",
+    "title": "World Messianic Bible British Edition"
+  },
+  "nlt": {
+    "lang": "English",
+    "id": 116,
+    "abbr": "NLT",
+    "title": "New Living Translation"
+  },
+  "gntd": {
+    "lang": "English",
+    "id": 69,
+    "abbr": "GNTD",
+    "title": "Good News Translation (US Version)"
+  },
+  "books": {
+    "lang": "English",
+    "id": 31,
+    "abbr": "BOOKS",
+    "title": "The Books of the Bible NT"
+  },
+  "ojb": {
+    "lang": "English",
+    "id": 130,
+    "abbr": "OJB",
+    "title": "Orthodox Jewish Bible"
+  },
+  "nivuk": {
+    "lang": "English",
+    "id": 113,
+    "abbr": "NIVUK",
+    "title": "New International Version Anglicized"
+  },
+  "amp": {
+    "lang": "English",
+    "id": 8,
+    "abbr": "AMP",
+    "title": "Amplified Bible"
+  },
+  "cevdcus06": {
+    "lang": "English",
+    "id": 303,
+    "abbr": "CEVDCUS06",
+    "title": "Contemporary English Version"
+  },
+  "kjva": {
+    "lang": "English",
+    "id": 546,
+    "abbr": "KJVA",
+    "title": "King James Version with Apocrypha, American Edition"
+  },
+  "ceb": {
+    "lang": "English",
+    "id": 37,
+    "abbr": "CEB",
+    "title": "Common English Bible"
+  },
+  "esv": {
+    "lang": "English",
+    "id": 59,
+    "abbr": "ESV",
+    "title": "English Standard Version"
+  },
+  "nirv": {
+    "lang": "English",
+    "id": 110,
+    "abbr": "NIRV",
+    "title": "New International Reader's Version"
+  },
+  "icb": {
+    "lang": "English",
+    "id": 1359,
+    "abbr": "ICB",
+    "title": "International Children’s Bible"
+  },
+  "darby": {
+    "lang": "English",
+    "id": 478,
+    "abbr": "DARBY",
+    "title": "Darby Translation 1890"
+  },
+  "nabre": {
+    "lang": "English",
+    "id": 463,
+    "abbr": "NABRE",
+    "title": "New American Bible, revised edition"
+  },
+  "ylt98": {
+    "lang": "English",
+    "id": 821,
+    "abbr": "YLT98",
+    "title": "Young's Literal Translation of the Holy Bible"
+  },
+  "cevuk00": {
+    "lang": "English",
+    "id": 294,
+    "abbr": "CEVUK00",
+    "title": "Contemporary English Version (Anglicised Version)"
+  },
+  "nasb": {
+    "lang": "English",
+    "id": 100,
+    "abbr": "NASB",
+    "title": "New American Standard Bible"
+  },
+  "msg": {
+    "lang": "English",
+    "id": 97,
+    "abbr": "MSG",
+    "title": "The Message"
+  },
+  "wmb": {
+    "lang": "English",
+    "id": 1209,
+    "abbr": "WMB",
+    "title": "World Messianic Bible"
+  },
+  "net": {
+    "lang": "English",
+    "id": 107,
+    "abbr": "NET",
+    "title": "New English Translation"
+  },
+  "jub": {
+    "lang": "English",
+    "id": 1077,
+    "abbr": "JUB",
+    "title": "Jubilee Bible"
+  },
+  "leb": {
+    "lang": "English",
+    "id": 90,
+    "abbr": "LEB",
+    "title": "Lexham English Bible"
+  },
+  "asv": {
+    "lang": "English",
+    "id": 12,
+    "abbr": "ASV",
+    "title": "American Standard Version"
+  },
+  "web": {
+    "lang": "English",
+    "id": 206,
+    "abbr": "WEB",
+    "title": "World English Bible"
+  },
+  "ncv": {
+    "lang": "English",
+    "id": 105,
+    "abbr": "NCV",
+    "title": "New Century Version"
+  },
+  "gnbdc": {
+    "lang": "English",
+    "id": 416,
+    "abbr": "GNBDC",
+    "title": "Good News Bible (Anglicised)"
+  },
+  "mev": {
+    "lang": "English",
+    "id": 1171,
+    "abbr": "MEV",
+    "title": "Modern English Version"
+  },
+  "gnbdk": {
+    "lang": "English",
+    "id": 431,
+    "abbr": "GNBDK",
+    "title": "Good News Bible (Catholic edition in Septuagint order)"
+  },
+  "niv": {
+    "lang": "English",
+    "id": 111,
+    "abbr": "NIV",
+    "title": "New International Version"
+  },
+  "tlv": {
+    "lang": "English",
+    "id": 314,
+    "abbr": "TLV",
+    "title": "Tree of Life Version"
+  },
+  "erv": {
+    "lang": "English",
+    "id": 406,
+    "abbr": "ERV",
+    "title": "Holy Bible: Easy-to-Read Version"
+  },
+  "gwc": {
+    "lang": "English",
+    "id": 1047,
+    "abbr": "GWC",
+    "title": "St Paul from the Trenches 1916"
+  },
+  "gnt": {
+    "lang": "English",
+    "id": 68,
+    "abbr": "GNT",
+    "title": "Good News Translation"
+  },
+  "isr98": {
+    "lang": "English",
+    "id": 316,
+    "abbr": "ISR98",
+    "title": "The Scriptures 1998"
+  },
+  "nkjv": {
+    "lang": "English",
+    "id": 114,
+    "abbr": "NKJV",
+    "title": "New King James Version"
+  },
+  "cevus06": {
+    "lang": "English",
+    "id": 392,
+    "abbr": "CEVUS06",
+    "title": "Contemporary English Version"
+  },
+  "webbe": {
+    "lang": "English",
+    "id": 1204,
+    "abbr": "WEBBE",
+    "title": "World English Bible British Edition"
+  },
+  "drc1752": {
+    "lang": "English",
+    "id": 55,
+    "abbr": "DRC1752",
+    "title": "Douay-Rheims Challoner Revision 1752"
+  },
+  "gnb": {
+    "lang": "English",
+    "id": 296,
+    "abbr": "GNB",
+    "title": "Good News Bible"
+  },
+  "kjv": {
+    "lang": "English",
+    "id": 1,
+    "abbr": "KJV",
+    "title": "King James Version"
+  },
+  "mp1650": {
+    "lang": "English",
+    "id": 1365,
+    "abbr": "MP1650",
+    "title": "Metrical Psalms 1650"
+  },
+  "rv1885": {
+    "lang": "English",
+    "id": 477,
+    "abbr": "RV1885",
+    "title": "Revised Version 1885"
+  },
+  "cpdv": {
+    "lang": "English",
+    "id": 42,
+    "abbr": "CPDV",
+    "title": "Catholic Public Domain Version"
+  }
+}
