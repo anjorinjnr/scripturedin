@@ -1,6 +1,26 @@
 .chapter {
-    padding: 30px;
+    padding: 10px 20px;
 }
+.chapter h2 {
+    font-size: 25px;
+}
+
+.chapter h3 {
+    font-size: 20px;
+    font-weight: 300;
+    margin-bottom: 20px;
+}
+.chapter .verse {
+    /*font-family: "medium-content-serif-font",Georgia,Cambria,"Times New Roman",Times,serif;*/
+    letter-spacing: .01rem;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+    line-height: 1.58;
+    letter-spacing: -0.003em;
+    margin-bottom: 10px;
+}
+
 
 h2.book {
     /*font-family: "medium-content-sans-serif-font","Lucida Grande","Lucida Sans Unicode","Lucida Sans",Geneva,Verdana,sans-serif;*/
@@ -11,15 +31,6 @@ h2.book {
     letter-spacing: -0.02em;
 }
 
-.chapter .verse {
-    /*font-family: "medium-content-serif-font",Georgia,Cambria,"Times New Roman",Times,serif;*/
-    letter-spacing: .01rem;
-    font-weight: 400;
-    font-style: normal;
-    font-size: 21px;
-    line-height: 1.58;
-    letter-spacing: -0.003em;
-}
 
 p.highlight {
     background: rgba(33, 150, 243, 0.13);

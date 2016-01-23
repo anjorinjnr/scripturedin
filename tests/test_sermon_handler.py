@@ -49,4 +49,4 @@ class SermonHandlerTestCase(unittest.TestCase):
         response = self.testapp.post('/api/sermon/456/like')
         self.assertEqual(response.status_int, 200)
         self.assertEqual([sermon.key], user.fav_sermon_keys )
-        self.assertEqual(1, sermon.likes)
+        self.assertEqual(1, sermon.like_count)

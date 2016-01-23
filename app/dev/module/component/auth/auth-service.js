@@ -77,25 +77,52 @@ App.service('authService', function ($http,
         });
     };
 
+
+    /**
+     * Perform login with facebook.
+     * Send user to fb to authenticate then signup using data from facebook.
+     * @param {string} action
+     */
+    self.facebookLogin = function () {
+
+        if (typeof FB !== 'undefined') {
+            FB.login(function (response) {
+                //console.log(response);
+                if (response.status == 'connected') {
+                    FB.api('/me?fields=email,first_name,last_name', function (user) {
+                        user.access_token = response.authResponse.accessToken;
+                        user.channel = 'facebook';
+                        self.signup(user );
+                    })
+                }
+            }, {scope: 'public_profile,email'});
+        } else {
+            console.error('FB SDK missing..')
+        }
+    };
+
     /**
      * Create new user,
-     * @param data
+     * @param {Object} data,
+     * @param {string} action,
      */
-    self.signup = function (data, action) {
+    self.signup = function (data, callback) {
 
         $http.post('/api/signup', data).then(function (resp) {
             if (resp.data.id) {
-                self.createSession(resp.data);
-                if (action == 'signup') {
+                var user = resp.data;
+                self.createSession(user);
+                if (!user.church_key){
                     $state.go('base.post-signup-profile');
                 } else {
                     $state.go('base.home');
                 }
             } else {
-
+                if (_.isFunction(callback)) {
+                    callback(resp.data);
+                }
             }
-
-        })
+        });
     };
 
     /**
@@ -141,22 +168,4 @@ App.service('authService', function ($http,
 
     };
 
-    self.facebookLogin = function (action) {
-
-        if (typeof FB !== 'undefined') {
-            FB.login(function (response) {
-                //console.log(response);
-                if (response.status == 'connected') {
-                    FB.api('/me?fields=email,first_name,last_name', function (user) {
-                        user.access_token = response.authResponse.accessToken;
-                        user.channel = 'facebook';
-                        self.signup(user, action);
-                    })
-                }
-            }, {scope: 'public_profile,email'});
-        } else {
-            console.error('FB SDK missing..')
-        }
-    }
 })
-;

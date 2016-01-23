@@ -1,4 +1,4 @@
-App.controller('headerController', function($timeout, $location, messageService, $scope){
+App.controller('headerController', function($timeout, $location, $scope){
 
     var self = this;
 
@@ -18,11 +18,11 @@ App.controller('headerController', function($timeout, $location, messageService,
         };
 
         // Get messages and notification for header
-        this.img = messageService.img;
-        this.user = messageService.user;
-        this.user = messageService.text;
-
-        this.messageResult = messageService.getMessage(this.img, this.user, this.text);
+        //this.img = messageService.img;
+        //this.user = messageService.user;
+        //this.user = messageService.text;
+        //
+        ///this.messageResult = messageService.getMessage(this.img, this.user, this.text);
 
 
         //Clear Notification

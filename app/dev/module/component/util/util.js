@@ -5,6 +5,14 @@ App.service('util', function () {
 
     var self = this;
 
+     self.toQueryString = function(obj) {
+      if (_.isObject(obj)) {
+        var qryString = $.param(obj);
+        return qryString.replace(/%5B%5D/g, '');
+      }
+      return '';
+    };
+
     self.toLocalFormat = function (ms, format) {
         var local = moment.utc(parseInt(ms)).local();
         format = format ? format : 'MM-DD-YYYY';

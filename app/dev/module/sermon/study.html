@@ -48,7 +48,7 @@
                         <hr>
                         <ul class="list-inline list-unstyled p-l-5 c-black f-15">
                             <li>
-                                <span class="c-gray">{{::sermonCtrl.sermon.views}} Views </span>
+                                <span class="c-gray">{{::sermonCtrl.sermon.view_count}} Views </span>
                             </li>
                             <li>
                                 <a class="like"
@@ -65,7 +65,8 @@
                                         Unlike this sermon
                                     </md-tooltip>
                                     <i class="m-r-5 m-l-5 zmdi zmdi-thumb-up"></i> <span
-                                        ng-if="sermonCtrl.sermon.likes > 0">{{sermonCtrl.sermon.likes}}</span>
+                                        ng-if="sermonCtrl.sermon.like_count > 0">
+                                    {{sermonCtrl.sermon.like_count}}</span>
                                     <ng-pluralize
                                             count="sermonCtrl.sermon.likes"
                                             when="{'0': 'Like', 'one': 'Like','other': '{} Like'}">
@@ -73,8 +74,8 @@
                                 </a>
                             </li>
                             <li>
-                                <span class="c-gray" ng-if="sermonCtrl.sermon.comments > 0"><i
-                                        class="m-r-5 m-l-5 zmdi zmdi-comments"></i> {{sermonCtrl.sermon.comments}} <ng-pluralize
+                                <span class="c-gray" ng-if="sermonCtrl.sermon.comment_count > 0"><i
+                                        class="m-r-5 m-l-5 zmdi zmdi-comments"></i> {{sermonCtrl.sermon.comment_count}} <ng-pluralize
                                         count="sermonCtrl.sermon.comments"
                                         when="{'one': 'Comment','other': '{} Comments'}">
                                 </ng-pluralize></span>

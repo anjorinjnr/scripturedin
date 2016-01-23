@@ -4,11 +4,13 @@ from handlers.base_handler import user_required
 from service import util
 import logging
 
+from service.validator import Validator
+
 
 class UserHandler(base_handler.BaseHandler):
     def current_user(self):
         if self.user:
-          self.write_model(self.user)
+            self.write_model(self.user)
         else:
             self.write_response({'status': 'no active user session'})
 
@@ -24,42 +26,59 @@ class UserHandler(base_handler.BaseHandler):
             return self.error_response()
 
     def signup(self):
-        data = self.request_data()
-        resp = None
-        if 'password' in data:
-            resp = self._email_signup(data)
-        elif 'channel' in data and data['channel'] == 'facebook':
-            resp = self._facebook_signup(data)
-        if resp and resp[0]:
-            user = resp[1]
-            # start new session
-            self.auth.set_session(self.auth.store.user_to_dict(user), remember=True)
-            # print self.auth.session
-            user_dict = util.model_to_dict(user)
-            self.write_response(user_dict)
-        else:
-            return self.error_response(resp[1])
+        try:
+            data = self.request_data()
+            resp = None
+            if 'password' in data:
+                resp = self._email_signup(data)
+            elif 'channel' in data and data['channel'] == 'facebook':
+                resp = self._facebook_signup(data)
+
+            if resp and resp[0]:
+                user = resp[1]
+                # start new session
+                self.auth.set_session(self.auth.store.user_to_dict(user), remember=True)
+                # print self.auth.session
+                user_dict = util.model_to_dict(user)
+                self.write_response(user_dict)
+            else:
+                if 'email' in resp[1]:
+                    self.error_response('An account with %s already exists' % data['email'])
+                else:
+                    self.error_response(resp[1])
+        except Exception as e:
+            logging.error(e.message)
+
+            self.error_response('Unable to complete signup.')
 
     def _email_signup(self, data):
-        unique_properties = ['email']
-        user_data = self.user_model.create_user(
-                'ebby@gmail.com',
-                unique_properties,
-                email='ebby@gmail.com',
-                first_name='ebby',
-                last_name='anj')
+        validator = Validator({'email': 'required|email',
+                               # 'first_name': 'required',
+                               # 'last_name': 'required'
+                                },
+                              data,
+                              {'email': 'email is required',
+                               'first_name': 'first name is required',
+                               'last_name': 'last name is required',
+                               'password': 'password is required'}
+                              )
+
+        if validator.is_valid():
+            return self._create_user(data)
+        else:
+            return (False, validator.errors)
 
     def _facebook_signup(self, data):
-        validator = util.Validator({'email': 'required',
-                                    'first_name': 'required',
-                                    'last_name': 'required',
-                                    'access_token': 'required'},
-                                   data,
-                                   {'email': 'email is required',
-                                    'first_name': 'first name is required',
-                                    'last_name': 'last name is required',
-                                    'access_token': 'access token is required'}
-                                   )
+        validator = Validator({'email': 'required',
+                               'first_name': 'required',
+                               'last_name': 'required',
+                               'access_token': 'required'},
+                              data,
+                              {'email': 'email is required',
+                               'first_name': 'first name is required',
+                               'last_name': 'last name is required',
+                               'access_token': 'access token is required'}
+                              )
         if validator.is_valid():
             user = model.get_user_by_email(data['email'])
             if user:
@@ -76,6 +95,7 @@ class UserHandler(base_handler.BaseHandler):
         if not data:
             raise Exception('Invalid data')
 
+        # print data
         user_data = None
         if 'password' in data:
             user_data = self.user_model.create_user(data['email'],

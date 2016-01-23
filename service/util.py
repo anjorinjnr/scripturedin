@@ -7,8 +7,9 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 from google.appengine.api import urlfetch
 from google.appengine.api import memcache
-from models import scripturedin as model
 import datetime
+
+from service.validator import Validator
 
 
 class Config(object):
@@ -26,39 +27,6 @@ class Config(object):
                 memcache.set('_config', config, 86400)  # cache for a day
                 return str(config[key]) if key else config
 
-
-def required(value):
-    if value:
-        return True
-    else:
-        return False
-
-
-RULE = {
-    'required': required
-}
-
-
-class Validator(object):
-    def __init__(self, config, data, messages=None):
-        self.config = config
-        self.data = data
-        self.error = 0
-        self.errors = []
-        self.messages = messages
-
-    def validate(self):
-        for key, value in self.data.iteritems():
-            if key in self.config:
-                config = self.config['key'].split('|')
-                for validator in config:
-                    if not RULE[validator](value):
-                        self.error += 1
-                        if self.messages:
-                            self.errors.append(self.messages['key'])
-
-    def is_valid(self):
-        return self.error == 0
 
 
 def validate(config, data):
@@ -153,14 +121,19 @@ def encode_model(o, **kwargs):
     if isinstance(o, ndb.Model):
         obj = model_to_dict(o, **kwargs)
     elif isinstance(o, list):
+        print 'here'
         obj = []
         for lo in o:
             if isinstance(lo, ndb.Model):
                 obj.append(model_to_dict(lo, **kwargs))
+            elif isinstance(o, dict):
+                obj.append(_convert_dict(o))
             else:
                 obj.append(lo)
     elif isinstance(o, ndb.Key):
         obj = {'kind': o.kind(), 'id': o.id()}
+    elif isinstance(o, dict):
+        obj = _convert_dict(o)
     else:
         obj = o
     return NdbModelEncoder().encode(obj)

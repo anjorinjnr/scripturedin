@@ -40,3 +40,16 @@ indexes:
   - name: sermon_key
   - name: created_at
     direction: desc
+
+- kind: User
+  properties:
+  - name: __key__
+  - name: first_name
+  - name: last_name
+
+- kind: User
+  properties:
+  - name: __key__
+  - name: first_name
+  - name: last_name
+  - name: title

@@ -3,6 +3,7 @@ import webapp2
 from handlers.auth_handler import AuthHandler
 from handlers.bible_handler import BibleHandler
 from handlers.comment_handler import CommentHandler
+from handlers.feed_handler import FeedHandler
 from handlers.misc_handler import MiscHandler
 from handlers.request_handler import RequestHandler
 from handlers.sermon_handler import SermonHandler
@@ -100,7 +101,15 @@ ROUTES = [
           handler_method='unlike',
           methods=['POST']),
 
+    #/feed routes
+    (r'/api/feeds', FeedHandler),
+    # /bible routes
     (r'/api/bible', BibleHandler),
+    route(r'/api/bible/versions',
+          handler=BibleHandler,
+          handler_method='get_versions',
+          methods=['GET']),
+
     # tasks,
     route(r'/api/task/load-church',
           handler=TaskHandler,

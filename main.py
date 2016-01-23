@@ -6,6 +6,14 @@ import webapp2
 import appengine_config
 from  models.scripturedin import User
 from service import util
+import sys
+from google.appengine.ext import vendor
+
+
+rootdir = os.path.dirname(os.path.abspath(__file__))
+lib = os.path.join(rootdir, 'lib')
+sys.path.append(lib)
+vendor.add(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'lib'))
 
 def _IsDevEnv():
     """Returns whether we are in a development environment (non-prod)."""

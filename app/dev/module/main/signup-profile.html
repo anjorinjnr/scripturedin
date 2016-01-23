@@ -8,15 +8,16 @@
             <div class="card">
                 <div class="listview lv-bordered lv-lg">
                     <div class="lv-header-alt clearfix">
-                        <h1 class="lvh-label">Welcome {{authService.user.first_name}}, please take a moment to update your
+                        <h1 class="lvh-label">Welcome {{authService.user.first_name}}, please take a moment to update
+                            your
                             profile.</h1>
 
                         <!--<ul class="lv-actions actions">-->
-                            <!--<li>-->
-                                <!--<a href="" data-ng-click="mactrl.listviewSearchStat = true">-->
-                                    <!--<i class="zmdi zmdi-search"></i>-->
-                                <!--</a>-->
-                            <!--</li>-->
+                        <!--<li>-->
+                        <!--<a href="" data-ng-click="mactrl.listviewSearchStat = true">-->
+                        <!--<i class="zmdi zmdi-search"></i>-->
+                        <!--</a>-->
+                        <!--</li>-->
 
                         <!--</ul>-->
                     </div>
@@ -25,6 +26,50 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <form id="profile" name="profile">
+
+                                    <div class="form-group">
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                <p>Fullname</p>
+
+                                            </div>
+                                            <div class="col-sm-2" ng-if="mainCtrl.user.is_pastor">
+                                                <div class="form-group">
+                                                    <div class="fg-line">
+                                                        <div class="select">
+                                                            <select class="form-control">
+                                                                <option value="Archbishop">Archbishop</option>
+                                                                <option value="Apostle">Apostle</option>
+                                                                <option value="Bishop">Bishop</option>
+                                                                <option value="Deacon">Deacon</option>
+                                                                <option value="Elder">Elder</option>
+                                                                <option value="Priest">Priest</option>
+                                                                <option value="Reverend">Reverend</option>
+                                                                <option value="Pastor" selected>Pastor</option>
+
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    <div class="fg-line">
+                                                        <input type="text" ng-model="mainCtrl.user.first_name"
+                                                               class="form-control" placeholder="first name">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    <div class="fg-line">
+                                                        <input type="text" ng-model="mainCtrl.user.last_name"
+                                                               class="form-control" placeholder="last name">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="form-group">
                                         <div class="row m-b-20">
                                             <div class="col-sm-3">
@@ -146,7 +191,7 @@
                                     <div class="form-group">
                                         <div class="row">
                                             <div class="col-sm-3">
-                                                <p>Are you a pastor?</p>
+                                                <p>Are you a church leader (e.g Pastor)?</p>
 
                                             </div>
                                             <div class="col-sm-8">

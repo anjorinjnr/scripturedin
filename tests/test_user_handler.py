@@ -32,6 +32,46 @@ class UserHandlerTestCase(unittest.TestCase):
                                       config=config)
         self.testapp = webtest.TestApp(app)
 
+
+    def test_signup_email(self):
+        # test success case
+        params = {"email": "tola.anjorin@gmail.com",
+                  "first_name": "Tola",
+                  "last_name": "Anjorin Jnr",
+                  "password": "pass"
+                  }
+        response = self.testapp.post('/api/signup', json.dumps(params))
+        self.assertEqual(response.status_int, 200)
+        self.assertTrue('Set-Cookie' in response.headers)
+        user = json.loads(response.normal_body)
+        self.assertEqual(1, user['id'])
+
+        # test failure case account already exist
+        response = self.testapp.post('/api/signup', json.dumps(params))
+        self.assertEquals('An account with tola.anjorin@gmail.com already exists',
+                          json.loads(response.normal_body)['message'])
+
+        # test failure case, missing fields
+        params = {"email": "",
+                  "first_name": "Tola",
+                  "last_name": "Anjorin Jnr",
+                  "password": "pass"
+                  }
+
+        response = self.testapp.post('/api/signup', json.dumps(params))
+        self.assertEquals(['email is required'],
+                          json.loads(response.normal_body)['message'])
+
+        params = {"email": "wrongemail@",
+                  "first_name": "Tola",
+                  "last_name": "Anjorin Jnr",
+                  "password": "pass"
+                  }
+
+        response = self.testapp.post('/api/signup', json.dumps(params))
+        self.assertEquals(['email is required'],
+                          json.loads(response.normal_body)['message'])
+
     @mock.patch('service.util._validate_facebook_token')
     def test_signup_facebook(self, mock_val_fb_token):
         params = {"email": "tola.anjorin@gmail.com",

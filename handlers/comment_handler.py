@@ -15,19 +15,6 @@ class CommentHandler(base_handler.BaseHandler):
         try:
             cors = Cursor(urlsafe=self.request.get('cursor')) if self.request.get('cursor') else None
             comments = model.get_comments(self.request.get('k').strip(), ref_key, cors)
-            data = []
-            for c in comments['comments']:
-                replies = model.get_comment_replies(c.key.id())
-                rep = []
-                for r in replies['comments']:
-                    o = r.to_dict()
-                    o['user'] = r.created_by.get()
-                    rep.append(o)
-                replies['comments'] = rep
-                data.append(util.model_to_dict(c,
-                                               replies=replies,
-                                               user=model.get_user_by_id(c.created_by.id())))
-            comments['comments'] = data
             self.write_model(comments)
         except Exception as e:
             logging.info(e)

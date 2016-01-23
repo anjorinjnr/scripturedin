@@ -1,5 +1,5 @@
-App.controller('mainController', function ($timeout, $state, $scope, growlService, userService,
-                                           authService, bibleService) {
+App.controller('mainController', function ($timeout, $state, $scope, userService,
+                                           authService, bibleService, alertService) {
     //Welcome Message
     //growlService.growl('Welcome back Mallinda!', 'inverse')
 
@@ -15,7 +15,7 @@ App.controller('mainController', function ($timeout, $state, $scope, growlServic
                 self.user = resp.data;
                 authService.createSession(self.user);
                 $scope.$emit('alert', 'Changes saved');
-                //$state.go('base.home');
+                $state.go('base.home');
             } else {
                 $scope.$emit('alert', 'Failed to save changes.');
 
@@ -54,8 +54,8 @@ App.controller('mainController', function ($timeout, $state, $scope, growlServic
     if ($state.current.name == 'base.post-signup-profile') {
         self.churches = bibleService.getChurches().then(function (resp) {
             self.churches = _.sortBy(resp.data, 'name');
-            var church = _.find(self.churches, {'id': self.user.church_key})
-           self.user.church = church;
+            var church = _.find(self.churches, {'id': self.user.church_key});
+            self.user.church = church;
         });
 
     }
@@ -65,8 +65,16 @@ App.controller('mainController', function ($timeout, $state, $scope, growlServic
         authService.facebookLogin(action);
     };
 
-    this.signUp = function (form) {
+    self.signUp = function (form) {
+        var self = this;
         console.log(form);
+        if (form.$valid) {
+          authService.signup(self.user, function(data){
+              console.log(data);
+              alertService.danger(data.message);
+
+          });
+        }
     };
 
 

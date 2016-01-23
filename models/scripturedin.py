@@ -2,11 +2,13 @@ import time
 import logging
 import datetime
 from google.appengine.api import users
+from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
 
 from webapp2_extras import security
 from webapp2_extras.appengine.auth.models import User as AuthUser
 from google.appengine.api import memcache
+from service import util
 
 type_string = ndb.StringProperty
 type_int = ndb.IntegerProperty
@@ -32,6 +34,7 @@ class BaseModel(ndb.Model):
 
 
 class User(AuthUser):
+    title = type_string(default='')
     first_name = type_string()
     last_name = type_string()
     email = type_string()
@@ -40,6 +43,7 @@ class User(AuthUser):
     church_key = type_key()
     is_pastor = type_bool()
     fav_sermon_keys = type_key(kind='Sermon', repeated=True)
+
     # def get_id(self):
     #     return self.id
 
@@ -58,6 +62,19 @@ class Scripture(ndb.Model):
     verses = type_string(repeated=True)
     translation = type_string()
     language = type_string(default='eng')
+
+
+PRIVACY = ('followers', 'friends', 'members')
+
+
+class Feed(BaseModel):
+    ref_key = type_key()
+    privacy = type_string(choices=PRIVACY, repeated=True)
+
+
+class Notification(ndb.Model):
+    type = type_string()
+    ref_key = type_key
 
 
 class Church(BaseModel):
@@ -92,15 +109,17 @@ class Sermon(BaseModel):
     scripture = type_json()
     notes = type_json()  # list of note objects {content: ''}
     note = type_string()
-    pastor_key = type_key()
+    # pastor_key = type_key()
     church_key = type_key()
     publish = type_bool()
     questions = type_json()
     cal_color = type_string()  # calendar color
-    comments = type_int(default=0)
-    likes = type_int(default=0)
-    views = type_int(default=0)
+    comment_count = type_int(default=0)
+    like_count = type_int(default=0)
+    view_count = type_int(default=0)
     viewers_key = type_key(kind='User', repeated=True)
+    likers_key = type_key(kind='User', repeated=True)
+    commenters_key = type_key(kind='User', repeated=True)
 
 
 class Tags(BaseModel):
@@ -114,7 +133,8 @@ class Request(BaseModel):
     commentators_key = type_key(repeated=True)
     # list of dict {type: 'email' : email: ''} {type: 'twitter', handler: ''}
     invited_commentators = ndb.JsonProperty()
-    # {book: '', 'chapter': ''; 'translation':'', selection:[{verse: 12, selected: ''},...]}
+    # {book: '', 'chapter': ''; 'translation':'',
+    # selection:[{verse: 12, selected: ''},...]}
     scripture = ndb.JsonProperty()
 
 
@@ -151,7 +171,8 @@ def get_church_by_name(name):
 
 
 def save_church(data):
-    if 'name' not in data or not data['name'] or len(get_church_by_name(data['name'])) > 0:
+    if 'name' not in data or not data['name'] or len(
+            get_church_by_name(data['name'])) > 0:
         return False
     else:
         church = Church()
@@ -196,24 +217,29 @@ def _update_sermon(user_id, data, publish=False):
         raise Exception('data should be a dictionary')
     if 'title' not in data or not data['title']:
         raise Exception('sermon requires title')
-    if 'scripture' not in data or not isinstance(data['scripture'], list) or not data['scripture']:
+    if 'scripture' not in data or not isinstance(data['scripture'],
+                                                 list) or not data['scripture']:
         raise Exception('sermon requires at least one scripture')
-    if ('notes' not in data or not isinstance(data['notes'], list) or not data['notes']) and (
-                    'note' not in data or not data['note']):
-        raise Exception('sermon requires at a note. Note can be list of notes or free text')
+    if ('notes' not in data or not isinstance(data['notes'], list)
+        or not data['notes']) and ('note' not in data or not data['note']):
+        raise Exception('sermon requires at a note. Note can be list of notes '
+                        'or free text')
 
     user = get_user_by_id(user_id)
     if not user.is_pastor:
         raise Exception('user must be a pastor to create a sermon')
 
-    sermon = get_sermon(data['id']) if 'id' in data else Sermon(pastor_key=user.key)
+    sermon = get_sermon(data['id']) if 'id' in data else Sermon(
+            created_by=user.key)
     sermon.title = data['title']
+    sermon.created_by = user.key
     sermon.publish = publish
     if 'date' in data:
         sermon.date = []
         for d in data['date']:
             try:
-                sermon.date.append(datetime.datetime.utcfromtimestamp(float(d) / 1000.0))
+                sermon.date.append(
+                        datetime.datetime.utcfromtimestamp(float(d) / 1000.0))
             except ValueError:
                 logging.info('Cannot parse d %s' % d)
     # @todo validate scripture
@@ -256,6 +282,21 @@ def get_sermons_by_pastor(pastor):
 
 
 def save_comment(data):
+    """Add a comment.
+
+    Args:
+        data: Dict with details about the comment. The dict should contains at
+        the following fields:
+            comment: The actual comment being posted
+            user_key: The key of the user doing the commenting
+            ref_key: The key of the object being commented on
+            reply_to: Optional key or id of the comment for which this
+            comment is a reply to.
+
+    Returns:
+        A comment object
+
+    """
     if 'comment' not in data or not data['comment'].strip():
         raise Exception('comment is required and cannot be empty')
     if 'user_key' not in data or not isinstance(data['user_key'], ndb.Key):
@@ -272,11 +313,26 @@ def save_comment(data):
             comment.reply_to = ndb.Key('Comment', int(data['reply_to']))
     comment.created_by = data['user_key']
     comment.id = comment.put()
+
     if comment.id and comment.reply_to:
+        # comment is a reply, add the key to the replies_key list of the
+        # original comment, and increment the reply_count
         parent = comment.reply_to.get()
         parent.replies_key.append(comment.id)
         parent.reply_count += 1
         parent.put()
+
+    if comment.ref_key.kind() == 'Sermon':
+        # if commenting on a sermon, increment the number of comments and add
+        #  the user to the list of commenters
+        sermon = comment.ref_key.get()
+        if not sermon.commenters_key:
+            sermon.commenters_key = []
+        if comment.created_by not in sermon.commenters_key:
+            sermon.commenters_key.append(comment.created_by)
+            sermon.comment_count = len(sermon.commenters_key)
+            sermon.put()
+
     return comment
 
 
@@ -290,12 +346,18 @@ def save_sermon_note(data):
 
     logging.info(data)
 
-    sermon = SermonNote.get_by_id(int(data['id'])) if 'id' in data else SermonNote()
+    sermon = SermonNote.get_by_id(
+            int(data['id'])) if 'id' in data else SermonNote()
     sermon.notes = data['notes']
-    sermon.sermon_key = data['sermon_key'] if isinstance(data['sermon_key'], ndb.Key) else Sermon.get_by_id(
-            int(data['sermon_key'])).key
-    sermon.created_by = data['user_key'] if isinstance(data['user_key'], ndb.Key) else User.get_by_id(
-            int(data['user_key'])).key
+    if isinstance(data['sermon_key'], ndb.Key):
+        sermon.sermon_key = data['sermon_key']
+    else:
+        sermon.sermon_key = Sermon.get_by_id(int(data['sermon_key'])).key
+
+    if isinstance(data['user_key'], ndb.Key):
+        sermon.created_by = data['user_key']
+    else:
+        sermon.created_by = User.get_by_id(int(data['user_key'])).key
     sermon.id = sermon.put()
     return sermon
 
@@ -305,31 +367,108 @@ def get_sermons():
 
 
 def get_sermon_note(user_id, sermon_id):
-    return SermonNote.query(SermonNote.created_by == ndb.Key('User', int(user_id)),
-                            SermonNote.sermon_key == ndb.Key('Sermon', int(sermon_id))).get()
+    return SermonNote.query(
+            SermonNote.created_by == ndb.Key('User', int(user_id)),
+            SermonNote.sermon_key == ndb.Key('Sermon', int(sermon_id))).get()
 
 
-def get_comment_replies(comment_id, cursor=None):
+def get_comment_replies(comment_id, cursor=None, page_size=10):
+    """Returns replies to a comment.
 
+    Args:
+        comment_id: The id of the comment for which we want the replies.
+        cursor: An option value that specifies what point to start fetching the
+        replies from.
+        page_size: The number of items to return.
+
+    Returns:
+        A dict similar the response of the {get_comments} function.
+    """
     try:
-        page_size = 10
-        q = Comment.query(Comment.reply_to == ndb.Key('Comment', int(comment_id))).order(-Comment.created_at)
-        #q.map(callback)
+
+        q = Comment.query(
+                Comment.reply_to == ndb.Key('Comment', int(comment_id))).order(
+                -Comment.created_at)
         if cursor:
-            comments, next_curs, more = q.fetch_page(page_size, start_cursor=cursor)
+            comments, next_curs, more = q.fetch_page(page_size,
+                                                     start_cursor=cursor)
         else:
             comments, next_curs, more = q.fetch_page(page_size)
 
+        replies = []
+        for c in comments:
+            reply = c.to_dict()
+            reply['user'] = User.query(User.key == c.created_by).get(
+                    projection=[User.first_name, User.last_name, User.title])
+            replies.append(reply)
+
         return {
-            'comments': comments,
+            'comments': replies,
             'next': next_curs.url_safe() if more and next_curs else None
         }
     except Exception as e:
         print e
 
 
-def get_comments(type, id, cursor):
-    page_size = 20
+def get_comments(type, id, cursor=None, page_size=20):
+    """ Returns comments associated with the object type with the input id.
+
+    If a cursor is provided, start querying from the cursor. We also include the
+    replies with the result, the replies also paged, so a cursor is returned
+    along with the replies for the caller to load more replies.
+
+    Args:
+        type: A string representing the Kind of object.
+        id: The object id.
+        cursor: An optional value that when specified indicates the starting
+        point of the fetch.
+        page_size: The number of items to return.
+
+    Returns:
+        Returns a dict with a key (comments) mapped to the list of comments and
+        a key (next) with the cursor value.
+        The field comments contains an array of comment objects represent as
+        dict. Each comment has the user field with info of the creator,
+        as well as field replies that contains dict with the replies to the
+        comment.
+        Example
+        {
+          "comments": [
+            {
+              "like_count": 1,
+              "reply_to": null,
+              "user": {
+                "title": "Pastor",
+                "last_name": "Anjorin Jnr",
+                "first_name": "Tola",
+                "id": 5629499534213120
+              },
+              ...
+               "likes_key": [
+                5629499534213120
+              ],
+              "comment": "This is comment",
+              "created_at": 1452982257257,
+              "replies": {
+                "comments": [
+                  {
+                    ...
+                    "user": {
+                      "title": "",
+                      "last_name": "Anjorin",
+                      "first_name": "Ebby",
+                      "id": 5733953138851840
+                    },
+                    "comment": "reply...",
+                  }
+                ],
+                "next": null
+              }
+            }
+          ],
+          "next": null
+        }
+    """
     q = Comment.query(Comment.ref_key == ndb.Key(type, int(id)),
                       Comment.reply_to == None).order(-Comment.created_at)
     if cursor:
@@ -337,8 +476,16 @@ def get_comments(type, id, cursor):
     else:
         comments, next_curs, more = q.fetch_page(page_size)
 
+    data = []
+    for c in comments:
+        comment = util.model_to_dict(c)
+        comment['replies'] = get_comment_replies(c.key.id())
+        comment['user'] = User.query(User.key == c.created_by).get(
+                projection=[User.first_name, User.last_name, User.title])
+        data.append(comment)
+
     return {
-        'comments': comments,
+        'comments': data,
         'next': next_curs.url_safe() if more and next_curs else None
     }
 
@@ -348,29 +495,51 @@ def get_sermon_comments(sermon_id, cursor):
 
 
 def like_sermon(sermon_id, user_id):
-    logging.info(sermon_id)
-    logging.info(user_id)
+    """Action for a user to like a sermon.
+
+    When a user likes a sermon, we add the sermon to the user's favorite
+    sermon list. And also add the user to the list of people who likes the
+    sermon.
+
+    Args:
+        sermon_id: Id of the sermon being liked
+        user_id: Id of the user doing the liking
+
+    """
     user = User.get_by_id(int(user_id))
     sermon = Sermon.get_by_id(int(sermon_id))
     if sermon.key not in user.fav_sermon_keys:
         user.fav_sermon_keys.append(sermon.key)
-        if not sermon.likes:
-            sermon.likes = 0
-        sermon.likes += 1
+        sermon.likers_key.append(user.key)
+        if not sermon.like_count:
+            sermon.like_count = 0
+        sermon.like_count += 1
         sermon.put()
         user.put()
         return True
 
 
 def unlike_sermon(sermon_id, user_id):
+    """Action for a user to unlike a sermon.
+
+    When a user unlikes a sermon, we remove the sermon to the user's favorite
+    sermon list. And also remove the user to the list of people who likes the
+    sermon.
+
+    Args:
+        sermon_id: Id of the sermon being liked
+        user_id: Id of the user doing the liking
+    """
     user = User.get_by_id(int(user_id))
     sermon = Sermon.get_by_id(int(sermon_id))
     if sermon.key in user.fav_sermon_keys:
         user.fav_sermon_keys.remove(sermon.key)
-        sermon.likes -= 1
+        sermon.likers_key.remove(user.key)
+        sermon.like_count -= 1
         sermon.put()
         user.put()
         return True
+
 
 def like_comment(comment_id, user_id):
     comment = Comment.get_by_id(int(comment_id))
@@ -381,6 +550,7 @@ def like_comment(comment_id, user_id):
         comment.put()
         return True
 
+
 def unlike_comment(comment_id, user_id):
     comment = Comment.get_by_id(int(comment_id))
     user_key = ndb.Key('User', int(user_id))
@@ -390,11 +560,90 @@ def unlike_comment(comment_id, user_id):
         comment.put()
         return True
 
+
 def log_sermon_view(sermon_id, user_id):
     sermon = Sermon.get_by_id(int(sermon_id))
     user = User.get_by_id(int(user_id))
     if user and sermon and user.key not in sermon.viewers_key:
         sermon.viewers_key.append(user.key)
-        sermon.views = len(sermon.viewers_key)
+        sermon.view_count = len(sermon.viewers_key)
         sermon.put()
         return True
+
+
+def get_feed(user_id, cursor=None, last_time=None, page_size=15):
+    """Returns news feed for a user.
+
+    A feed is generated when events such as publishing a new sermon is created.
+    When such events happens, we create a feed entry that get's displayed on
+    the appropriate user's wall. To get feeds for a user we query all
+    available feeds an apply a filter to determine what's applicable to the
+    user.
+
+    Args:
+        user_id: The id of the user we are retrieving feeds for.
+        cursor: An optional value that specifies that starting point to fetch
+        the feeds from.
+        last_time: An optional value that specifies that only feeds created
+        after this value should be return.
+        page_size: An optional number of items to return. Defaults to 15.
+
+    Returns:
+        A dict with 3 keys: feeds, next and ts. The feeds maps to a list of
+        feed items, the next is the cursor and ts is a timestamp of the most
+        recent feed at the time of query
+    """
+    if isinstance(cursor, str):
+        cursor = Cursor(urlsafe=cursor)
+
+    user = User.get_by_id(user_id)
+
+    # apply this function to each item and return a result if the feed is
+    # applicable to the user
+    def filter_feed(item):
+        if item.ref_key.kind() == 'Sermon':
+            sermon = item.ref_key.get()
+            if user.church_key and user.church_key == sermon.church_key:
+                sermon_dict = util.model_to_dict(sermon)
+                sermon_dict['comments'] = get_comments(sermon.key.kind(),
+                                                       sermon.key.id(),
+                                                       page_size=5)
+                sermon_dict['user'] = User.query(
+                        User.key == sermon.created_by).get(
+                        projection=[User.first_name, User.last_name,
+                                    User.title])
+                return sermon_dict
+
+    if last_time:
+        # query feeds created after this time
+        q = Feed.query(Feed.created_at > last_time).order(-Feed.created_at)
+    else:
+        # query feeds from the most recent
+        q = Feed.query().order(-Feed.created_at)
+
+    if cursor:
+        # return feeds from this point
+        feeds, next_curs, more = q.fetch_page(page_size, start_cursor=cursor)
+    else:
+        print 'gere'
+        feeds, next_curs, more = q.fetch_page(page_size)
+
+    filtered = []
+
+    for f in feeds:
+        resp = filter_feed(f)
+        if resp:
+            filtered.append(resp)
+
+    return {
+        'feeds': filtered,
+        'next': next_curs.urlsafe() if more and next_curs else None,
+        'ts': feeds[0].created_at if feeds else None
+    }
+
+
+def create_feed(obj):
+    feed = Feed()
+    feed.ref_key = obj.key
+    feed.created_by = obj.created_by
+    feed.put()

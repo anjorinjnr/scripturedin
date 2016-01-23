@@ -47,7 +47,7 @@ class ScripturedinTestCase(unittest.TestCase):
         self.assertEquals([utc_date], sermon.date)
         self.assertEquals(data['scripture'], sermon.scripture)
         self.assertEquals(data['notes'], sermon.notes)
-        self.assertEquals(1, sermon.pastor_key.id())
+        self.assertEquals(1, sermon.created_by.id())
 
         # test updating existing sermon
         data['id'] = sermon.key.id()
@@ -75,13 +75,14 @@ class ScripturedinTestCase(unittest.TestCase):
         self.assertEquals([utc_date], sermon.date)
         self.assertEquals(data['scripture'], sermon.scripture)
         self.assertEquals(data['notes'], sermon.notes)
-        self.assertEquals(1, sermon.pastor_key.id())
+        self.assertEquals(1, sermon.created_by.id())
         self.assertEquals(sermon.church_key, ndb.Key('Church', 123))
 
     def test_save_comment(self):
         data = {}
-        # with self.assertRaisesRegexp(Exception, 'comment is required and cannot be empty'):
-        #     model.save_sermon_comment(data)
+        s = model.Sermon(id=5733953138851840)
+        s.id = s.put()
+
         data = {'comment': '  '}
         with self.assertRaisesRegexp(Exception, 'comment is required and cannot be empty'):
             model.save_comment(data)
@@ -89,7 +90,7 @@ class ScripturedinTestCase(unittest.TestCase):
         with self.assertRaisesRegexp(Exception, 'user id is required'):
             model.save_comment(data)
         data = {'comment': 'some comment', 'user_key': ndb.Key('User', 5360119185408000),
-                'ref_key': ndb.Key('Sermon', 5733953138851840)}
+                'ref_key': s.key}
 
         comment = model.save_comment(data)
         # print sermon_note
@@ -97,7 +98,7 @@ class ScripturedinTestCase(unittest.TestCase):
         self.assertEquals(comment.ref_key, data['ref_key'])
         self.assertEquals(data['comment'], comment.comment)
         data = {'comment': 'some comment with reply', 'user_key': ndb.Key('User', 5360119185408000),
-                'ref_key': ndb.Key('Sermon', 5733953138851840), 'reply_to': comment.key}
+                'ref_key': s.key, 'reply_to': comment.key}
         comment = model.save_comment(data)
         self.assertEquals(comment.created_by, data['user_key'])
         self.assertEquals(comment.ref_key, data['ref_key'])
@@ -194,8 +195,8 @@ class ScripturedinTestCase(unittest.TestCase):
         resp = model.like_sermon(456, 123)
         mock_user_get.assert_called_once_with(123)
         mock_sermon_get.assert_called_once_with(456)
-        self.assertEqual([sermon.key], user.fav_sermon_keys )
-        self.assertEqual(1, sermon.likes)
+        self.assertEqual([sermon.key], user.fav_sermon_keys)
+        self.assertEqual(1, sermon.like_count)
 
     @mock.patch('models.scripturedin.Sermon.get_by_id')
     @mock.patch('models.scripturedin.User.get_by_id')
@@ -209,10 +210,70 @@ class ScripturedinTestCase(unittest.TestCase):
         mock_user_get.assert_called_once_with(123)
         mock_sermon_get.assert_called_once_with(456)
         self.assertTrue(resp)
-        self.assertEqual([user.key], sermon.viewers_key )
-        self.assertEqual(1, sermon.views)
+        self.assertEqual([user.key], sermon.viewers_key)
+        self.assertEqual(1, sermon.view_count)
 
         resp = model.log_sermon_view(456, 123)
-        self.assertEqual([user.key], sermon.viewers_key )
-        self.assertEqual(1, sermon.views)
+        self.assertEqual([user.key], sermon.viewers_key)
+        self.assertEqual(1, sermon.view_count)
 
+    def test_get_feed(self):
+        # create some sample feeds.
+        u = model.User(first_name='foo', last_name='bar')
+        u.key = u.put()
+        c = model.Church(name='my church')
+        c.key = c.put()
+        s1 = model.Sermon(title='sermon 1', church_key=c.key, created_by=u.key)
+        s1.key = s1.put()
+
+        s2 = model.Sermon(title='sermon 2', church_key=c.key, created_by=u.key)
+        s2.key = s2.put()
+
+        s3 = model.Sermon(title='sermon 3', church_key=c.key, created_by=u.key)
+        s3.key = s3.put()
+
+        s = model.Sermon(title='sermon excl', church_key=ndb.Key('Church', '999'))
+        s.key = s.put()
+
+        model.Feed(ref_key=s1.key).put()
+        model.Feed(ref_key=s2.key).put()
+        model.Feed(ref_key=s3.key).put()
+
+        m = model.User(first_name='john', last_name='doe', church_key=c.key)
+        m.key = m.put()
+
+        _user = model.User.query(model.User.key == u.key).get(
+                projection=[model.User.first_name, model.User.last_name, model.User.title])
+        # load first feed
+        initial = model.get_feed(m.key.id(), page_size=1)
+        data = s3.to_dict()
+        data['user'] = _user
+        data['comments'] =  {'comments': [], 'next': None}
+        self.assertEquals([data], initial['feeds'])
+
+        # scroll to load more
+        more = model.get_feed(m.key.id(), cursor=initial['next'], page_size=1)
+        data = s2.to_dict()
+        data['user'] = _user
+        data['comments'] =  {'comments': [], 'next': None}
+        self.assertEquals([data], more['feeds'])
+
+        # new feed since last fetch
+        s4 = model.Sermon(title='sermon 4', church_key=c.key, created_by=u.key)
+        s4.key = s4.put()
+
+        model.Feed(ref_key=s4.key).put()
+
+        new = model.get_feed(m.key.id(), last_time=initial['ts'], page_size=1)
+        data = s4.to_dict()
+        data['user'] = _user
+        data['comments'] =  {'comments': [], 'next': None}
+        self.assertEquals([data], new['feeds'])
+
+        # scroll to load more
+        more = model.get_feed(m.key.id(), cursor=more['next'], page_size=1)
+        data = s1.to_dict()
+        data['user'] = _user
+        data['comments'] =  {'comments': [], 'next': None}
+        self.assertEquals([data], more['feeds'])
+        self.assertIsNone(more['next'])

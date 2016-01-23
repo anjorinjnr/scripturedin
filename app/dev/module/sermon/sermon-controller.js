@@ -11,12 +11,25 @@ App.controller('sermonController', function ($state, authService, userService, b
         console.log(self.user);
         self.errors = {};
 
-        self.showScripture = function (s) {
+
+        self.showScripture = function (scripture) {
+
             $mdDialog.show({
-                controller: function(){
+                controller: function () {
+                    var self = this;
+
+                    self.dialog = $mdDialog;
+                    bibleService.getPassage(scripture).then(function (resp) {
+                        self.scripture = resp.data;
+                    });
+                    bibleService.versions().then(function (resp) {
+                        self.versions = resp.data;
+                    });
+
 
                 },
-                templateUrl:  'module/sermon/scripture_modal.html',// 'dialog1.tmpl.html',
+                controllerAs: 'modalCtrl',
+                templateUrl: 'module/sermon/scripture_modal.html',// 'dialog1.tmpl.html',
                 parent: angular.element(document.body),
                 //targetEvent: ev,
                 clickOutsideToClose: true,
@@ -136,7 +149,7 @@ App.controller('sermonController', function ($state, authService, userService, b
                 userService.unlikeSermon(self.sermon.id).then(function (resp) {
                     self.busy = false;
                     if (resp.data.status == 'success') {
-                        self.sermon.likes -= 1;
+                        self.sermon.like_count -= 1;
                         self.user.fav_sermon_keys.splice(i, 1);
                     }
                 });
@@ -146,7 +159,7 @@ App.controller('sermonController', function ($state, authService, userService, b
                 userService.likeSermon(self.sermon.id).then(function (resp) {
                     self.busy = false;
                     if (resp.data.status == 'success') {
-                        self.sermon.likes += 1;
+                        self.sermon.like_count += 1;
                         self.user.fav_sermon_keys.push(self.sermon.id);
                     }
                 });
@@ -207,7 +220,7 @@ App.controller('sermonController', function ($state, authService, userService, b
                         if (resp.data.id) {
                             self.sermonComments.comments.unshift(resp.data);
                             self.sermonComment.comment = '';
-                            self.sermon.comments++;
+                            self.sermon.count_count++;
                         } else {
                             alertService.danger('Failed to post comment, please try again');
                         }

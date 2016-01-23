@@ -3,6 +3,8 @@ from google.appengine.api import memcache
 import json
 from google.appengine.api import urlfetch
 import logging
+import sys
+sys.path.insert(0, 'lib')
 from bs4 import BeautifulSoup
 
 BIBLE_COM_BASE_URL = 'https://www.bible.com/bible'
@@ -20,14 +22,19 @@ def fetch_(version, book, chapter, verse=None):
                                                                book=book,
                                                                chapter=chapter,
                                                                verse=verse)
-
-    #print url
-    try:
-        result = urlfetch.fetch(url)
-        if result.status_code == 200:
-            return json.loads(result.content)
-    except Exception as e:
-        logging.error(e.message)
+    data = memcache.get(url)
+    if data is not None:
+        logging.info('cache hit:  %s', url)
+        return data
+    else:
+        try:
+            result = urlfetch.fetch(url)
+            if result.status_code == 200:
+                data = json.loads(result.content)
+                memcache.set(url, data)
+                return data
+        except Exception as e:
+            logging.error(e.message)
 
 
 def extract_verses_(chapter_html):
@@ -94,13 +101,6 @@ def get_passage(book, chapter, verses, translation='kjv'):
         return passage
 
 
-
-
-
-
-
-
-
 def bible_com_version_id_lookup(translation):
     key = 'bible.com.version.lookup'
     index = memcache.get(key)
@@ -146,3 +146,11 @@ def abbreviation_lookup(book):
     if lower in index:
         return index[lower]
 
+def versions():
+    key = 'bible.com.versions'
+    vers = memcache.get(key)
+    if vers is None:
+        with open('data/bible.com/versions.json') as f:
+            vers = json.load(f)
+            memcache.set(key, vers)
+    return vers

@@ -12,6 +12,9 @@ App.service('alertService', function () {
     self.info = function (message, config) {
         var c = _.merge(_config, config);
         c.type = 'inverse';
+        if (_.isArray(message)) {
+            message = message.join('<br>');
+        }
         notify(message, c)
     };
     self.danger = function (message, config) {
