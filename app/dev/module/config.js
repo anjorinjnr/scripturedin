@@ -63,6 +63,9 @@ App.config(function (localStorageServiceProvider) {
                     }
 
                 },
+                resolve: {
+                    auth: resolveAuth
+                },
 
                 data: {
                     role: USER_ROLES.user
@@ -77,6 +80,7 @@ App.config(function (localStorageServiceProvider) {
                     }
                 },
                 resolve: {
+                    auth: resolveAuth,
                     sermons: function () {
                         return [];
                     },

@@ -9,6 +9,7 @@ App.controller('mainController', function ($timeout, $state, $scope, userService
     self.newChurch = {};
     self.updateProfile = function () {
         self.user.church_id = self.user.church.id;
+
         //console.log(self.profile);
         userService.updateProfile(self.user).then(function (resp) {
             if (resp.data.id) {

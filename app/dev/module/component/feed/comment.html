@@ -1,0 +1,68 @@
+<div class="media m-b-10" id="{{comment.id}}">
+    <a href="" class="pull-left">
+        <img src="img/profile-pics/5.jpg" alt="" class="lv-img-sm">
+    </a>
+
+    <div class="media-body">
+        <a href="" class="a-title"><strong>{{comment.user.first_name}}
+            {{comment.user.last_name}}</strong></a>
+        <small class="c-gray m-l-10">{{comment.created_at | fromNow}}
+        </small>
+        <p class="m-t-5 m-b-0">{{comment.comment}}</p>
+        <p class="m-t-10 m-b-0">
+            <a class="m-r-5"
+               ng-click="like(comment)"
+               href>
+                <span ng-if="comment.likes_key.indexOf(user.id) < 0">Like</span>
+                <span  ng-if="comment.likes_key.indexOf(user.id) >= 0">Unlike</span>
+            </a>
+            <a ng-click="showReply = true" href=>Reply</a>
+        </p>
+        <!-- start replies here -->
+        <div class="media" ng-repeat="r in comment.replies.comments">
+            <a href="" class="pull-left">
+                <img src="img/profile-pics/5.jpg" alt=""
+                     class="lv-img-sm">
+            </a>
+
+            <div class="media-body">
+                <a href="" class="a-title"><strong>{{::r.user.first_name}}
+                    {{::r.user.last_name}}</strong></a>
+                <small class="c-gray m-l-10">{{::r.created_at | fromNow}}
+                </small>
+                <p class="m-t-5 m-b-0">{{::r.comment}}</p>
+                <p class="m-t-10 m-b-0">
+                    <a class="m-r-5"
+                       ng-click="like(r)"
+                       href>
+                        <span ng-if="r.likes_key.indexOf(user.id) < 0">Like</span>
+                        <span  ng-if="r.likes_key.indexOf(user.id) >= 0">Unlike</span></a>
+                       <a ng-click="$parent.showReply = true" href=>Reply</a>
+                    <!--<a ng-click="reply(r.user)" href=>Reply</a>-->
+                </p>
+            </div>
+        </div>
+        <!-- end replies-->
+
+        <!-- start reply input -->
+        <div ng-if="showReply" class="wcl-form m-t-10">
+            <div class="wc-comment">
+                <div class="wcc-inner m-b-5">
+                    <div contenteditable="true"
+                         class="wcci-text c-black reply-text"
+                         style="height: auto" focus-cursor
+                         data-text="Write a reply..."
+                         data-placeholder="Write a reply...">
+
+                    </div>
+
+                </div>
+                <button ng-click="postReply()"
+                        class="btn btn-sm btn-primary">Reply
+                </button>
+            </div>
+        </div>
+        <!--end reply input-->
+
+    </div>
+</div>

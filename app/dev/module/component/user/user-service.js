@@ -49,4 +49,21 @@ App.service('userService', function ($http) {
     self.unlikeSermon = function (sermonId) {
         return $http.post('/api/sermon/' + sermonId + '/unlike', {}, {ignoreLoadingBar: true});
     };
+
+    /**
+     * Get post feeds for the user
+     * @param {Number} userId
+     */
+    self.getFeed = function (lastTime, cursor) {
+        var params = [];
+        if (lastTime) {
+            params.push['last_time=' + lastTime];
+        }
+        if (cursor) {
+            params.push['cursor=' + cursor];
+        }
+        return $http.get('/api/feeds?'+ params.join('&'),
+            {ignoreLoadingBar: true});
+
+    }
 });

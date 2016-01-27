@@ -1,12 +1,11 @@
 /**
  * Created by eanjorin on 12/10/15.
  */
-App.controller('homeController', function ($rootScope, userService, bibleService) {
+App.controller('homeController', function ($rootScope, userService, authService, bibleService) {
 
     var self = this;
 
-    console.log(11);
-
+       console.log(authService.user);
     /*
      listen to search event
      */
@@ -21,6 +20,13 @@ App.controller('homeController', function ($rootScope, userService, bibleService
         bibleService.get(query).then(function (resp) {
             console.log(resp.data);
         });
+    };
 
-    }
+    self.getFeed = function () {
+        userService.getFeed().then(function (resp) {
+           self.feedData = resp.data;
+        });
+    };
+
+    self.getFeed();
 });

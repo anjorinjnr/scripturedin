@@ -8,20 +8,43 @@ App.controller('sermonController', function ($state, authService, userService, b
         var self = this;
 
         self.user = authService.user;
-        console.log(self.user);
+        //console.log(self.user);
         self.errors = {};
-
-
+        self.noteStyle = 'point';
+        self.privacy = [
+            {
+                key: 'Public',
+                value: 'Everyone',
+                info: 'Anyone on ScripturedIn'
+            },
+            {
+                key: 'Members',
+                value: 'Church Members',
+                info: 'Only my church members'
+            }
+        ];
+    console.log(sermon);
         self.showScripture = function (scripture) {
 
             $mdDialog.show({
                 controller: function () {
                     var self = this;
+                    self.scripture_ = bibleService.parseScripture(scripture);
+                    self.changeTranslation = function (trans) {
+                        self.scripture_.translation = trans.abbr.toLowerCase();
+                        getPassage(self.scripture_);
+                    };
 
                     self.dialog = $mdDialog;
-                    bibleService.getPassage(scripture).then(function (resp) {
-                        self.scripture = resp.data;
-                    });
+
+                    function getPassage(scripture) {
+                        bibleService.getPassage(scripture).then(function (resp) {
+                            self.scripture = resp.data;
+                        });
+                    };
+
+                    getPassage(self.scripture_);
+
                     bibleService.versions().then(function (resp) {
                         self.versions = resp.data;
                     });
@@ -105,8 +128,12 @@ App.controller('sermonController', function ($state, authService, userService, b
         };
 
         self._validateSermon = function () {
-            if (!_.isEmpty(self.sermon.title) && self.sermon.scriptures.length > 0
-                && !_.isEmpty(self.sermon.notes[0].content)) {
+            if (!_.isEmpty(self.sermon.title) && self.sermon.scriptures.length > 0){
+
+                if (_.isEmpty(self.sermon.note) && _.isEmpty(self.sermon.notes[0].content)) {
+                    self.selectedTab  = 1;
+                    return false;
+                }
                 //create scripture objects
                 self.sermon.scripture = self.sermon.scriptures.map(function (s) {
                     return bibleService.parseScripture(s);
@@ -133,59 +160,14 @@ App.controller('sermonController', function ($state, authService, userService, b
             });
         };
 
-        self.busy = false;
-        /**
-         * Like or unlike a sermon
-         */
-        self.likeSermon = function () {
-            if (self.busy) return;
-            if (_.isUndefined(self.user['fav_sermon_keys'])) {
-                self.user.fav_sermon_keys = [];
-            }
 
-            var i = self.user.fav_sermon_keys.indexOf(self.sermon.id);
-            if (i >= 0) {
-                self.busy = true;
-                userService.unlikeSermon(self.sermon.id).then(function (resp) {
-                    self.busy = false;
-                    if (resp.data.status == 'success') {
-                        self.sermon.like_count -= 1;
-                        self.user.fav_sermon_keys.splice(i, 1);
-                    }
-                });
-                //unlike
-            } else {
-                self.busy = true;
-                userService.likeSermon(self.sermon.id).then(function (resp) {
-                    self.busy = false;
-                    if (resp.data.status == 'success') {
-                        self.sermon.like_count += 1;
-                        self.user.fav_sermon_keys.push(self.sermon.id);
-                    }
-                });
-            }
+
+
+
+        self.scriptureSelect = function (r) {
+            self.showScripture(r);
+
         };
-        self.likeComment = function (c) {
-
-            var i = c.likes_key.indexOf(self.user.id);
-            if (i >= 0) {
-                userService.unlikeComment(c.id).then(function (resp) {
-                    if (resp.data.status == 'success') {
-                        c.like_count -= 1;
-                        c.likes_key.splice(i, 1);
-                    }
-                });
-                //unlike
-            } else {
-                userService.likeComment(c.id).then(function (resp) {
-                    if (resp.data.status == 'success') {
-                        c.like_count += 1;
-                        c.likes_key.push(authService.user.id);
-                    }
-                });
-            }
-        };
-
         /**
          * Post a reply to a comment
          * @param c
@@ -220,7 +202,7 @@ App.controller('sermonController', function ($state, authService, userService, b
                         if (resp.data.id) {
                             self.sermonComments.comments.unshift(resp.data);
                             self.sermonComment.comment = '';
-                            self.sermon.count_count++;
+                            self.sermon.comment_count++;
                         } else {
                             alertService.danger('Failed to post comment, please try again');
                         }
@@ -386,7 +368,8 @@ App.controller('sermonController', function ($state, authService, userService, b
             _dates: [{'date': self.date_}],
             title: '',
             notes: [{content: ''}],
-            questions: [{content: ''}]
+            questions: [{content: ''}],
+            privacy: 'Public'
         };
 
         if ($state.current.name == 'base.sermon-study') {

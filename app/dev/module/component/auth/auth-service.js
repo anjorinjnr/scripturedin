@@ -21,6 +21,9 @@ App.service('authService', function ($http,
         return $http.get('/api/user').then(function (resp) {
             if (resp.data.status === 'no active user session') {
                 console.log('no session');
+                localStorageService.clearAll();
+                self.user = {};
+                $state.go('main.login');
             } else {
                 console.log('setting user');
                 localStorageService.set('user', resp.data);
@@ -92,7 +95,7 @@ App.service('authService', function ($http,
                     FB.api('/me?fields=email,first_name,last_name', function (user) {
                         user.access_token = response.authResponse.accessToken;
                         user.channel = 'facebook';
-                        self.signup(user );
+                        self.signup(user);
                     })
                 }
             }, {scope: 'public_profile,email'});
@@ -112,7 +115,7 @@ App.service('authService', function ($http,
             if (resp.data.id) {
                 var user = resp.data;
                 self.createSession(user);
-                if (!user.church_key){
+                if (!user.church_key) {
                     $state.go('base.post-signup-profile');
                 } else {
                     $state.go('base.home');
@@ -147,7 +150,7 @@ App.service('authService', function ($http,
     self.isAuthorized = function (role) {
         if (role == USER_ROLES.guest) return true;
 
-        user = $rootScope.user;
+        var user = self.user;
         if (_.isEmpty(user)) {
             return false;
         } else if (role == USER_ROLES.pastor) {

@@ -2,7 +2,7 @@
     <form>
         <md-toolbar style="background-color: #f7f7f7">
             <div class="md-toolbar-tools">
-                <h2>{{modalCtrl.scripture.title}}</h2>
+                <h2>{{modalCtrl.scripture.title}} ({{modalCtrl.scripture.version}})</h2>
                 <span flex></span>
                 <md-button class="md-icon-button" ng-click="cancel()">
                     <md-icon md-svg-src="img/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
@@ -17,20 +17,24 @@
                     <div class="m-b-10 card-header p-l-0 p-b-5">
 
                         <!--<h2 class="f-20" >Chapter {{modalCtrl.scripture.chapter}}</h2>-->
-                        <h2>{{modalCtrl.scripture.book}} ({{modalCtrl.scripture.version}})</h2>
-                        <ul class="actions" >
+                        <h2>{{modalCtrl.scripture.book}} </h2>
+                        <ul class="actions">
                             <li class="dropdown" uib-dropdown>
-                            <a href="" uib-dropdown-toggle>
-                                <i class="zmdi zmdi-translate"></i>
-                                <md-tooltip>Change translation</md-tooltip>
-                            </a>
+                                Select Translation
+                                <a href="" uib-dropdown-toggle>
 
-                            <ul class="dropdown-menu dropdown-menu-right" style="max-height: 400px; overflow-y: scroll">
-                                <li ng-repeat="v in modalCtrl.versions">
-                                    <a href="">{{::v.title}}</a>
-                                </li>
-                            </ul>
-                        </li>
+                                    <i class="zmdi zmdi-translate"></i>
+                                    <md-tooltip>Change translation</md-tooltip>
+                                </a>
+
+                                <ul class="dropdown-menu dropdown-menu-right translations"
+                                    style="max-height: 400px; overflow-y: scroll">
+                                    <li ng-class="{selected: modalCtrl.scripture.version == v.abbr }" ng-repeat="v in modalCtrl.versions">
+                                        <a ng-click="modalCtrl.changeTranslation(v)" href
+                                        >{{::v.title}}</a>
+                                    </li>
+                                </ul>
+                            </li>
                         </ul>
                     </div>
 

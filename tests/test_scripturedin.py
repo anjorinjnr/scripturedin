@@ -15,6 +15,7 @@ class ScripturedinTestCase(unittest.TestCase):
         self.testbed.activate()
         self.testbed.init_memcache_stub()
         self.testbed.init_datastore_v3_stub()
+        self.maxDiff = None
 
     def test_save_church(self):
         data = {'name': 'Church of God'}
@@ -31,7 +32,9 @@ class ScripturedinTestCase(unittest.TestCase):
 
     @mock.patch('models.scripturedin.get_user_by_id')
     def test_update_sermon_publish(self, mock_get_user_by_id):
-        mock_get_user_by_id.return_value = model.User(id=1, first_name='foo', last_name='bar', is_pastor=True)
+        mock_get_user_by_id.return_value = model.User(id=1, first_name='foo',
+                                                      last_name='bar',
+                                                      is_pastor=True)
         utc_date = datetime.datetime.utcnow()
         data = {'title': 'sermon title',
                 'scripture': [{'book': 'John', 'chapter': 3, 'verses': ['16']}],
@@ -47,19 +50,25 @@ class ScripturedinTestCase(unittest.TestCase):
         self.assertEquals([utc_date], sermon.date)
         self.assertEquals(data['scripture'], sermon.scripture)
         self.assertEquals(data['notes'], sermon.notes)
+        self.assertEquals('public', sermon.privacy)
         self.assertEquals(1, sermon.created_by.id())
 
         # test updating existing sermon
         data['id'] = sermon.key.id()
         data['title'] = 'updated sermon title'
+        data['privacy'] = 'members'
         model._update_sermon(1, data, True)
         sermon = model.Sermon.get_by_id(1)
         self.assertEquals(data['title'], sermon.title)
+        self.assertEquals('members', sermon.privacy)
 
     @mock.patch('models.scripturedin.get_user_by_id')
     def test_update_sermon_save(self, mock_get_user_by_id):
-        mock_get_user_by_id.return_value = model.User(id=1, first_name='foo', last_name='bar', is_pastor=True,
-                                                      church_key=ndb.Key('Church', 123))
+        mock_get_user_by_id.return_value = model.User(id=1, first_name='foo',
+                                                      last_name='bar',
+                                                      is_pastor=True,
+                                                      church_key=ndb.Key(
+                                                              'Church', 123))
         utc_date = datetime.datetime.utcnow()
         data = {'title': 'sermon title',
                 'scripture': [{'book': 'John', 'chapter': 3, 'verses': ['16']}],
@@ -84,12 +93,14 @@ class ScripturedinTestCase(unittest.TestCase):
         s.id = s.put()
 
         data = {'comment': '  '}
-        with self.assertRaisesRegexp(Exception, 'comment is required and cannot be empty'):
+        with self.assertRaisesRegexp(Exception,
+                                     'comment is required and cannot be empty'):
             model.save_comment(data)
         data = {'comment': 'some comment'}
         with self.assertRaisesRegexp(Exception, 'user id is required'):
             model.save_comment(data)
-        data = {'comment': 'some comment', 'user_key': ndb.Key('User', 5360119185408000),
+        data = {'comment': 'some comment',
+                'user_key': ndb.Key('User', 5360119185408000),
                 'ref_key': s.key}
 
         comment = model.save_comment(data)
@@ -97,7 +108,8 @@ class ScripturedinTestCase(unittest.TestCase):
         self.assertEquals(comment.created_by, data['user_key'])
         self.assertEquals(comment.ref_key, data['ref_key'])
         self.assertEquals(data['comment'], comment.comment)
-        data = {'comment': 'some comment with reply', 'user_key': ndb.Key('User', 5360119185408000),
+        data = {'comment': 'some comment with reply',
+                'user_key': ndb.Key('User', 5360119185408000),
                 'ref_key': s.key, 'reply_to': comment.key}
         comment = model.save_comment(data)
         self.assertEquals(comment.created_by, data['user_key'])
@@ -109,7 +121,8 @@ class ScripturedinTestCase(unittest.TestCase):
     @mock.patch('models.scripturedin.User.get_by_id')
     def test_save_sermon_note(self, mock_user_get_id, mock_sermon_get_by_id):
         data = {}
-        with self.assertRaisesRegexp(Exception, 'notes is required and cannot be empty'):
+        with self.assertRaisesRegexp(Exception,
+                                     'notes is required and cannot be empty'):
             model.save_sermon_note(data)
         data = {'notes': 'some notes'}
         with self.assertRaisesRegexp(Exception, 'user id is required'):
@@ -117,7 +130,8 @@ class ScripturedinTestCase(unittest.TestCase):
         data = {'notes': 'some notes', 'user_key': 123}
         with self.assertRaisesRegexp(Exception, 'sermon id is required'):
             model.save_sermon_note(data)
-        data = {'notes': 'some notes', 'user_key': 5360119185408000L, 'sermon_key': 5733953138851840}
+        data = {'notes': 'some notes', 'user_key': 5360119185408000L,
+                'sermon_key': 5733953138851840}
 
         mock_sermon_get_by_id.return_value = model.Sermon(id=5733953138851840)
         mock_user_get_id.return_value = model.User(id=5360119185408000L)
@@ -147,32 +161,41 @@ class ScripturedinTestCase(unittest.TestCase):
             model._update_sermon(user_id, data)
         # validate scripture
         data = {'title': 'sermon title'}
-        with self.assertRaisesRegexp(Exception, 'sermon requires at least one scripture'):
+        with self.assertRaisesRegexp(Exception,
+                                     'sermon requires at least one scripture'):
             model._update_sermon(user_id, data)
         data = {'title': 'sermon title', 'scripture': []}
-        with self.assertRaisesRegexp(Exception, 'sermon requires at least one scripture'):
+        with self.assertRaisesRegexp(Exception,
+                                     'sermon requires at least one scripture'):
             model._update_sermon(user_id, data)
         # validate sermon notes/point
-        data = {'title': 'sermon title', 'scripture': [{'book': 'John', 'chapter': 3, 'verses': ['16']}]}
-        with self.assertRaisesRegexp(Exception, 'sermon requires at a note. Note can be list of notes or free text'):
+        data = {'title': 'sermon title',
+                'scripture': [{'book': 'John', 'chapter': 3, 'verses': ['16']}]}
+        with self.assertRaisesRegexp(Exception,
+                                     'sermon requires at a note. Note can be list of notes or free text'):
             model._update_sermon(user_id, data)
         data = {'title': 'sermon title',
                 'scripture': [{'book': 'John', 'chapter': 3, 'verses': ['16']}],
                 'notes': []}
-        with self.assertRaisesRegexp(Exception, 'sermon requires at a note. Note can be list of notes or free text'):
+        with self.assertRaisesRegexp(Exception,
+                                     'sermon requires at a note. Note can be list of notes or free text'):
             model._update_sermon(user_id, data)
         data = {'title': 'sermon title',
                 'scripture': [{'book': 'John', 'chapter': 3, 'verses': ['16']}],
                 'notes': [{'content': 'this is a sample point'}],
                 }
         # validate user is pastor
-        mock_get_user_by_id.return_value = model.User(id=user_id, first_name='foo', last_name='bar')
-        with self.assertRaisesRegexp(Exception, 'user must be a pastor to create a sermon'):
+        mock_get_user_by_id.return_value = model.User(id=user_id,
+                                                      first_name='foo',
+                                                      last_name='bar')
+        with self.assertRaisesRegexp(Exception,
+                                     'user must be a pastor to create a sermon'):
             model._update_sermon(user_id, data)
         data = {'title': 'sermon title',
                 'scripture': [{'book': 'John', 'chapter': 3, 'verses': ['16']}],
                 'note': 'this is a sample note'}
-        with self.assertRaisesRegexp(Exception, 'user must be a pastor to create a sermon'):
+        with self.assertRaisesRegexp(Exception,
+                                     'user must be a pastor to create a sermon'):
             model._update_sermon(user_id, data)
         # validadate data is dictionary
         data = []
@@ -232,7 +255,8 @@ class ScripturedinTestCase(unittest.TestCase):
         s3 = model.Sermon(title='sermon 3', church_key=c.key, created_by=u.key)
         s3.key = s3.put()
 
-        s = model.Sermon(title='sermon excl', church_key=ndb.Key('Church', '999'))
+        s = model.Sermon(title='sermon excl',
+                         church_key=ndb.Key('Church', '999'))
         s.key = s.put()
 
         model.Feed(ref_key=s1.key).put()
@@ -243,19 +267,22 @@ class ScripturedinTestCase(unittest.TestCase):
         m.key = m.put()
 
         _user = model.User.query(model.User.key == u.key).get(
-                projection=[model.User.first_name, model.User.last_name, model.User.title])
+                projection=[model.User.first_name, model.User.last_name,
+                            model.User.title])
         # load first feed
         initial = model.get_feed(m.key.id(), page_size=1)
-        data = s3.to_dict()
+        data = util.model_to_dict(s3)
         data['user'] = _user
-        data['comments'] =  {'comments': [], 'next': None}
+        data['kind'] = 'Sermon'
+        data['comments'] = {'comments': [], 'next': None}
         self.assertEquals([data], initial['feeds'])
 
         # scroll to load more
         more = model.get_feed(m.key.id(), cursor=initial['next'], page_size=1)
-        data = s2.to_dict()
+        data = util.model_to_dict(s2)
         data['user'] = _user
-        data['comments'] =  {'comments': [], 'next': None}
+        data['kind'] = 'Sermon'
+        data['comments'] = {'comments': [], 'next': None}
         self.assertEquals([data], more['feeds'])
 
         # new feed since last fetch
@@ -265,15 +292,17 @@ class ScripturedinTestCase(unittest.TestCase):
         model.Feed(ref_key=s4.key).put()
 
         new = model.get_feed(m.key.id(), last_time=initial['ts'], page_size=1)
-        data = s4.to_dict()
+        data = util.model_to_dict(s4)
         data['user'] = _user
-        data['comments'] =  {'comments': [], 'next': None}
+        data['kind'] = 'Sermon'
+        data['comments'] = {'comments': [], 'next': None}
         self.assertEquals([data], new['feeds'])
 
         # scroll to load more
         more = model.get_feed(m.key.id(), cursor=more['next'], page_size=1)
-        data = s1.to_dict()
+        data =  util.model_to_dict(s1)
         data['user'] = _user
-        data['comments'] =  {'comments': [], 'next': None}
+        data['kind'] = 'Sermon'
+        data['comments'] = {'comments': [], 'next': None}
         self.assertEquals([data], more['feeds'])
         self.assertIsNone(more['next'])

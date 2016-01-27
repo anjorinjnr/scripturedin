@@ -95,7 +95,7 @@ def get_passage(book, chapter, verses, translation='kjv'):
             verse = p['human'].split(':')[1]
             p_verses.append({
                 'verse': int(verse),
-                'content': str(p['reader_html'].strip())
+                'content': str(p['reader_html']).strip()
             })
         passage['verses'] = sorted(p_verses, key=lambda k: k['verse'])
         return passage

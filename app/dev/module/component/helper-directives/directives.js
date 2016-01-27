@@ -2,11 +2,30 @@
  * Created by eanjorin on 12/11/15.
  */
 App
-    .directive('focus', function () {
+
+    .directive('name-tag', function () {
         return {
             restrict: 'A',
             link: function (scope, element, attr) {
-                element.focus();
+            }
+        }
+
+    })
+    .directive('focusCursor', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attr) {
+              //  console.log(element);
+                var node = element;
+                node.focus();
+                //var caret = 0; // insert caret after the 10th character say
+                //var range = document.createRange();
+                //range.setStart(node, caret);
+                //range.setEnd(node, caret);
+                //var sel = window.getSelection();
+                //console.log(sel);
+                //sel.removeAllRanges();
+                //sel.addRange(range);
             }
         }
 
@@ -25,10 +44,10 @@ App
         return {
             restrict: 'A',
             link: function (scope, element) {
-               console.log($(element).find('md-chip'));
-              $(element).find('md-chip').on('click', function(){
-                 console.log(123);
-              });
+                console.log($(element).find('md-chip'));
+                $(element).find('md-chip').on('click', function () {
+                    console.log(123);
+                });
             }
         }
     })

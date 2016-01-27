@@ -1,6 +1,7 @@
 .chapter {
     padding: 10px 20px;
 }
+
 .chapter h2 {
     font-size: 25px;
 }
@@ -10,6 +11,7 @@
     font-weight: 300;
     margin-bottom: 20px;
 }
+
 .chapter .verse {
     /*font-family: "medium-content-serif-font",Georgia,Cambria,"Times New Roman",Times,serif;*/
     letter-spacing: .01rem;
@@ -21,7 +23,6 @@
     margin-bottom: 10px;
 }
 
-
 h2.book {
     /*font-family: "medium-content-sans-serif-font","Lucida Grande","Lucida Sans Unicode","Lucida Sans",Geneva,Verdana,sans-serif;*/
     font-weight: 700;
@@ -31,7 +32,6 @@ h2.book {
     letter-spacing: -0.02em;
 }
 
-
 p.highlight {
     background: rgba(33, 150, 243, 0.13);
 }
@@ -39,7 +39,6 @@ p.highlight {
 #footer {
     position: relative;
 }
-
 
 wysiwyg-edit .tinyeditor .sizer {
     min-height: 100px;
@@ -50,7 +49,6 @@ wysiwyg-edit .tinyeditor .sizer {
 wysiwyg-edit .tinyeditor .tinyeditor-footer {
     display: none;
 }
-
 
 body {
     font-family: roboto;
@@ -141,8 +139,9 @@ body {
 .input-group {
     width: 100%;
 }
+
 .chosen-container-single .chosen-single {
- font-size: 18px;
+    font-size: 18px;
 }
 
 .fab-menu {
@@ -151,6 +150,7 @@ body {
     bottom: 0px;
     z-index: 25;
 }
+
 .main-content {
     background-color: #EDECEC;
 }
@@ -158,13 +158,15 @@ body {
 #calendar .fc-toolbar .fc-center {
     margin-top: 90px !important;
 }
+
 #calendar .fc-toolbar {
     height: 150px !important;
 }
 
 #study-note .sizer {
-   min-height: 400px;
+    min-height: 400px;
 }
+
 a.like {
     color: inherit;
 }
@@ -176,4 +178,36 @@ a.like {
         /*background: #333;*/
         text-align: center;
     }
+}
+
+.privacy li {
+    padding: 10px;
+    background-color: rgba(158, 158, 158, 0.12);
+    margin-bottom: 5px;
+}
+
+.privacy li.selected > a, .privacy li.selected > a:hover {
+    color: #fff;
+}
+
+.privacy li.selected > a {
+    color: #fff;
+}
+
+.privacy li.selected {
+    background-color: rgb(33, 150, 243);
+}
+
+.translations li.selected {
+    background-color: #E7EAF5;
+}
+
+.name-tag {
+    background-color: rgba(33, 150, 243, 0.25);
+    padding: 2px;
+}
+
+div:empty:before {
+  content:attr(data-placeholder);
+  color:gray
 }

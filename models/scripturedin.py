@@ -10,7 +10,9 @@ from webapp2_extras.appengine.auth.models import User as AuthUser
 from google.appengine.api import memcache
 from service import util
 
+# alias ndb types
 type_string = ndb.StringProperty
+type_text = ndb.TextProperty
 type_int = ndb.IntegerProperty
 type_json = ndb.JsonProperty
 type_key = ndb.KeyProperty
@@ -18,6 +20,9 @@ type_struct = ndb.StructuredProperty
 type_bool = ndb.BooleanProperty
 type_date = ndb.DateProperty
 type_datetime = ndb.DateTimeProperty
+
+
+PRIVACY = ('public', 'members')
 
 
 class BaseModel(ndb.Model):
@@ -64,9 +69,6 @@ class Scripture(ndb.Model):
     language = type_string(default='eng')
 
 
-PRIVACY = ('followers', 'friends', 'members')
-
-
 class Feed(BaseModel):
     ref_key = type_key()
     privacy = type_string(choices=PRIVACY, repeated=True)
@@ -108,7 +110,8 @@ class Sermon(BaseModel):
     date = type_datetime(repeated=True)
     scripture = type_json()
     notes = type_json()  # list of note objects {content: ''}
-    note = type_string()
+    summary = type_text()
+    note = type_text()
     # pastor_key = type_key()
     church_key = type_key()
     publish = type_bool()
@@ -120,6 +123,7 @@ class Sermon(BaseModel):
     viewers_key = type_key(kind='User', repeated=True)
     likers_key = type_key(kind='User', repeated=True)
     commenters_key = type_key(kind='User', repeated=True)
+    privacy = type_string(choices=PRIVACY)
 
 
 class Tags(BaseModel):
@@ -208,6 +212,8 @@ def update_user(id, data):
                     user.is_pastor = False
             if key == 'church_id':
                 user.church_key = ndb.Key('Church', val)
+            if key == 'title':
+                user.title = val
         user.put()
     return user
 
@@ -250,14 +256,24 @@ def _update_sermon(user_id, data, publish=False):
             if 'content' in n and n['content']:
                 notes.append(n)
         sermon.notes = notes
+
     if 'note' in data:
         sermon.note = data['note']
+
+    if 'summary' in data:
+        sermon.summary = data['summary']
+
     if 'questions' in data and data['questions']:
         qsts = []
         for q in data['questions']:
             if 'content' in q and q['content']:
                 qsts.append(q)
         sermon.questions = qsts
+
+    if 'privacy' in data and data['privacy'].lower() in PRIVACY:
+        sermon.privacy = data['privacy'].lower()
+    else:
+        sermon.privacy = 'public'
 
     sermon.church_key = user.church_key
     sermon.key = sermon.put()
@@ -397,7 +413,7 @@ def get_comment_replies(comment_id, cursor=None, page_size=10):
 
         replies = []
         for c in comments:
-            reply = c.to_dict()
+            reply = util.model_to_dict(c)
             reply['user'] = User.query(User.key == c.created_by).get(
                     projection=[User.first_name, User.last_name, User.title])
             replies.append(reply)
@@ -479,6 +495,7 @@ def get_comments(type, id, cursor=None, page_size=20):
     data = []
     for c in comments:
         comment = util.model_to_dict(c)
+        comment['ref_kind'] = c.ref_key.kind()
         comment['replies'] = get_comment_replies(c.key.id())
         comment['user'] = User.query(User.key == c.created_by).get(
                 projection=[User.first_name, User.last_name, User.title])
@@ -605,6 +622,7 @@ def get_feed(user_id, cursor=None, last_time=None, page_size=15):
             sermon = item.ref_key.get()
             if user.church_key and user.church_key == sermon.church_key:
                 sermon_dict = util.model_to_dict(sermon)
+                sermon_dict['kind'] = sermon.key.kind()
                 sermon_dict['comments'] = get_comments(sermon.key.kind(),
                                                        sermon.key.id(),
                                                        page_size=5)
