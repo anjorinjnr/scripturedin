@@ -13,7 +13,8 @@ var paths = {
     html: 'dev/module/**/*.html',
     styles: [
         'dev/css/app.min.1.css',
-        'dev/css/app.min.2.css'
+        'dev/css/app.min.2.css',
+        'dev/css/scripturedin.css'
     ],
     scripts: [
         'dev/module/app.js',
@@ -23,7 +24,7 @@ var paths = {
 
 //clear prod dir
 gulp.task('clean', function () {
-    return del(['prod/**/*', '!prod/index.html']);
+    return del(['prod/**/*', '!prod/index.html', 'prod/img/**/*']);
 });
 
 gulp.task('vendor-css', function () {
@@ -44,7 +45,8 @@ gulp.task('vendor-js', function () {
 });
 
 gulp.task('copy-assets', function () {
-    return gulp.src(['dev/img/**', 'dev/fonts/**', 'dev/media/**', 'dev/data/**'], {base: 'dev'})
+    return gulp.src(['dev/img/**', 'dev/fonts/**', 'dev/media/**',
+            'dev/data/**','dev/vendors/bower_components/material-design-iconic-font/dist/fonts'], {base: 'dev'})
         .pipe(gulp.dest('prod'));
 });
 gulp.task('styles', function () {
@@ -54,25 +56,25 @@ gulp.task('styles', function () {
 //concat and minify app js
 gulp.task('concat-js', ['templates'], function () {
     return gulp.src(paths.scripts)
-        .pipe(concat('tsk.js'))
+        .pipe(concat('app.js'))
         .pipe(ngAnnotate({add: true}))
         .pipe(gulp.dest('prod'));
 
 });
 gulp.task('scripts', ['concat-js'], function () {
-        return gulp.src(['prod/tsk.js', 'prod/templates.js'])
-            .pipe(concat('tsk.js'))
-            .pipe(gulp.dest('prod'))
-            .pipe(uglify())
-            .pipe(rename({ extname: '.min.js' }))
-            .pipe(gulp.dest('prod'));
+    return gulp.src(['prod/app.js', 'prod/templates.js'])
+        .pipe(concat('app.js'))
+        .pipe(gulp.dest('prod'))
+        .pipe(uglify())
+        .pipe(rename({extname: '.min.js'}))
+        .pipe(gulp.dest('prod'));
 
 });
 
 // cache html files
 gulp.task('templates', function () {
     return gulp.src(paths.html)
-        .pipe(templateCache({module: 'tskApp', root: 'module/'}))
+        .pipe(templateCache({module: 'scripturedIn', root: 'module/'}))
         .pipe(gulp.dest('prod'));
 });
 gulp.task('default', ['clean', 'vendor-css', 'styles', 'vendor-js', 'scripts', 'copy-assets']);

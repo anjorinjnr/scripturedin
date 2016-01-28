@@ -10,3 +10,46 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: Comment
+  properties:
+  - name: ref_key
+  - name: created_at
+    direction: desc
+
+- kind: Comment
+  properties:
+  - name: ref_key
+  - name: reply_to
+  - name: created_at
+    direction: desc
+
+- kind: Comment
+  properties:
+  - name: reply_to
+  - name: created_at
+    direction: desc
+
+- kind: SermonComment
+  properties:
+  - name: reply_to
+  - name: created_at
+    direction: desc
+
+- kind: SermonComment
+  properties:
+  - name: sermon_key
+  - name: created_at
+    direction: desc
+
+- kind: User
+  properties:
+  - name: __key__
+  - name: first_name
+  - name: last_name
+
+- kind: User
+  properties:
+  - name: __key__
+  - name: first_name
+  - name: last_name
+  - name: title

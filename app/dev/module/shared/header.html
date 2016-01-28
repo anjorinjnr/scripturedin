@@ -1,8 +1,8 @@
 <ul class="header-inner clearfix">
     <li id="menu-trigger" data-target="mainmenu"
         data-toggle-sidebar
-        data-model-left="mactrl.sidebarToggle.left"
-        data-ng-class="{ 'open': mactrl.sidebarToggle.left === true }">
+        data-model-left="appCtrl.sidebarToggle.left"
+        data-ng-class="{ 'open': appCtrl.sidebarToggle.left === true }">
         <div class="line-wrap">
             <div class="line top"></div>
             <div class="line center"></div>
@@ -11,7 +11,7 @@
     </li>
 
     <li class="logo hidden-xs">
-        <a data-ui-sref="home" data-ng-click="mactrl.sidebarStat($event)">Material Admin</a>
+        <a href="/#/home">scripturedIn</a>
     </li>
 
 
@@ -209,7 +209,7 @@
 </ul>
 
 <!-- when mobile, reduce width and float right -->
-<div id="top-search-wrap" style="position: relative; background: none;opacity:1;">
+<div id="top-search-wrap"  class="hidden-xs" style="position: relative; background: none;opacity:1;margin: 0 auto; width: 600px;">
     <div class="tsw-inner" style="max-width: 500px">
         <!--<i id="top-search-close" class="zmdi zmdi-arrow-left" data-ng-click="hctrl.closeSearch()"></i>-->
         <input focus type="text"

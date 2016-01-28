@@ -1,0 +1,254 @@
+<div class="container">
+    <div class="block-header">
+        <h2>{{::sermonCtrl.sermon.church.name}}</h2>
+    </div>
+    <div class="card" id="profile-main">
+        <div class="pm-overview c-overflow" ng--show="true">
+
+            <div class="pmo-block pmo-contact hidden-xs">
+                <h2>Pastor Info</h2>
+                <h5>{{::sermonCtrl.sermon.pastor.first_name | sentencecase}}
+                    {{::sermonCtrl.sermon.pastor.last_name | sentencecase}}
+                </h5>
+                <ul>
+                    <li><i class="zmdi zmdi-email"></i> {{
+                        sermonCtrl.sermon.pastor.email }}
+                    </li>
+                </ul>
+            </div>
+
+            <div class="pmo-block  pmo-contact hidden-xs">
+                <h2>Church Info</h2>
+
+                <h5>{{::sermonCtrl.sermon.church.name | sentencecase}}</h5>
+                <ul>
+                    <li><i class="zmdi zmdi-globe"></i>
+                        <a href="{{::sermonCtrl.sermon.church.website}}"></a>
+                        {{sermonCtrl.sermon.church.website }}
+                    </li>
+                    <li><i class="zmdi zmdi-pin"></i>
+                        <address class="m-b-0">
+                            {{::sermonCtrl.sermon.church.city }}, <br/>
+                            {{::sermonCtrl.sermon.church.state }}, <br/>
+                            {{::sermonCtrl.sermon.church.country }}
+                        </address>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="pm-body clearfix">
+
+            <div class="pmb-block">
+                <div class="pmbb-header">
+
+                    <h1 class="md-display-3 m-b-5">
+                        {{::sermonCtrl.sermon.title}}</h1>
+
+                    <p class="p-l-5">by {{::sermonCtrl.sermon.pastor.first_name
+                        | sentencecase}}
+                        {{::sermonCtrl.sermon.pastor.last_name |
+                        sentencecase}}</p>
+
+                    <div class="m-b-25">
+                        <hr>
+                        <ul class="list-inline list-unstyled p-l-5 c-black f-15">
+                            <li>
+                                <span class="c-gray">{{::sermonCtrl.sermon.view_count}} Views </span>
+                            </li>
+                            <li>
+                                <a class="like"
+                                   ng-class="{'c-gray': sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) < 0,
+                                   'c-lightblue': sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) >= 0}"
+                                   href ng-click="sermonCtrl.likeSermon()">
+                                    <md-tooltip
+                                            ng-if=" sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) < 0"
+                                            md-direction="down">
+                                        Like this sermon
+                                    </md-tooltip>
+                                    <md-tooltip md-direction="down"
+                                                ng-if="sermonCtrl.user.fav_sermon_keys.indexOf(sermonCtrl.sermon.id) >= 0">
+                                        Unlike this sermon
+                                    </md-tooltip>
+                                    <i class="m-r-5 m-l-5 zmdi zmdi-thumb-up"></i> <span
+                                        ng-if="sermonCtrl.sermon.like_count > 0">
+                                    {{sermonCtrl.sermon.like_count}}</span>
+                                    <ng-pluralize
+                                            count="sermonCtrl.sermon.likes"
+                                            when="{'0': 'Like', 'one': 'Like','other': '{} Like'}">
+                                    </ng-pluralize>
+                                </a>
+                            </li>
+                            <li>
+                                <span class="c-gray"
+                                      ng-if="sermonCtrl.sermon.comment_count > 0"><i
+                                        class="m-r-5 m-l-5 zmdi zmdi-comments"></i> {{sermonCtrl.sermon.comment_count}} <ng-pluralize
+                                        count="sermonCtrl.sermon.comments"
+                                        when="{'one': 'Comment','other': '{} Comments'}">
+                                </ng-pluralize></span>
+                            </li>
+                        </ul>
+                        <hr>
+                    </div>
+
+
+                    <div>
+                        <h3>Scripture</h3>
+                        <md-chips ng-model="sermonCtrl.sermon.scriptures"
+                                  readonly="true">
+                            <md-chip-template
+                                    ng-click="sermonCtrl.showScripture($chip)">
+                                <md-tooltip>
+                                    Click to read
+                                </md-tooltip>
+                                <a href> <strong>{{$chip}}</strong></a>
+                            </md-chip-template>
+                        </md-chips>
+                    </div>
+
+
+                    <ul class="actions">
+                        <li><a href="">
+                            <i class="zmdi zmdi-window-maximize"></i>
+                        </a></li>
+                        <!--<li class="dropdown" uib-dropdown>-->
+                        <!--<a href="" uib-dropdown-toggle>-->
+                        <!--<i class="zmdi zmdi-more-vert"></i>-->
+                        <!--</a>-->
+
+                        <!--<ul class="dropdown-menu dropdown-menu-right">-->
+
+                        <!--<li>-->
+                        <!--<a data-ng-click="pctrl.editSummary = 1" href="">Edit</a>-->
+                        <!--</li>-->
+                        <!--</ul>-->
+                        <!--</li>-->
+                    </ul>
+                </div>
+            </div>
+            <div class="pmbb-body">
+                <div class="pmbb-view">
+                    <md-tabs md-dynamic-height md-border-bottom>
+                        <md-tab label="Summary" ng-if="sermonCtrl.sermon.summary">
+                            <md-content class="md-padding p-l-0 p-r-0">
+                                <div class="p-20"><p class="f-16" ng-bind-html="sermonCtrl.sermon.summary"></p></div>
+                            </md-content>
+                        </md-tab>
+                        <md-tab label="Sermon Notes">
+                            <md-content class="md-padding p-l-0 p-r-0">
+                                <!--<md-subheader class="md-no-sticky">3 line item, long paragraph (see on mobile)-->
+                                <!--</md-subheader>-->
+
+
+                                <md-list-item
+                                        class="md-2-line md-long-text p-l-0 p-r-0"
+
+                                        ng-repeat="note in ::sermonCtrl.sermon.notes">
+                                    <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
+                                    <div class="md-list-item-text ">
+                                        <div class="row">
+                                            <div class="col-sm-1">{{$index +
+                                                1}}
+                                            </div>
+                                            <div class="col-sm-10">
+                                                <p ng-bind-html="note.content"></p>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </md-list-item>
+
+                            </md-content>
+                        </md-tab>
+                        <md-tab label="Sermon Questions">
+                            <md-content class="md-padding p-l-0 p-r-0">
+                                <!--<md-subheader class="md-no-sticky">3 line item, long paragraph (see on mobile)-->
+                                <!--</md-subheader>-->
+
+
+                                <md-list-item
+                                        class="md-2-line md-long-text p-l-0 p-r-0"
+                                        ng-repeat="q in ::sermonCtrl.sermon.questions">
+                                    <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
+                                    <div class="md-list-item-text ">
+                                        <div class="row">
+                                            <div class="col-sm-1">{{$index +
+                                                1}}
+                                            </div>
+                                            <div class="col-sm-10">
+                                                <p ng-bind-html="q.content">
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </md-list-item>
+
+                            </md-content>
+                        </md-tab>
+                        <md-tab label="My Notes">
+                            <md-content class="md-padding" id="study-note">
+                                <div class="text-right f-12"
+                                     style="height: 20px">
+                                    <span ng-show="sermonCtrl.savingNote">Saving...</span>
+                                </div>
+                                <loading loader="sermonCtrl.loadNote"></loading>
+                                <wysiwyg-edit class="writenote"
+                                              ng-show="!sermonCtrl.loadNote"
+                                              config="editorConfig"
+                                              content="sermonCtrl.sermonNote.notes"></wysiwyg-edit>
+
+                            </md-content>
+                        </md-tab>
+                        <md-tab label="Comments">
+                            <md-content class="md-padding">
+                                <!--- new comment -->
+                                <div class="card wall-posting">
+                                    <div class="card-body card-padding">
+                                            <textarea class="wp-text"
+                                                      data-auto-size
+                                                      ng-model="sermonCtrl.sermonComment.comment"
+                                                      placeholder="Write Something..."></textarea>
+                                    </div>
+
+                                    <ul class="list-unstyled clearfix wpb-actions">
+                                        <!--<li class="wpba-attrs">-->
+                                        <!--<ul class="list-unstyled list-inline m-l-0 m-t-5">-->
+                                        <!--<li><a data-wpba="image" href=""-->
+                                        <!--data-ng-class="{ 'active': mactrl.wallImage }"-->
+                                        <!--data-ng-click="mactrl.wallImage = true; mactrl.wallVideo = false; mactrl.wallLink = false"><i-->
+                                        <!--class="zmdi zmdi-image"></i></a></li>-->
+                                        <!--<li><a data-wpba="video" href=""-->
+                                        <!--data-ng-class="{ 'active': mactrl.wallVideo }"-->
+                                        <!--data-ng-click="mactrl.wallVideo= true; mactrl.wallImage = false; mactrl.wallLink = false"><i-->
+                                        <!--class="zmdi zmdi-play-circle"></i></a></li>-->
+                                        <!--<li><a data-wpba="link" href=""-->
+                                        <!--data-ng-class="{ 'active': mactrl.wallLink }"-->
+                                        <!--data-ng-click="mactrl.wallLink = true; mactrl.wallImage = false; mactrl.wallVideo = false"><i-->
+                                        <!--class="zmdi zmdi-link"></i></a></li>-->
+                                        <!--</ul>-->
+                                        <!--</li>-->
+
+                                        <li class="pull-right">
+                                            <button ng-click="sermonCtrl.postComment()"
+                                                    class="btn btn-primary btn-sm">
+                                                Post
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <comments
+                                        data="sermonCtrl.sermonComments"></comments>
+                            </md-content>
+                        </md-tab>
+                    </md-tabs>
+
+                </div>
+
+            </div>
+        </div>
+
+
+    </div>
+</div>

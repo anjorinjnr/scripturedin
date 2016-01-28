@@ -1,0 +1,102 @@
+<md-dialog aria-label="Mango (Fruit)" style="max-height: 100%">
+    <md-toolbar style="background-color: #f7f7f7">
+        <div class="md-toolbar-tools">
+            <h2>Ask for Comments</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="cancel()">
+                <md-icon md-svg-src="img/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <form>
+        <md-dialog-content>
+            <div class="md-dialog-content">
+                <p><label>Selected scripture</label><br/>
+                    John 3:16
+                </p>
+
+                <form submit-on="submitReqestForm" id="reqForm" ng-submit="reqCtrl.submitForm()">
+                    <!--<form submit-on="submitRequestEvent" ng-submit="reqCtrl.submitForm()">-->
+                    <submit-on></submit-on>
+                    <div class="form-group fg-line">
+                        <label for="headline">Headline</label>
+                        <input type="headline" class="form-control input-sm" id="headline"
+                               placeholder="Enter email">
+                    </div>
+                    <div class="form-group fg-line">
+                        <label for="context">What's on your mind?</label>
+                        <textarea class="form-control input-sm"
+                                  id="context" placeholder="">
+                            </textarea>
+                    </div>
+                    <div class="form-group fg-line">
+                        <label for="context">Tags (e.g finance, relationship, salvation etc)</label>
+                        <md-chips ng-model="reqCtrl.tags">
+                        </md-chips>
+                    </div>
+                    <div class="form-group fg-line">
+                        <label for="context">Commentators</label>
+                        <textarea class="form-control input-sm" ng-model="commentators"
+                                  id="commentators" placeholder="who do you want to comment?">
+                        </textarea>
+
+                    </div>
+                    <!--<div class="form-group fg-line">-->
+                    <!--<md-chips ng-model="tags">-->
+                    <!--</md-chips>-->
+                    <!--</div>-->
+                    <div class="form-group">
+                        <label style="padding: 0px">Can't find who you want to comment?
+                            Invite a friend, pastor or spiritual mentor to comment</label>
+
+                        <div class="row" ng-repeat="invite in reqCtrl.request.invites">
+                            <div class="col-xs-3">
+                                <md-input-container>
+                                    <md-select ng-model="invite.type">
+                                        <md-option value="email">email</md-option>
+                                        <md-option value="twitter">twitter</md-option>
+                                    </md-select>
+                                </md-input-container>
+                            </div>
+                            <div class="col-xs-6">
+                                <div class="form-group fg-line" ng-if="invite.type=='email'">
+                                    <label class="sr-only">Email address</label>
+                                    <input ng-model="invite.email"
+                                           type="email" class="form-control input-sm" placeholder="Enter email">
+                                </div>
+                                <div class="form-group fg-line" ng-if="invite.type=='twitter'">
+                                    <label class="sr-only">Twitter Handle</label>
+                                    <input ng-model="invite.handle"
+                                           type="text" class="form-control input-sm" placeholder="@twitter_handle">
+                                </div>
+                            </div>
+                            <div class="col-xs-3" style="padding-top: 5px;">
+                                <a style="font-size:18px" href ng-click="reqCtrl.newInvite()">
+                                    <i class="zmdi zmdi-plus zmdi-hc-fw"></i>
+                                </a>
+                                <a ng-if="$index > 0" style="font-size:18px" href
+                                   ng-click="reqCtrl.removeInvite($index)">
+                                    <i class="zmdi zmdi-minus zmdi-hc-fw"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+                <!--</form>-->
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <!--<md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>-->
+            <!--More on Wikipedia-->
+            <!--</md-button>-->
+            <span flex></span>
+            <md-button class="md-primary" ng-click="reqCtrl.$scope.$broadcast('submitReqestForm')">
+                Post
+            </md-button>
+            <md-button ng-click="answer('useful')" style="margin-right:20px;">
+                Cancel
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

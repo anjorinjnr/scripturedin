@@ -1,0 +1,472 @@
+[
+  {
+    "id": 8,
+    "title": "Amplified Bible",
+    "audio": false,
+    "abbr": "AMP",
+    "meta": "Amplified Bible (AMP)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10321"
+  },
+  {
+    "id": 12,
+    "title": "American Standard Version",
+    "audio": true,
+    "abbr": "ASV",
+    "meta": "American Standard Version (ASV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10322"
+  },
+  {
+    "id": 31,
+    "title": "The Books of the Bible NT",
+    "audio": false,
+    "abbr": "BOOKS",
+    "meta": "The Books of the Bible NT (BOOKS)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10323"
+  },
+  {
+    "id": 37,
+    "title": "Common English Bible",
+    "audio": false,
+    "abbr": "CEB",
+    "meta": "Common English Bible (CEB)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10324"
+  },
+  {
+    "id": 303,
+    "title": "Contemporary English Version",
+    "audio": false,
+    "abbr": "CEVDCUS06",
+    "meta": "Contemporary English Version (CEVDCUS06)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10325"
+  },
+  {
+    "id": 294,
+    "title": "Contemporary English Version (Anglicised Version)",
+    "audio": false,
+    "abbr": "CEVUK00",
+    "meta": "Contemporary English Version (Anglicised Version) (CEVUK00)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10326"
+  },
+  {
+    "id": 392,
+    "title": "Contemporary English Version",
+    "audio": false,
+    "abbr": "CEVUS06",
+    "meta": "Contemporary English Version (CEVUS06)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10327"
+  },
+  {
+    "id": 42,
+    "title": "Catholic Public Domain Version",
+    "audio": false,
+    "abbr": "CPDV",
+    "meta": "Catholic Public Domain Version (CPDV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10328"
+  },
+  {
+    "id": 478,
+    "title": "Darby Translation 1890",
+    "audio": false,
+    "abbr": "DARBY",
+    "meta": "Darby Translation 1890 (DARBY)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10329"
+  },
+  {
+    "id": 55,
+    "title": "Douay-Rheims Challoner Revision 1752",
+    "audio": true,
+    "abbr": "DRC1752",
+    "meta": "Douay-Rheims Challoner Revision 1752 (DRC1752)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10330"
+  },
+  {
+    "id": 406,
+    "title": "Holy Bible: Easy-to-Read Version",
+    "audio": false,
+    "abbr": "ERV",
+    "meta": "Holy Bible: Easy-to-Read Version (ERV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10331"
+  },
+  {
+    "id": 59,
+    "title": "English Standard Version",
+    "audio": true,
+    "abbr": "ESV",
+    "meta": "English Standard Version (ESV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10332"
+  },
+  {
+    "id": 296,
+    "title": "Good News Bible",
+    "audio": false,
+    "abbr": "GNB",
+    "meta": "Good News Bible (GNB)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10333"
+  },
+  {
+    "id": 416,
+    "title": "Good News Bible (Anglicised)",
+    "audio": false,
+    "abbr": "GNBDC",
+    "meta": "Good News Bible (Anglicised) (GNBDC)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10334"
+  },
+  {
+    "id": 431,
+    "title": "Good News Bible (Catholic edition in Septuagint order)",
+    "audio": false,
+    "abbr": "GNBDK",
+    "meta": "Good News Bible (Catholic edition in Septuagint order) (GNBDK)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10335"
+  },
+  {
+    "id": 68,
+    "title": "Good News Translation",
+    "audio": false,
+    "abbr": "GNT",
+    "meta": "Good News Translation (GNT)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10336"
+  },
+  {
+    "id": 69,
+    "title": "Good News Translation (US Version)",
+    "audio": false,
+    "abbr": "GNTD",
+    "meta": "Good News Translation (US Version) (GNTD)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10337"
+  },
+  {
+    "id": 70,
+    "title": "GOD'S WORD Translation",
+    "audio": false,
+    "abbr": "GW",
+    "meta": "GOD'S WORD Translation (GW)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10338"
+  },
+  {
+    "id": 1047,
+    "title": "St Paul from the Trenches 1916",
+    "audio": false,
+    "abbr": "GWC",
+    "meta": "St Paul from the Trenches 1916 (GWC)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10339"
+  },
+  {
+    "id": 72,
+    "title": "Holman Christian Standard Bible",
+    "audio": true,
+    "abbr": "HCSB",
+    "meta": "Holman Christian Standard Bible (HCSB)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10340"
+  },
+  {
+    "id": 1359,
+    "title": "International Children’s Bible",
+    "audio": false,
+    "abbr": "ICB",
+    "meta": "International Children’s Bible (ICB)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10341"
+  },
+  {
+    "id": 316,
+    "title": "The Scriptures 1998",
+    "audio": false,
+    "abbr": "ISR98",
+    "meta": "The Scriptures 1998 (ISR98)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10342"
+  },
+  {
+    "id": 1077,
+    "title": "Jubilee Bible",
+    "audio": false,
+    "abbr": "JUB",
+    "meta": "Jubilee Bible (JUB)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10343"
+  },
+  {
+    "id": 1,
+    "title": "King James Version",
+    "audio": true,
+    "abbr": "KJV",
+    "meta": "King James Version (KJV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10344"
+  },
+  {
+    "id": 547,
+    "title": "King James Version, American Edition",
+    "audio": false,
+    "abbr": "KJVA",
+    "meta": "King James Version, American Edition (KJVA)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10345"
+  },
+  {
+    "id": 546,
+    "title": "King James Version with Apocrypha, American Edition",
+    "audio": false,
+    "abbr": "KJVA",
+    "meta": "King James Version with Apocrypha, American Edition (KJVA)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10346"
+  },
+  {
+    "id": 90,
+    "title": "Lexham English Bible",
+    "audio": true,
+    "abbr": "LEB",
+    "meta": "Lexham English Bible (LEB)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10347"
+  },
+  {
+    "id": 1171,
+    "title": "Modern English Version",
+    "audio": false,
+    "abbr": "MEV",
+    "meta": "Modern English Version (MEV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10348"
+  },
+  {
+    "id": 1365,
+    "title": "Metrical Psalms 1650",
+    "audio": false,
+    "abbr": "MP1650",
+    "meta": "Metrical Psalms 1650 (MP1650)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10349"
+  },
+  {
+    "id": 97,
+    "title": "The Message",
+    "audio": true,
+    "abbr": "MSG",
+    "meta": "The Message (MSG)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10350"
+  },
+  {
+    "id": 463,
+    "title": "New American Bible, revised edition",
+    "audio": false,
+    "abbr": "NABRE",
+    "meta": "New American Bible, revised edition (NABRE)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10351"
+  },
+  {
+    "id": 100,
+    "title": "New American Standard Bible",
+    "audio": true,
+    "abbr": "NASB",
+    "meta": "New American Standard Bible (NASB)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10352"
+  },
+  {
+    "id": 105,
+    "title": "New Century Version",
+    "audio": false,
+    "abbr": "NCV",
+    "meta": "New Century Version (NCV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10353"
+  },
+  {
+    "id": 107,
+    "title": "New English Translation",
+    "audio": false,
+    "abbr": "NET",
+    "meta": "New English Translation (NET)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10354"
+  },
+  {
+    "id": 110,
+    "title": "New International Reader's Version",
+    "audio": false,
+    "abbr": "NIRV",
+    "meta": "New International Reader's Version (NIRV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10355"
+  },
+  {
+    "id": 111,
+    "title": "New International Version",
+    "audio": true,
+    "abbr": "NIV",
+    "meta": "New International Version (NIV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10356"
+  },
+  {
+    "id": 113,
+    "title": "New International Version Anglicized",
+    "audio": true,
+    "abbr": "NIVUK",
+    "meta": "New International Version Anglicized (NIVUK)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10357"
+  },
+  {
+    "id": 114,
+    "title": "New King James Version",
+    "audio": false,
+    "abbr": "NKJV",
+    "meta": "New King James Version (NKJV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10358"
+  },
+  {
+    "id": 116,
+    "title": "New Living Translation",
+    "audio": true,
+    "abbr": "NLT",
+    "meta": "New Living Translation (NLT)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10359"
+  },
+  {
+    "id": 130,
+    "title": "Orthodox Jewish Bible",
+    "audio": false,
+    "abbr": "OJB",
+    "meta": "Orthodox Jewish Bible (OJB)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10360"
+  },
+  {
+    "id": 477,
+    "title": "Revised Version 1885",
+    "audio": false,
+    "abbr": "RV1885",
+    "meta": "Revised Version 1885 (RV1885)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10361"
+  },
+  {
+    "id": 314,
+    "title": "Tree of Life Version",
+    "audio": false,
+    "abbr": "TLV",
+    "meta": "Tree of Life Version (TLV)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10362"
+  },
+  {
+    "id": 206,
+    "title": "World English Bible",
+    "audio": true,
+    "abbr": "WEB",
+    "meta": "World English Bible (WEB)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10363"
+  },
+  {
+    "id": 1204,
+    "title": "World English Bible British Edition",
+    "audio": false,
+    "abbr": "WEBBE",
+    "meta": "World English Bible British Edition (WEBBE)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10364"
+  },
+  {
+    "id": 1209,
+    "title": "World Messianic Bible",
+    "audio": false,
+    "abbr": "WMB",
+    "meta": "World Messianic Bible (WMB)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10365"
+  },
+  {
+    "id": 1207,
+    "title": "World Messianic Bible British Edition",
+    "audio": false,
+    "abbr": "WMBBE",
+    "meta": "World Messianic Bible British Edition (WMBBE)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10366"
+  },
+  {
+    "id": 821,
+    "title": "Young's Literal Translation of the Holy Bible",
+    "audio": false,
+    "abbr": "YLT98",
+    "meta": "Young's Literal Translation of the Holy Bible (YLT98)",
+    "language_name": "English",
+    "language_local_name": "English",
+    "$$hashKey": "object:10367"
+  }
+]
