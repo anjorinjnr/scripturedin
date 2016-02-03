@@ -1,0 +1,68 @@
+<div class="modal-header text-center p-0">
+    Sign up with <a href="">Facebook</a>
+    <div class="signup-or-separator">
+        <span class="h6 signup-or-separator--text">or</span>
+        <hr>
+    </div>
+</div>
+<div class="modal-body">
+    <form name="signUpForm" ng-submit="mainCtrl.signUp(signUpForm)" style="padding: 15px">
+        <div class="input-group m-b-20">
+            <!--<span class="input-group-addon"><i class="zmdi zmdi-account"></i></span>-->
+
+            <div class="fg-line">
+                <input id="firstname" ng-model="mainCtrl.user.first_name" type="text"
+                       required placeholder="First name"
+                       class="form-control">
+            </div>
+        </div>
+        <div class="input-group m-b-20">
+            <div class="fg-line">
+                <input id="lastname" ng-model="mainCtrl.user.last_name"
+                       placeholder="Last name"
+                       type="text" required class="form-control">
+            </div>
+        </div>
+
+        <div class="input-group m-b-20">
+            <!--<span class="input-group-addon"><i class="zmdi zmdi-email"></i></span>-->
+
+            <div class="fg-line">
+                <input type="email"
+                       placeholder="Email"
+                       ng-model="mainCtrl.user.email"
+                       required class="form-control" id="email">
+            </div>
+        </div>
+
+        <div class="input-group m-b-20">
+            <!--<span class="input-group-addon"><i class="zmdi zmdi-email"></i></span>-->
+
+            <div class="fg-line">
+                <input type="password"
+                       placeholder="Password"
+                       ng-model="mainCtrl.user.password"
+                       required class="form-control" id="password">
+            </div>
+        </div>
+
+        <div class="input-group m-b-20" style="width: 100%">
+            <button class="btn btn-block btn-primary waves-effect">Sign Up</button>
+        </div>
+
+
+        <p>By signing up, I agree to ScripturedIn's Terms.</p>
+
+        <hr>
+    </form>
+</div>
+<div class="modal-footer" style="text-align: center">
+    Already a scripturein member? <a href ng-click="modalCtrl.login()">Log in</a>
+</div>
+<!--<div class="outer">-->
+<!--<div class="middle">-->
+<!--<div class="inner">-->
+<!---->
+<!--</div>-->
+<!--</div>-->
+<!--</div>-->

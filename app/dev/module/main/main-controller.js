@@ -1,5 +1,5 @@
 App.controller('mainController', function ($timeout, $state, $scope, userService,
-                                           authService, bibleService, alertService) {
+                                           authService, $uibModal, bibleService, alertService) {
     //Welcome Message
     //growlService.growl('Welcome back Mallinda!', 'inverse')
 
@@ -66,15 +66,102 @@ App.controller('mainController', function ($timeout, $state, $scope, userService
         authService.facebookLogin(action);
     };
 
+    self.showEmailSignup = function () {
+        var ctrl = this;
+        var modalInstance = $uibModal.open({
+            //animation: animation,
+            templateUrl: 'module/main/email-signup-modal.html',
+            controller: function () {
+                this.login = function () {
+                    modalInstance.close();
+                    ctrl.showLogin();
+                };
+
+            },
+            controllerAs: 'modalCtrl',
+            size: 350,
+            //backdrop: backdrop,
+            //keyboard: keyboard,
+        });
+    };
+
+    self.showLogin = function () {
+        var self = this;
+
+        function modalInstances(animation, size, backdrop, keyboard, ctrl) {
+            //console.log
+            var modalInstance = $uibModal.open({
+                animation: animation,
+                templateUrl: 'module/main/login-modal.html',
+                controller: function () {
+                    this.signup = function () {
+                        modalInstance.close();
+                        ctrl.showSignup();
+                    };
+                },
+                controllerAs: 'modalCtrl',
+                size: size,
+                backdrop: backdrop,
+                keyboard: keyboard,
+                //resolve: {
+                //    content: function () {
+                //        return $scope.modalContent;
+                //    }
+                //}
+
+            });
+        };
+        modalInstances(false, 350, true, true, self)
+
+    };
+    self.showLogin();
+
+    self.showSignup = function () {
+        var self = this;
+
+        function modalInstances(animation, size, backdrop, keyboard, ctrl) {
+            //console.log
+            var modalInstance = $uibModal.open({
+                animation: animation,
+                templateUrl: 'module/main/signup-modal.html',
+                controller: function () {
+
+                    this.login = function () {
+                        modalInstance.close();
+                        ctrl.showLogin();
+                    };
+
+                    this.emailSignup = function () {
+                        modalInstance.close();
+                        ctrl.showEmailSignup();
+                    };
+
+                },
+                controllerAs: 'modalCtrl',
+                size: size,
+                backdrop: backdrop,
+                keyboard: keyboard,
+                //resolve: {
+                //    content: function () {
+                //        return $scope.modalContent;
+                //    }
+                //}
+
+            });
+        };
+        modalInstances(false, 350, true, true, self)
+
+    };
+
     self.signUp = function (form) {
         var self = this;
         console.log(form);
         if (form.$valid) {
-          authService.signup(self.user, function(data){
-              console.log(data);
-              alertService.danger(data.message);
+            authService.signup(self.user, function (data) {
+                console.log(data);
+                alertService.danger(data.message);
 
-          });
+            });
         }
     };
 
@@ -99,43 +186,43 @@ App.controller('mainController', function ($timeout, $state, $scope, userService
         }
     };
 
-    // Detact Mobile Browser
+// Detact Mobile Browser
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         angular.element('html').addClass('ismobile');
     }
 
 
-    // By default template has a boxed layout
+// By default template has a boxed layout
     this.layoutType = localStorage.getItem('ma-layout-status');
 
-    // For Mainmenu Active Class
+// For Mainmenu Active Class
     this.$state = $state;
 
-    //Close sidebar on click
+//Close sidebar on click
     this.sidebarStat = function (event) {
         if (!angular.element(event.target).parent().hasClass('active')) {
             this.sidebarToggle.left = false;
         }
     }
 
-    //Listview Search (Check listview pages)
+//Listview Search (Check listview pages)
     this.listviewSearchStat = false;
 
     this.lvSearch = function () {
         this.listviewSearchStat = true;
     }
 
-    //Listview menu toggle in small screens
+//Listview menu toggle in small screens
     this.lvMenuStat = false;
 
-    //Blog
+//Blog
     this.wallCommenting = [];
 
     this.wallImage = false;
     this.wallVideo = false;
     this.wallLink = false;
 
-    //Skin Switch
+//Skin Switch
     this.currentSkin = 'blue';
 
     this.skinList = [
