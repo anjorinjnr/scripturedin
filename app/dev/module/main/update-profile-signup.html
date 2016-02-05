@@ -8,7 +8,8 @@
             <div class="card">
                 <div class="listview lv-bordered lv-lg">
                     <div class="lv-header-alt clearfix">
-                        <h1 class="lvh-label">Welcome {{authService.user.first_name}}, please take a moment to update
+                        <h1 class="lvh-label f-20">Welcome <strong>{{authService.user.first_name}}</strong>, please take
+                            a moment to update
                             your
                             profile.</h1>
 
@@ -76,7 +77,8 @@
                                                 <p>Select your church</p>
                                             </div>
                                             <div class="col-sm-8">
-                                                <input type="text" ng-model="mainCtrl.user.church"
+                                                <input type="text"
+                                                       ng-model="mainCtrl.user.church"
                                                        placeholder="Type the name of your church"
                                                        uib-typeahead="c as c.name + ' (' +  c.city + ')' for c in  mainCtrl.getChurch($viewValue)"
                                                        typeahead-loading="loadingChurches"
@@ -236,18 +238,18 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group m-t-20">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <md-button
                                                         ng-click="mainCtrl.updateProfile()"
-                                                        class="md-raised c-white bgm-blue">
+                                                        class="md-raised c-white bgm-blue m-l-0">
                                                     Save
                                                 </md-button>
                                                 <md-button
                                                         ng-click="$state.go('base.home')"
                                                         class="md-raised">
-                                                    Skip
+                                                    Done
                                                 </md-button>
                                             </div>
 

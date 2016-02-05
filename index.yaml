@@ -41,6 +41,12 @@ indexes:
   - name: created_at
     direction: desc
 
+- kind: SermonNote
+  properties:
+  - name: created_by
+  - name: created_at
+    direction: desc
+
 - kind: User
   properties:
   - name: __key__

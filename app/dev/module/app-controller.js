@@ -1,14 +1,25 @@
-App.controller('appController', function () {
+App.controller('appController', function ($scope, sidebarToggle) {
 
     var self = this;
     self.fabMenu = {
         isOpen: false
     };
 
-    self.sidebarToggle = {
-        left: false,
-        right: false
-    };
+    //$('.main-page-content').on('click', function (ev) {
+    //    //console.log($(ev.target)[0]);
+    //    //if ($(ev.target)[0].id == 'menu-trigger') {
+    //    //    return;
+    //    //}
+    //    console.log($(ev.target));
+    //    if (self.sidebarToggle.left) {
+    //        console.log('hide');
+    //        self.sidebarToggle.left = false;
+    //        $scope.$digest();
+    //    }
+    //
+    //});
+
+    self.sidebarToggle = sidebarToggle;
 
     //Close sidebar on click
     self.sidebarStat = function (event) {

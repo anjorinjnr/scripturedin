@@ -3,19 +3,52 @@
  */
 App
 
-    .directive('name-tag', function () {
+    .directive('nameTag', function () {
         return {
-            restrict: 'A',
-            link: function (scope, element, attr) {
-            }
+            restrict: 'E',
+            scope: {
+                user: '='
+            },
+            template: '<a href ><span ng-if="user.title">{{user.title}}</span>' +
+            '<span> {{user.first_name | sentencecase}}</span>' +
+            '<span> {{user.last_name | sentencecase}}</span> </a>'
         }
 
+    })
+    .directive('autoSave', function (userService) {
+        return {
+            restrict: 'EA',
+            scope: {
+                note: '='
+            },
+            link: function (scope) {
+                console.log(scope.note);
+                scope.$watch(function () {
+                    if (scope.note) {
+                        return scope.note.notes;
+                    }
+                }, function (n, o) {
+                    if (o !== n) {
+                        scope.note.saving = true;
+                        userService.saveSermonNote(scope.note).then(function (resp) {
+                            scope.note.saving = false;
+                            if (resp.data.id) {
+                                //self.sermonNote.id = resp.data.id;
+                                //self.sermonNote.user_id = resp.data.created_by;
+                                // self.sermonNote.sermon_id = resp.data.sermon_key;
+                                scope.note.modified_at = resp.data.modified_at;
+                            }
+                        });
+                    }
+                })
+            }
+        }
     })
     .directive('focusCursor', function () {
         return {
             restrict: 'A',
             link: function (scope, element, attr) {
-              //  console.log(element);
+                //  console.log(element);
                 var node = element;
                 node.focus();
                 //var caret = 0; // insert caret after the 10th character say
@@ -145,6 +178,18 @@ App
 
                 //Add action links in calendar header
                 element.find('.fc-toolbar').append($compile(scope.actionLinks)(scope));
+            }
+        }
+    })
+    .directive('toggleSubmenu', function () {
+
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+                element.click(function () {
+                    element.next().slideToggle(200);
+                    element.parent().toggleClass('toggled');
+                });
             }
         }
     })

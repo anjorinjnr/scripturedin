@@ -109,20 +109,24 @@ App.service('authService', function ($http,
      * @param {Object} data,
      * @param {string} action,
      */
-    self.signup = function (data, callback) {
+    self.signup = function (data, successCallback, errorCallback) {
 
         $http.post('/api/signup', data).then(function (resp) {
             if (resp.data.id) {
                 var user = resp.data;
                 self.createSession(user);
-                if (!user.church_key) {
-                    $state.go('base.post-signup-profile');
+                if (_.isFunction(successCallback)) {
+                    successCallback(user);
                 } else {
-                    $state.go('base.home');
+                    if (!user.church_key) {
+                        $state.go('base.post-signup-profile');
+                    } else {
+                        $state.go('base.home');
+                    }
                 }
             } else {
-                if (_.isFunction(callback)) {
-                    callback(resp.data);
+                if (_.isFunction(errorCallback)) {
+                    errorCallback(resp.data);
                 }
             }
         });

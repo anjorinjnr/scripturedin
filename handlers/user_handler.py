@@ -25,6 +25,30 @@ class UserHandler(base_handler.BaseHandler):
         else:
             return self.error_response()
 
+
+    @user_required
+    def search(self):
+        query = self.request.get('query')
+        type = self.request.get('type')
+        users = model.find_users(query, pastor_only=(type and type.lower().strip() == 'pastor'))
+        self.write_model(users)
+
+    @user_required
+    def get_notes(self):
+        notes = model.get_user_notes(self.user.key)
+        self.write_model(notes)
+
+    @user_required
+    def get_note(self, note_id):
+        note = model.get_note(self.user.key, note_id)
+        self.write_model(note)
+
+    @user_required
+    def post_note(self):
+        data = self.request_data()
+        note = model.save_note(self.user.key, data)
+        self.write_model(note)
+
     def signup(self):
         try:
             data = self.request_data()
@@ -55,7 +79,7 @@ class UserHandler(base_handler.BaseHandler):
         validator = Validator({'email': 'required|email',
                                # 'first_name': 'required',
                                # 'last_name': 'required'
-                                },
+                               },
                               data,
                               {'email': 'email is required',
                                'first_name': 'first name is required',

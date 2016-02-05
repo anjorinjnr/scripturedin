@@ -72,17 +72,34 @@ App.controller('mainController', function ($timeout, $state, $scope, userService
             //animation: animation,
             templateUrl: 'module/main/email-signup-modal.html',
             controller: function () {
-                this.login = function () {
+                var self = this;
+                self.login = function () {
                     modalInstance.close();
                     ctrl.showLogin();
                 };
-
+                self.signup = function (form) {
+                    if (form.$valid) {
+                        authService.signup(self.user,
+                            function (user) {
+                                modalInstance.close();
+                                if (!user.church_key) {
+                                    $state.go('base.post-signup-profile');
+                                } else {
+                                    $state.go('base.home');
+                                }
+                            }, function (data) {
+                                self.error = data.message;
+                            }
+                        );
+                    }
+                };
             },
             controllerAs: 'modalCtrl',
             size: 350,
-            //backdrop: backdrop,
-            //keyboard: keyboard,
+//backdrop: backdrop,
+//keyboard: keyboard,
         });
+
     };
 
     self.showLogin = function () {
@@ -114,7 +131,7 @@ App.controller('mainController', function ($timeout, $state, $scope, userService
         modalInstances(false, 350, true, true, self)
 
     };
-    self.showLogin();
+// self.showEmailSignup();
 
     self.showSignup = function () {
         var self = this;
@@ -151,18 +168,6 @@ App.controller('mainController', function ($timeout, $state, $scope, userService
         };
         modalInstances(false, 350, true, true, self)
 
-    };
-
-    self.signUp = function (form) {
-        var self = this;
-        console.log(form);
-        if (form.$valid) {
-            authService.signup(self.user, function (data) {
-                console.log(data);
-                alertService.danger(data.message);
-
-            });
-        }
     };
 
 

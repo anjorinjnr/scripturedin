@@ -8,6 +8,7 @@ var App = angular.module('scripturedIn', [
         'angular-loading-bar',
         'oc.lazyLoad',
         'ngWYSIWYG',
+        'md.data.table',
         //'localytics.directives'
         //'nouislider'
         //'ngTable'
@@ -17,9 +18,21 @@ var App = angular.module('scripturedIn', [
         pastor: 'pastor',
         user: 'user'
     })
-    .run(function ($rootScope, authService, $state, $mdToast, bibleService) {
+    .service('sidebarToggle', function(){
+        return {
+            left: false
+        };
+    })
+    .config(function ($uiViewScrollProvider) {
+        $uiViewScrollProvider.useAnchorScroll();
+    })
+    .run(function ($rootScope, alertService, authService, $state, $mdToast, sidebarToggle) {
 
+            // alertService.info('Hello world');
             //var toast =
+            $rootScope.$on('$stateChangeSuccess', function () {
+              sidebarToggle.left = false;
+            });
             $rootScope.$on('alert', function (e, message, duration) {
                 console.log($mdToast.simple());
                 var duration = duration ? duration : 4000;

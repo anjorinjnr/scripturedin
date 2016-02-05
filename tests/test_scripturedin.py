@@ -68,7 +68,7 @@ class ScripturedinTestCase(unittest.TestCase):
                                                       last_name='bar',
                                                       is_pastor=True,
                                                       church_key=ndb.Key(
-                                                              'Church', 123))
+                                                          'Church', 123))
         utc_date = datetime.datetime.utcnow()
         data = {'title': 'sermon title',
                 'scripture': [{'book': 'John', 'chapter': 3, 'verses': ['16']}],
@@ -116,38 +116,6 @@ class ScripturedinTestCase(unittest.TestCase):
         self.assertEquals(comment.ref_key, data['ref_key'])
         self.assertEquals(comment.comment, data['comment'])
         self.assertEquals(comment.reply_to, data['reply_to'])
-
-    @mock.patch('models.scripturedin.Sermon.get_by_id')
-    @mock.patch('models.scripturedin.User.get_by_id')
-    def test_save_sermon_note(self, mock_user_get_id, mock_sermon_get_by_id):
-        data = {}
-        with self.assertRaisesRegexp(Exception,
-                                     'notes is required and cannot be empty'):
-            model.save_sermon_note(data)
-        data = {'notes': 'some notes'}
-        with self.assertRaisesRegexp(Exception, 'user id is required'):
-            model.save_sermon_note(data)
-        data = {'notes': 'some notes', 'user_key': 123}
-        with self.assertRaisesRegexp(Exception, 'sermon id is required'):
-            model.save_sermon_note(data)
-        data = {'notes': 'some notes', 'user_key': 5360119185408000L,
-                'sermon_key': 5733953138851840}
-
-        mock_sermon_get_by_id.return_value = model.Sermon(id=5733953138851840)
-        mock_user_get_id.return_value = model.User(id=5360119185408000L)
-        sermon_note = model.save_sermon_note(data)
-        # print sermon_note
-        self.assertEquals(sermon_note.created_by.id(), data['user_key'])
-        self.assertEquals(sermon_note.sermon_key.id(), data['sermon_key'])
-        self.assertEquals(data['notes'], sermon_note.notes)
-        mock_user_get_id.assert_called_once_with(data['user_key'])
-        mock_sermon_get_by_id.assert_called_once_with(data['sermon_key'])
-        data['id'] = sermon_note.key.id()
-        data['notes'] = 'updated note'
-        sermon_note = model.save_sermon_note(data)
-        self.assertEquals(sermon_note.created_by.id(), data['user_key'])
-        self.assertEquals(sermon_note.sermon_key.id(), data['sermon_key'])
-        self.assertEquals(data['notes'], sermon_note.notes)
 
     @mock.patch('models.scripturedin.get_user_by_id')
     def test_update_sermon_validation(self, mock_get_user_by_id):
@@ -267,8 +235,8 @@ class ScripturedinTestCase(unittest.TestCase):
         m.key = m.put()
 
         _user = model.User.query(model.User.key == u.key).get(
-                projection=[model.User.first_name, model.User.last_name,
-                            model.User.title])
+            projection=[model.User.first_name, model.User.last_name,
+                        model.User.title])
         # load first feed
         initial = model.get_feed(m.key.id(), page_size=1)
         data = util.model_to_dict(s3)
@@ -300,9 +268,83 @@ class ScripturedinTestCase(unittest.TestCase):
 
         # scroll to load more
         more = model.get_feed(m.key.id(), cursor=more['next'], page_size=1)
-        data =  util.model_to_dict(s1)
+        data = util.model_to_dict(s1)
         data['user'] = _user
         data['kind'] = 'Sermon'
         data['comments'] = {'comments': [], 'next': None}
         self.assertEquals([data], more['feeds'])
         self.assertIsNone(more['next'])
+
+    @mock.patch('models.scripturedin.Sermon.get_by_id')
+    @mock.patch('models.scripturedin.User.get_by_id')
+    def test_save_sermon_note(self, mock_user_get_id, mock_sermon_get_by_id):
+        data = {}
+        with self.assertRaisesRegexp(Exception,
+                                     'notes is required and cannot be empty'):
+            model.save_sermon_note(data)
+        data = {'notes': 'some notes'}
+        with self.assertRaisesRegexp(Exception, 'user id is required'):
+            model.save_sermon_note(data)
+        data = {'notes': 'some notes', 'user_key': 123}
+        with self.assertRaisesRegexp(Exception, 'sermon id is required'):
+            model.save_sermon_note(data)
+        data = {'notes': 'some notes', 'user_key': 5360119185408000L,
+                'sermon_key': 5733953138851840}
+
+        mock_sermon_get_by_id.return_value = model.Sermon(id=5733953138851840)
+        mock_user_get_id.return_value = model.User(id=5360119185408000L)
+        sermon_note = model.save_sermon_note(data)
+        # print sermon_note
+        self.assertEquals(sermon_note.created_by.id(), data['user_key'])
+        self.assertEquals(sermon_note.sermon_key.id(), data['sermon_key'])
+        self.assertEquals(data['notes'], sermon_note.notes)
+        mock_user_get_id.assert_called_once_with(data['user_key'])
+        mock_sermon_get_by_id.assert_called_once_with(data['sermon_key'])
+        data['id'] = sermon_note.key.id()
+        data['notes'] = 'updated note'
+        sermon_note = model.save_sermon_note(data)
+        self.assertEquals(sermon_note.created_by.id(), data['user_key'])
+        self.assertEquals(sermon_note.sermon_key.id(), data['sermon_key'])
+        self.assertEquals(data['notes'], sermon_note.notes)
+
+    # @mock.patch('models.scripturedin.SermonNote.put')
+    @mock.patch('models.scripturedin.SermonNote.get_by_id')
+    def test_create_note(self, mock_sermon_get):
+        # test note for existing sermon
+        sermon = model.Sermon(title='test sermon')
+        sermon.put()
+        data = {
+            'notes': 'lorem ipsum..',
+            'sermon': {
+                'id': sermon.key.id()
+            }
+        }
+        user = ndb.Key('User', 1)
+        note = model.create_note(user, data)
+        self.assertEqual(data['notes'], note.notes)
+
+        # test note for adhoc sermon
+        data = {
+            'notes': 'loremzo ipsum',
+            'pastor': 'Pastor Foo Bar',
+        }
+        note = model.create_note(user, data)
+        self.assertEqual(data['notes'], note.notes)
+        self.assertEqual(data['pastor'], note.pastor)
+
+        pastor = model.User(is_pastor=True, first_name='Foo')
+        pastor.put()
+        church = model.Church(name='Foo Bar')
+        church.put()
+        data = {
+            'notes': 'loremzo ipsum',
+            'pastor_id': pastor.key.id(),
+            'church_id': church.key.id(),
+        }
+        note = model.create_note(user, data)
+        self.assertEqual(data['notes'], note.notes)
+        self.assertIsNone(note.sermon_key)
+        self.assertIsNone(note.pastor)
+        self.assertEqual(pastor.key, note.pastor_key)
+        self.assertEqual(church.key, note.church_key)
+

@@ -1,0 +1,37 @@
+<div class="chapter">
+
+    <div class="m-b-10 card-header p-l-0 p-b-5">
+        <h2>{{scripture.book}} </h2>
+        <ul class="actions">
+            <li class="dropdown" uib-dropdown>
+                Select Translation
+                <a href="" uib-dropdown-toggle>
+
+                    <i class="zmdi zmdi-translate"></i>
+                    <md-tooltip>Change translation</md-tooltip>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-right translations"
+                    style="max-height: 400px; overflow-y: scroll">
+                    <li ng-class="{selected: scripture.version == v.abbr }"
+                        ng-repeat="v in versions">
+                        <a ng-click="changeTranslation(v)" href
+                        >{{::v.title}}</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <h3 class="title">Chapter {{scripture.chapter}}</h3>
+
+    <div id="verses">
+        <p id="v{{verse}}" class="verse" ng-class="{highlight: readCtrl.selected[book][verse]}"
+           ng-repeat="v in scripture.verses">
+            <a href="" ng-click="readCtrl.highlight(verse, book)">
+                <span style="margin-right: 15px">{{v.verse}}:</span></a>
+            {{v.content}}
+        </p>
+    </div>
+
+</div>

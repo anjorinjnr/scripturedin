@@ -33,7 +33,7 @@ App.config(function (localStorageServiceProvider) {
                 url: '/update-profile',
                 views: {
                     'content': {
-                        templateUrl: 'module/main/signup-profile.html',
+                        templateUrl: 'module/main/update-profile-signup.html',
                         controller: 'mainController as mainCtrl'
                     }
                 },
@@ -42,7 +42,7 @@ App.config(function (localStorageServiceProvider) {
                 },
                 data: {
                     role: USER_ROLES.user,
-                    hideHeader: true,
+                    hideHeader: false,
                     pageTitle: 'Update your profile'
                 }
             })
@@ -93,8 +93,8 @@ App.config(function (localStorageServiceProvider) {
                     pageTitle: 'Create new Sermon'
                 }
             })
-            .state('base.sermon-study', {
-                url: '/sermon/:id/study',
+            .state('base.sermon-view', {
+                url: '/sermon/{id:int}/:option',
                 views: {
                     'content': {
                         templateUrl: 'module/sermon/study.html',
@@ -196,6 +196,52 @@ App.config(function (localStorageServiceProvider) {
                     }
 
                 }
-            });
+            })
+            .state('base.new-note', {
+                url: '/note/create',
+                views: {
+                    'content': {
+                        templateUrl: 'module/notes/create.html',
+                        controller: 'notesController as notesCtrl'
+                    }
+                },
+                resolve: {
+                    note: function () {
+                        return {};
+                    }
+                }
+            })
+            .state('base.notes', {
+                url: '/notes',
+                views: {
+                    'content': {
+                        templateUrl: 'module/notes/notes.html',
+                        controller: 'notesController as notesCtrl'
+                    }
+                },
+                resolve: {
+                    note: function () {
+                        return {};
+                    }
+                }
+            })
+            .state('base.note', {
+                url: '/note/{id:int}',
+                views: {
+                    'content': {
+                        templateUrl: 'module/notes/note.html',
+                        controller: 'notesController as notesCtrl'
+                    }
+                },
+                resolve: {
+                    note: function ($q, $stateParams, userService) {
+                        var deferred = $q.defer();
+                        userService.getNote($stateParams.id).then(function (resp) {
+                            deferred.resolve(resp.data);
+                        });
+                        return deferred.promise;
 
+                    }
+                }
+            });
     });

@@ -214,33 +214,6 @@ div:empty:before {
     color: gray
 }
 
-/** header **/
-.header {
-    background-image: url('/img/bg3.jpg');
-    /*height: 100%;*/
-    height: 680px;
-    width: 100%;
-    left: 0;
-    top: 0;
-    /*position: absolute;*/
-    background-size: 100% auto;
-    background-repeat: no-repeat;
-}
-
-.header-inner {
-    padding: 35px;
-    color: #fff;
-}
-
-.header-inner .logo {
-    font-size: 32px;
-}
-
-.top-menu li {
-    font-size: 20px;
-    margin-right: 40px;
-}
-
 .intro-text-bg {
     background-color: rgba(72, 41, 46, 0.26);
     padding: 15px;
@@ -365,9 +338,37 @@ body.overflow {
     color: #fff;
 }
 
-.logo a {
+/* main page **/
+.header .logo a {
     text-transform: none;
     font-size: 30px;
+}
+
+/** header **/
+.header {
+    background-image: url('/img/bg3.jpg');
+    /*height: 100%;*/
+    height: 680px;
+    width: 100%;
+    left: 0;
+    top: 0;
+    /*position: absolute;*/
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+}
+
+.header .header-inner {
+    padding: 35px;
+    color: #fff;
+}
+
+.header-inner .logo {
+    font-size: 32px;
+}
+
+.header .top-menu li {
+    font-size: 20px;
+    margin-right: 40px;
 }
 
 /*.modal {*/
@@ -452,9 +453,76 @@ body.overflow {
     margin: -16px auto 10px auto;
     width: 90%;
 }
+
 .modal-350 {
     width: 350px;
 }
+
 .modal-300 {
     width: 300px;
+}
+
+.profile-menu {
+    margin-bottom: 40px;
+}
+
+.profile-menu > a .profile-info {
+    margin-top: 0px;
+    background-color: rgba(0, 2, 4, 0.75); /*rgba(4, 93, 165, 0.89);*/
+    text-align: left;
+}
+
+.profile-menu > a .profile-pic > img {
+    height: 120px;
+    border-radius: 50%;
+    width: auto;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+.profile-menu > a {
+    background: none;
+    height: 180px;
+    background-color: #f7f7f7;
+}
+
+.profile-menu > a {
+    text-align: center;
+}
+
+/*#main {*/
+/*padding-top: 60px;*/
+/*}*/
+
+.scripture .card-header {
+    padding: 15px;
+}
+
+.md-table-pagination .label {
+    color: rgba(0, 0, 0, 0.54);
+}
+
+name-tag a {
+    color: #AEAEAE
+}
+
+.note .card-header h2 {
+    font-size: 25px;
+}
+
+.note wysiwyg-edit .tinyeditor .sizer {
+    min-height: 400px;
+    max-height: 100%;
+}
+.toast-danger .md-toast-content {
+    background-color: rgba(234,113,113,1);
+    height: 25%;
+}
+
+.alert-info {
+    background-color: #323232;
+    color: #fff;
+}
+.alert-info button, .alert-danger .close {
+    color: #fff;
+    font-size: 25px;
 }

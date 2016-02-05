@@ -4,47 +4,47 @@
 
 <aside id="sidebar" data-ng-include="'module/main/sidebar-menu.html'"
        class="menu"
-        ng-class="{toggled: appCtrl.sideMenu}"></aside>
+       ng-class="{toggled: appCtrl.sideMenu}"></aside>
 
 
 <section id="content">
 
     <div id="top">
         <div class="header">
-            <div class="fixed-header">
+            <!--<div class="fixed-header">-->
 
 
-                <div>
-                    <ul class="header-inner">
+            <div>
+                <ul class="header-inner">
 
-                        <li class="menu-trigger" id="menu-trigger" ng-click="appCtrl.sideMenu=true">
-                            <div class="line-wrap">
-                                <div class="line top"></div>
-                                <div class="line center"></div>
-                                <div class="line bottom"></div>
-                            </div>
-                        </li>
-
-                        <li class="logo"><a href="">scripturedin</a></li>
-                        <li class="pull-right hidden-xs">
-                            <ul class="top-menu">
-                                <li><a href ng-click="mainCtrl.showSignup()">Sign Up</a></li>
-                                <li><a href ng-click="mainCtrl.showSignup()">Login</a></li>
-                            </ul>
-
-                        </li>
-                    </ul>
-
-                    <div class="header-content">
-                        <div class="intro-text-bg">
-                            <p>Rediscover the Word of God!</p>
+                    <li class="menu-trigger" id="menu-trigger" ng-click="appCtrl.sideMenu=true">
+                        <div class="line-wrap">
+                            <div class="line top"></div>
+                            <div class="line center"></div>
+                            <div class="line bottom"></div>
                         </div>
+                    </li>
+
+                    <li class="logo"><a href="">scripturedin</a></li>
+                    <li class="pull-right hidden-xs">
+                        <ul class="top-menu">
+                            <li><a href ng-click="mainCtrl.showSignup()">Sign Up</a></li>
+                            <li><a href ng-click="mainCtrl.showLogin()">Login</a></li>
+                        </ul>
+
+                    </li>
+                </ul>
+
+                <div class="header-content">
+                    <div class="intro-text-bg">
+                        <p>Rediscover the Word of God!</p>
                     </div>
                 </div>
-
             </div>
 
         </div>
+
+    </div>
     </div>
 
     <div class="info">

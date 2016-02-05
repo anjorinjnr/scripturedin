@@ -141,7 +141,7 @@ App.service('bibleService', function ($http, util, $q) {
         if (_.isString(scripture)) {
             scripture = self.parseScripture(scripture);
         }
-        console.log(scripture);
+        //console.log(scripture);
         scripture.translation = scripture.translation ? scripture.translation : 'kjv';
         var param = util.toQueryString(scripture);
         return $http.get('/api/bible?' + param);
@@ -159,7 +159,7 @@ App.service('bibleService', function ($http, util, $q) {
     };
 
     self.versions = function () {
-        return $http.get('/api/bible/versions');
+        return $http.get('/api/bible/versions', {cache: true});
     };
 
     self.saveSermon = function (sermon) {
@@ -174,6 +174,16 @@ App.service('bibleService', function ($http, util, $q) {
         return $http.post('/api/sermon/' + sermonId + '/log', sermon, {ignoreLoadingBar: true});
     };
 
+    self.findSermon = function (query) {
+        return $http.get('/api/sermon/find?query=' + encodeURIComponent(query), {cache: true, ignoreLoadingBar: true});
+    };
 
-})
-;
+    self.findChurch = function (query) {
+        return $http.get('/api/church/search?query=' + encodeURIComponent(query), {
+            cache: true,
+            ignoreLoadingBar: true
+        });
+    };
+
+
+});

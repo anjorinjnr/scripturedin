@@ -20,6 +20,7 @@
     <!-- Vendor CSS -->
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="vendors/bower_components/angular-material/angular-material.css"/>
+    <link rel="stylesheet" href="vendors/bower_components/angular-material-data-table/dist/md-data-table.css"/>
     <link href="vendors/bower_components/animate.css/animate.min.css" rel="stylesheet">
     <link href="vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css"
           rel="stylesheet">
@@ -76,7 +77,7 @@
 
 </script>
 
-<div ui-view></div>
+<div ui-view autoscroll='true'></div>
 <!--<data ui-view="header"></data>-->
 <!--<data ui-view="content"></data>-->
 <!--<data ui-view="footer"></data>-->
@@ -151,7 +152,9 @@
 <script src="vendors/bower_components/oclazyload/dist/ocLazyLoad.min.js"></script>
 <script src="vendors/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 <script src="vendors/bower_components/angular-material/angular-material.js"></script>
-<script src="vendors/bootstrap-growl/bootstrap-growl.min.js"></script>
+<script src="vendors/bower_components/angular-material-data-table/dist/md-data-table.js"></script>
+<script src="vendors/bower_components/remarkable-bootstrap-notify/dist/bootstrap-notify.min.js"></script>
+<!--<script src="vendors/bootstrap-growl/bootstrap-growl.min.js"></script>-->
 <!--<script src="vendors/bower_components/angular-chosen-localytics/chosen.js"></script>-->
 
 <!-- Common Vendors -->
@@ -185,6 +188,7 @@
 <script src="module/main/main-controller.js"></script>
 <script src="module/home/home-controller.js"></script>
 <script src="module/read/read-controller.js"></script>
+<script src="module/notes/notes-controller.js"></script>
 <script src="module/sermon/sermon-controller.js"></script>
 <script src="module/shared/header-controller.js"></script>
 <script src="module/component/user/user-service.js"></script>
@@ -193,6 +197,7 @@
 <script src="module/component/helper-directives/directives.js"></script>
 <script src="module/component/helper-filters/filters.js"></script>
 <script src="module/component/feed/feed-directive.js"></script>
+<script src="module/component/scripture/scripture-directive.js"></script>
 <!--<script src="module/component/comment/comment-directive.js"></script>-->
 <script src="module/component/bible/bible-data.js"></script>
 <script src="module/component/bible/bible-service.js"></script>

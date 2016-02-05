@@ -22,5 +22,10 @@ class MiscHandler(base_handler.BaseHandler):
         if church:
             self.write_model(church)
 
+    @user_required
+    def find_church(self):
+        query = self.request.get('query')
+        churches = model.find_church(query)
+        self.write_model(churches)
 
 

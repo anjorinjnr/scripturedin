@@ -23,7 +23,7 @@ App.controller('sermonController', function ($state, authService, userService, b
                 info: 'Only my church members'
             }
         ];
-    console.log(sermon);
+        console.log(sermon);
         self.showScripture = function (scripture) {
 
             $mdDialog.show({
@@ -128,10 +128,10 @@ App.controller('sermonController', function ($state, authService, userService, b
         };
 
         self._validateSermon = function () {
-            if (!_.isEmpty(self.sermon.title) && self.sermon.scriptures.length > 0){
+            if (!_.isEmpty(self.sermon.title) && self.sermon.scriptures.length > 0) {
 
                 if (_.isEmpty(self.sermon.note) && _.isEmpty(self.sermon.notes[0].content)) {
-                    self.selectedTab  = 1;
+                    self.selectedTab = 1;
                     return false;
                 }
                 //create scripture objects
@@ -159,9 +159,6 @@ App.controller('sermonController', function ($state, authService, userService, b
                 console.log(self.sermonComments);
             });
         };
-
-
-
 
 
         self.scriptureSelect = function (r) {
@@ -348,7 +345,7 @@ App.controller('sermonController', function ($state, authService, userService, b
                 '</li>';
 
             self.onEventSelect = function (calEvent, jsEvent, view) {
-                $state.go('base.sermon-study', {id: calEvent.id});
+                $state.go('base.sermon-view', {id: calEvent.id});
             };
 
             //Open new event modal on selecting a day

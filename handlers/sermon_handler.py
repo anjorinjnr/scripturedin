@@ -10,6 +10,14 @@ import logging
 
 class SermonHandler(base_handler.BaseHandler):
 
+    @user_required
+    def find(self):
+        query = self.request.get('query')
+        if query:
+            sermons = model.find_sermon(query, self.user.key)
+            self.write_model(sermons)
+        else:
+            self.write_response([])
 
     @user_required
     def like(self, sermon_id):

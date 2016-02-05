@@ -8,7 +8,7 @@
 <section id="main">
     <aside id="sidebar" data-ng-include="'module/shared/sidebar-left.html'"
            data-ng-class="{ 'toggled': appCtrl.sidebarToggle.left === true }"></aside>
-    <section id="content" ui-view="content">
+    <section id="content" class="main-page-content" ui-view="content" autoscroll='true'>
 
     </section>
 </section>
@@ -24,11 +24,20 @@
         <md-fab-actions ng-hide="!appCtrl.fabMenu.isOpen">
             <md-button ng-if="authService.user.is_pastor"
                        ui-sref="base.sermon-create" class="md-fab md-mini md-button md-ink-ripple"
-                       aria-label="Add User">
+                       aria-label="New Sermon">
                 <md-tooltip md-direction="left">
                     New Sermon
                 </md-tooltip>
                 <md-icon md-svg-src="/img/icons/create.svg"></md-icon>
+            </md-button>
+            <md-button
+                    ui-sref="base.new-note"
+                    class="bgm-blue md-fab md-mini md-button md-ink-ripple"
+                    aria-label="New Note">
+                <md-tooltip md-direction="left">
+                    New Note
+                </md-tooltip>
+                <md-icon md-svg-src="/img/icons/note_add.svg"></md-icon>
             </md-button>
             <!--<md-button class="md-fab  md-mini md-primary md-button md-ink-ripple" aria-label="Add Group">-->
             <!--<md-icon icon="/img/icons/add.svg"></md-icon>-->
@@ -40,14 +49,14 @@
     </md-fab-speed-dial>
 </div>
 
-<footer id="footer">
-    Copyright &copy; 2015 scripturedin {{appCtrl.sidebarToggle.left}}
+<!--<footer id="footer">-->
+     <!--&copy; 2015 scripturedin-->
 
-    <ul class="f-menu">
-        <li><a href="">Home</a></li>
-        <li><a href="">Dashboard</a></li>
-        <li><a href="">Reports</a></li>
-        <li><a href="">Support</a></li>
-        <li><a href="">Contact</a></li>
-    </ul>
-</footer>
+    <!--&lt;!&ndash;<ul class="f-menu">&ndash;&gt;-->
+        <!--&lt;!&ndash;<li><a href="">Home</a></li>&ndash;&gt;-->
+        <!--&lt;!&ndash;<li><a href="">Dashboard</a></li>&ndash;&gt;-->
+        <!--&lt;!&ndash;<li><a href="">Reports</a></li>&ndash;&gt;-->
+        <!--&lt;!&ndash;<li><a href="">Support</a></li>&ndash;&gt;-->
+        <!--&lt;!&ndash;<li><a href="">Contact</a></li>&ndash;&gt;-->
+    <!--&lt;!&ndash;</ul>&ndash;&gt;-->
+<!--</footer>-->
