@@ -34,7 +34,7 @@ class BaseModel(ndb.Model):
     deleted = type_bool()
     deleted_at = type_int()
 
-    _has_index = False;
+    _has_index = False
 
     def _pre_put_hook(self):
         """Pre-put operations. Store UTC timestamp(s) in milliseconds."""
@@ -44,8 +44,13 @@ class BaseModel(ndb.Model):
             self.created_at = now
         if self.deleted:
             self.deleted_at = now
-        if self._has_index:
-            self.update_index()
+
+    def _post_put_hook(self, future):
+        """Post-put operations. Store UTC timestamp(s) in milliseconds."""
+        o = future.get_result().get()
+        if o._has_index:
+            o.update_index()
+
 
 class File(BaseModel):
     blobstore_key = ndb.TextProperty()
@@ -66,7 +71,26 @@ class User(AuthUser):
     fav_sermon_keys = type_key(kind='Sermon', repeated=True)
     profile_photo = type_string()
 
+
     _has_index = True
+
+    created_at = type_int()
+    modified_at = type_int()
+    deleted = type_bool()
+    deleted_at = type_int()
+
+    def _pre_put_hook(self):
+        """Pre-put operations. Store UTC timestamp(s) in milliseconds."""
+        now = int(time.time() * 1000)
+        self.modified_at = now
+        if not self.created_at:
+            self.created_at = now
+        if self.deleted:
+            self.deleted_at = now
+
+    def _post_put_hook(self, future):
+        """Post-put operations. Store UTC timestamp(s) in milliseconds."""
+        future.get_result().get().update_index()
 
     @classmethod
     def get_index(cls):
@@ -285,7 +309,7 @@ def update_user(id, data):
             if key == 'is_pastor':
                 if isinstance(val, bool):
                     user.is_pastor = val
-                elif isinstance(val, str) and  val.lower() in ['t', 'true', 'y', 'yes']:
+                elif isinstance(val, str) and val.lower() in ['t', 'true', 'y', 'yes']:
                     user.is_pastor = True
                 else:
                     user.is_pastor = False
@@ -313,7 +337,8 @@ def find_users(query, pastor_only=False):
         results = []
         for doc in search_results:
             add = True
-            if pastor_only and not User.get_by_id(int(doc.doc_id)).is_pastor:
+            user = User.get_by_id(int(doc.doc_id))
+            if pastor_only and user and user.is_pastor:
                 add = False
 
             if add:
@@ -493,7 +518,6 @@ def get_sermons_by_church(church_id, cursor=None, page_size=100):
         sermons, next_curs, more = q.fetch_page(page_size)
 
     data = [_process_sermon(sermon) for sermon in sermons]
-    logging.info(data[0]['pastor'])
     return {
         'sermons': data,
         'next': next_curs.urlsafe() if more and next_curs else None,
@@ -627,7 +651,7 @@ def get_comment_replies(comment_id, cursor=None, page_size=10):
         for c in comments:
             reply = util.model_to_dict(c)
             reply['user'] = User.query(User.key == c.created_by).get(
-                projection=[User.first_name, User.last_name, User.title])
+                projection=[User.first_name, User.last_name, User.title, User.profile_photo])
             replies.append(reply)
 
         return {
@@ -710,7 +734,7 @@ def get_comments(type, id, cursor=None, page_size=20):
         comment['ref_kind'] = c.ref_key.kind()
         comment['replies'] = get_comment_replies(c.key.id())
         comment['user'] = User.query(User.key == c.created_by).get(
-            projection=[User.first_name, User.last_name, User.title])
+            projection=[User.first_name, User.last_name, User.profile_photo, User.title])
         data.append(comment)
 
     return {
@@ -840,8 +864,7 @@ def get_feed(user_id, cursor=None, last_time=None, page_size=15):
                                                        page_size=5)
                 sermon_dict['user'] = User.query(
                     User.key == sermon.created_by).get(
-                    projection=[User.first_name, User.last_name,
-                                User.title])
+                    projection=[User.first_name, User.last_name, User.profile_photo, User.title])
                 return sermon_dict
 
     if last_time:
@@ -878,7 +901,7 @@ def create_feed(obj):
     feed.put()
 
 
-def _get_mini_user_info(user_key):
+def get_mini_user_info(user_key):
     user = user_key.get()
     return {'id': user.key.id(),
             'title': user.title,
@@ -898,23 +921,27 @@ def get_mini_church_info(church_key):
 
 def _process_sermon(sermon):
     sermon_ = util.model_to_dict(sermon)
-    sermon_['pastor'] = _get_mini_user_info(sermon.created_by)
+    sermon_['pastor'] = get_mini_user_info(sermon.created_by)
     sermon_['church'] = get_mini_church_info(sermon.church_key)
     return sermon_
 
 
 def _process_note(note):
+    logging.info(note)
     note_ = util.model_to_dict(note)
     if note.sermon_key:
         sermon = note.sermon_key.get()
         note_['sermon'] = {
             'id': sermon.key.id(),
             'title': sermon.title,
-            'pastor': _get_mini_user_info(sermon.created_by),
+            'pastor': get_mini_user_info(sermon.created_by),
             'church': get_mini_church_info(sermon.church_key)
         }
-    elif note.church_key:
-        note_['church'] = get_mini_church_info(note.church_key)
+    else:
+        if note.church_key:
+            note_['church'] = get_mini_church_info(note.church_key)
+        if note.pastor_key:
+            note_['pastor'] = get_mini_user_info(note.pastor_key)
     return note_
 
 
@@ -1000,9 +1027,9 @@ def save_note(user_key, data):
         })
     else:
         if 'notes' not in data:
-             raise Exception('notes is required')
+            raise Exception('notes is required')
         if 'title' not in data:
-              raise Exception('title is required')
+            raise Exception('title is required')
         sermon_note = SermonNote.get_by_id(int(data['id'])) if 'id' in data else SermonNote(created_by=user_key)
         sermon_note.notes = data['notes']
         sermon_note.title = data['title']

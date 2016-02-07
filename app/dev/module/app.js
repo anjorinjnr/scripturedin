@@ -25,8 +25,7 @@ var App = angular.module('scripturedIn', [
         $uiViewScrollProvider.useAnchorScroll();
     })
     .run(function ($rootScope, alertService, util, authService, $state, $mdToast, sidebarToggle) {
-
-
+        
             $rootScope.authService = authService;
             $rootScope.$state = $state;
 

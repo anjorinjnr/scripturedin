@@ -33,7 +33,6 @@ App.service('util', function () {
         console.log(JSON.stringify(obj, null, 2));
     };
     self.imagePath = function (user) {
-        console.log(user.profile_photo);
         if (user.profile_photo) {
             return user.profile_photo;
         } else if (user.gender == 'f') {

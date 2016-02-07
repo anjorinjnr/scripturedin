@@ -1,13 +1,16 @@
 (function () {
 
-    var NotesCtrl = function (userService, bibleService, $state, note, $q, $scope, alertService) {
+    var NotesCtrl = function (userService, bibleService, $scope,
+                              $state, note, $q, $scope, noteService,
+                              alertService) {
         var self = this;
         self.userService = userService;
         self.bibleService = bibleService;
         self.alertService = alertService;
         self.q_ = $q;
         self.note = note;
-
+        self.scope_ = $scope;
+        self.noteService = noteService;
 
         if ($state.current.name == 'base.notes') {
             self.page = 1;
@@ -15,9 +18,10 @@
         }
         if ($state.current.name == 'base.new-note') {
             self.note.scriptures = [];
-            $scope.$watch('notesCtrl.note.notes', function (n) {
-                self.saveNote();
-            })
+            //$scope.$watch('notesCtrl.note.notes', function (n) {
+            //    self.saveNote();
+            //})
+            self.saveNote();
         }
     };
 
@@ -25,25 +29,17 @@
      * Save user's notes
      */
     NotesCtrl.prototype.saveNote = function () {
-        var self = this;
-        if (_.isEmpty(self.note.notes)) return;
 
-        if (_.isEmpty(self.note.title)) {
-            self.missingTitle = true;
-            self.alertService.danger('Please enter a sermon title before typing.' +
-                ' <strong>Your notes are not saved!</strong>');
-            return;
-        } else {
-            self.missingTitle = false;
-        }
-        self.note.saving = true;
-        self.userService.saveNote(self.note).then(function (resp) {
-            self.note.saving = false;
-            if (resp.data.id) {
-                self.note.id = resp.data.id;
-                self.note.modified_at = resp.data.modified_at;
+        var self = this;
+        self.noteService.startSaving(self.scope_, self.note, function (note) {
+            if (_.isEmpty(note.notes)) return false;
+            if (_.isEmpty(self.note.title)) {
+                console.log('no title');
+                self.missingTitle = true;
+                return false
             } else {
-                self.alertService.danger('<strong>Sorry!</strong> your notes are not being saved.')
+                self.missingTitle = false;
+                return true;
             }
         });
     };

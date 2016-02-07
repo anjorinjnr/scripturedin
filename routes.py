@@ -38,7 +38,6 @@ ROUTES = [
           handler_method='search',
           methods=['GET']),
 
-
     route(r'/api/note/<note_id:\d+>',
           handler=UserHandler,
           handler_method='get_note',
@@ -81,7 +80,7 @@ ROUTES = [
           handler=SermonHandler,
           handler_method='save',
           methods=['POST']),
-     route(r'/api/sermon/find',
+    route(r'/api/sermon/find',
           handler=SermonHandler,
           handler_method='find',
           methods=['GET']),
@@ -145,9 +144,9 @@ ROUTES = [
           methods=['GET']),
 
     # tasks,
-    route(r'/api/task/load-church',
+    route(r'/api/task',
           handler=TaskHandler,
-          handler_method='load_church',
+          handler_method='queue_task',
           methods=['POST']),
     route(r'/api/task/books',
           handler=TaskHandler,
@@ -158,5 +157,17 @@ ROUTES = [
           handler=TaskHandler,
           handler_method='persist_note_data',
           methods=['GET']),
+
+]
+
+TASK_ROUTES = [
+    webapp2.Route(r'/_tasks/load_churches',
+                  handler=TaskHandler,
+                  handler_method='task_load_churches',
+                  methods=['POST']),
+    webapp2.Route(r'/_tasks/index_churches',
+                  handler=TaskHandler,
+                  handler_method='task_index_churches',
+                  methods=['POST']),
 
 ]

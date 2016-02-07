@@ -52,7 +52,7 @@ wysiwyg-edit .tinyeditor .tinyeditor-footer {
 
 body {
     font-family: roboto;
-    height: 100% !important;
+    /*height: 100% !important;*/
     font-size: 14px;
 }
 
@@ -408,8 +408,9 @@ body.overflow {
 .modal-login .modal-content {
     width: 300px;
 }
-.modal-signup .modal-content{
-     width: 360px;
+
+.modal-signup .modal-content {
+    width: 360px;
 }
 
 .modal .modal-body {
@@ -515,9 +516,20 @@ name-tag a {
     font-size: 25px;
 }
 
-.note wysiwyg-edit .tinyeditor .sizer {
-    min-height: 400px;
+.tinyeditor .sizer {
     max-height: 100%;
+}
+
+wysiwyg-edit .tinyeditor .sizer{
+    min-height: 400px;
+}
+
+wysiwyg-edit.point .tinyeditor .sizer {
+    min-height: 80px;
+}
+
+wysiwyg-edit.summary .tinyeditor .sizer {
+    min-height: 250px;
 }
 
 .toast-danger .md-toast-content {
@@ -533,4 +545,12 @@ name-tag a {
 .alert-info button, .alert-danger .close {
     color: #fff;
     font-size: 25px;
+}
+
+.gray-body {
+    background-color: #edecec;
+}
+
+.f-25 {
+    font-size: 25px !important;
 }

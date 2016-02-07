@@ -1,33 +1,5 @@
 <div class="container">
 
-    <!--<div class="block-header">-->
-    <!--<h2>Data Tables-->
-    <!--<small>ng-table is a powerfull AngularJs ready Data Table with tons of customizable options. Read more <a-->
-    <!--target="_blank" href="http://ng-table.com/#/">here</a> for detailed documentation and HowTos...-->
-    <!--</small>-->
-    <!--</h2>-->
-
-    <!--<ul class="actions m-t-20 hidden-xs">-->
-    <!--<li class="dropdown" uib-dropdown>-->
-    <!--<a href="" uib-dropdown-toggle>-->
-    <!--<i class="zmdi zmdi-more-vert"></i>-->
-    <!--</a>-->
-
-    <!--<ul class="dropdown-menu dropdown-menu-right">-->
-    <!--<li>-->
-    <!--<a href="">Privacy Settings</a>-->
-    <!--</li>-->
-    <!--<li>-->
-    <!--<a href="">Account Settings</a>-->
-    <!--</li>-->
-    <!--<li>-->
-    <!--<a href="">Other Settings</a>-->
-    <!--</li>-->
-    <!--</ul>-->
-    <!--</li>-->
-    <!--</ul>-->
-    <!--</div>-->
-
     <div class="card">
         <div class="card-header">
             <h2>My Notes
@@ -36,14 +8,10 @@
         </div>
 
         <div class="card-body">
-            <!--<md-toolbar class="md-table-toolbar md-default">-->
-            <!--<div class="md-toolbar-tools">-->
-            <!--<span>Nutrition</span>-->
-            <!--</div>-->
-            <!--</md-toolbar>-->
+            <p class="p-20" ng-if="notesCtrl.notes.total == 0">
+                You have not created any notes. Click <a ui-sref="base.new-note">here</a> to a create a new note.</p>
+            <md-table-container ng-if="notesCtrl.notes.total > 0">
 
-            <!-- exact table from live demo -->
-            <md-table-container>
                 <table md-table md-progress="notesCtrl.promise">
                     <thead md-head>
                     <tr md-row>
@@ -66,7 +34,10 @@
                             {{note.created_at | formatDate}}
                         </td>
                         <td class="hidden-xs" md-cell>
-                            <span ng-if="!note.sermon">{{note.pastor}}</span>
+                            <span ng-if="!note.sermon && !note.pastor.id">{{note.pastor}}</span>
+                            <span ng-if="!note.sermon && note.pastor.id">
+                                <name-tag user="note.pastor"></name-tag>
+                            </span>
                             <a href ng-if="note.sermon">
                                 <span>{{note.sermon.pastor.title}}</span>
                                 <span>{{note.sermon.pastor.first_name | sentencecase}}</span>
@@ -88,31 +59,12 @@
                 </table>
             </md-table-container>
             <md-table-pagination md-limit="notesCtrl.notes.page_size"
+                                 ng-if="notesCtrl.notes.total > 0"
                                  md-page="notesCtrl.notes.page"
-                                 md-total="{{notesCtrl.notes.total}}"
+                                 md-total="{{notesCtrl.notes.total}}">
 
-            ></md-table-pagination>
-            <!--<div class="table-responsive">-->
-            <!--<table ng-table="tctrl.tableBasic" class="table table-striped table-vmiddle">-->
-            <!--<tr ng-repeat="w in $data">-->
-            <!--<td data-title="'ID'">-->
-            <!--{{ w.id }}-->
-            <!--</td>-->
-            <!--<td data-title="'Name'">-->
-            <!--{{ w.name }}-->
-            <!--</td>-->
-            <!--<td data-title="'Email'">-->
-            <!--{{ w.email }}-->
-            <!--</td>-->
-            <!--<td data-title="'Username'">-->
-            <!--{{ w.username }}-->
-            <!--</td>-->
-            <!--<td data-title="'Contact'">-->
-            <!--{{ w.contact }}-->
-            <!--</td>-->
-            <!--</tr>-->
-            <!--</table>-->
-            <!--</div>-->
+            </md-table-pagination>
+
         </div>
     </div>
 

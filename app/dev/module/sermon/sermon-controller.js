@@ -16,7 +16,7 @@
 
         self.user = authService.user;
 
-        console.log(self.user);
+        //console.log(self.user);
         self.errors = {};
         self.noteStyle = 'point';
         self.privacy = [
@@ -105,6 +105,9 @@
         }
     };
 
+    SermonController.prototype.likeSermon = function () {
+        this.userService.likeSermon(this.user, this.sermon);
+    };
     SermonController.prototype.sermonsCallback_ = function (data) {
         var self = this;
         var sermons = [];
@@ -204,7 +207,7 @@
 
             });
         } else {
-            console.log('failed')
+            self.alertService.info('Some required fields are missing');
         }
     };
 
@@ -413,5 +416,6 @@
 
     App.controller('sermonController', SermonController);
 
-})();
+})
+();
 

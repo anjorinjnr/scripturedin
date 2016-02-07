@@ -28,6 +28,7 @@
     <link href="vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css"
           rel="stylesheet">
     <link href="vendors/bower_components/ngWYSIWYG/css/editor.css" rel="stylesheet">
+    <link href="vendors/bower_components/sweetalert/dist/sweetalert.css" rel="stylesheet">
 
     <!-- CSS -->
     <link href="css/app.min.1.css" rel="stylesheet" id="app-level">
@@ -37,8 +38,7 @@
     <!--<link href="css/demo.css" rel="stylesheet">-->
 
 </head>
-
-<body ng-class="{overflow: appCtrl.sideMenu}">
+<body ng-class="{overflow: appCtrl.sideMenu, 'gray-body': $state.current.name.indexOf('base') >= 0}">
 
 <div ui-view autoscroll='true'></div>
 
@@ -117,6 +117,7 @@
 <script src="vendors/bower_components/ng-file-upload-shim/ng-file-upload-shim.min.js"></script>
 <script src="vendors/bower_components/ng-file-upload/ng-file-upload.min.js"></script>
 <script src="vendors/bower_components/remarkable-bootstrap-notify/dist/bootstrap-notify.min.js"></script>
+<script src="vendors/bower_components/sweetalert/dist/sweetalert.min.js"></script>
 
 <!-- Common Vendors -->
 <script src="vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
@@ -141,11 +142,11 @@
 <script src="module/home/home-controller.js"></script>
 <script src="module/read/read-controller.js"></script>
 <script src="module/notes/notes-controller.js"></script>
+<script src="module/notes/note-service.js"></script>
 <script src="module/sermon/sermon-controller.js"></script>
 <script src="module/shared/header-controller.js"></script>
 <script src="module/component/user/user-service.js"></script>
 <script src="module/component/auth/auth-service.js"></script>
-<script src="module/services.js"></script>
 <script src="module/component/helper-directives/directives.js"></script>
 <script src="module/component/helper-filters/filters.js"></script>
 <script src="module/component/feed/feed-directive.js"></script>

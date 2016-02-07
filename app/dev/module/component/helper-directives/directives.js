@@ -15,34 +15,14 @@ App
         }
 
     })
-    .directive('autoSave', function (userService, alertService) {
+    .directive('autoSave', function (noteService) {
         return {
             restrict: 'EA',
             scope: {
                 note: '='
             },
             link: function (scope) {
-                console.log(scope.note);
-                scope.$watch(function () {
-                    if (scope.note) {
-                        return scope.note.notes;
-                    }
-                }, function (n, o) {
-                    if (o !== n) {
-                        scope.note.saving = true;
-                        userService.saveNote(scope.note).then(function (resp) {
-                            scope.note.saving = false;
-                            if (resp.data.id) {
-                                //self.sermonNote.id = resp.data.id;
-                                //self.sermonNote.user_id = resp.data.created_by;
-                                // self.sermonNote.sermon_id = resp.data.sermon_key;
-                                scope.note.modified_at = resp.data.modified_at;
-                            } else {
-                                alertService.danger('<strong>Sorry!</strong> your notes are not being saved.');
-                            }
-                        });
-                    }
-                })
+                noteService.startSaving(scope, scope.note);
             }
         }
     })
@@ -182,7 +162,7 @@ App
                         });
                     },
                     eventMouseover: function (calEvent, jsEvent, view) {
-                         console.log(arguments);
+                        console.log(arguments);
                     },
                     eventClick: function (calEvent, jsEvent, view) {
                         console.log(arguments);

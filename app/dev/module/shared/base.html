@@ -1,13 +1,46 @@
-<header ng-hide="$state.current.data.hideHeader" autoscroll="true"
-        id="header" ng-include="'module/shared/header.html'"
+<header ng-hide="$state.current.data.hideHeader"
+        id="header"
         ng-controller="headerController as headerCtrl"
-        data-current-skin="blue" style="height: 70px">
+        data-current-skin="blue"
+        style="height: 70px">
+    <ul class="header-inner clearfix">
+        <li id="menu-trigger"
+            ng-click="appCtrl.sidebarToggle.left = !appCtrl.sidebarToggle.left"
+            data-ng-class="{ 'open': appCtrl.sidebarToggle.left === true }">
+            <div class="line-wrap">
+                <div class="line top"></div>
+                <div class="line center"></div>
+                <div class="line bottom"></div>
+            </div>
+        </li>
 
+        <li class="logo hidden-xs">
+            <a href="/#/home">scripturedIn</a>
+        </li>
+
+    </ul>
+
+    <!-- when mobile, reduce width and float right -->
+    <div id="top-search-wrap" class="hidden-xs"
+         style="position: relative; background: none;opacity:1;margin: 0 auto; width: 600px;">
+        <div class="tsw-inner" style="max-width: 500px">
+            <!--<i id="top-search-close" class="zmdi zmdi-arrow-left" data-ng-click="hctrl.closeSearch()"></i>-->
+            <input focus type="text"
+                   data-ng-keypress="headerCtrl.onSearchKeyPress($event)"
+                   data-ng-model="headerCtrl.searchTerm"
+                   placeholder="Search for bible verse e.g john 3:16"
+                   style="padding: 0 10px 0 20px; font-size: 14px">
+        </div>
+    </div>
+
+    <!--<div ng-include="'module/shared/header.html'"></div>-->
 </header>
 
 <section id="main">
     <aside id="sidebar" data-ng-include="'module/shared/sidebar-left.html'"
-           data-ng-class="{ 'toggled': appCtrl.sidebarToggle.left === true }"></aside>
+           data-ng-class="{ 'toggled': appCtrl.sidebarToggle.left === true }">
+
+    </aside>
     <section id="content" class="main-page-content" ui-view="content" autoscroll='true'>
 
     </section>
@@ -49,14 +82,3 @@
     </md-fab-speed-dial>
 </div>
 
-<!--<footer id="footer">-->
-     <!--&copy; 2015 scripturedin-->
-
-    <!--&lt;!&ndash;<ul class="f-menu">&ndash;&gt;-->
-        <!--&lt;!&ndash;<li><a href="">Home</a></li>&ndash;&gt;-->
-        <!--&lt;!&ndash;<li><a href="">Dashboard</a></li>&ndash;&gt;-->
-        <!--&lt;!&ndash;<li><a href="">Reports</a></li>&ndash;&gt;-->
-        <!--&lt;!&ndash;<li><a href="">Support</a></li>&ndash;&gt;-->
-        <!--&lt;!&ndash;<li><a href="">Contact</a></li>&ndash;&gt;-->
-    <!--&lt;!&ndash;</ul>&ndash;&gt;-->
-<!--</footer>-->

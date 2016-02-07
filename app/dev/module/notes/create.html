@@ -110,33 +110,36 @@
             </div>
             <div class="row">
                 <div class="col-sm-12">
-                    <div>
+                    <div class="note-info">
                       <span class="text-left f-10 m-r-20"
                             ng-if="notesCtrl.note.modified_at"
                             style="height: 20px">
                         Last modified: {{notesCtrl.note.modified_at | formatDate:'MMM D, YYYY [at] h:mm a'}}
                       </span>
+                        <span ng-if="notesCtrl.missingTitle"
+                              class="c-red">Please enter a sermon title before typing. <strong>Your notes are not
+                            saved!</strong></span>
                     <span class="text-right f-1-"
                           style="height: 20px">
                         <span ng-show="notesCtrl.note.saving">Saving...</span>
                     </span>
-                    </div>
-                    <div>
-                        <a href ng-click="notesCtrl.expandNote=true"
-                           ng-show="!notesCtrl.expandNote"
-                        >
-                            <md-icon class="pull-right" md-svg-src="/img/icons/arrow_upward_black.svg">
-                                <md-tooltip class="hidden-xs" md-direction="top">
-                                    Expand note
-                                </md-tooltip>
-                            </md-icon>
-                        </a>
-                        <a href ng-click="notesCtrl.expandNote=false" ng-show="notesCtrl.expandNote">
-                            <md-icon class="pull-right" md-svg-src="/img/icons/arrow_downward_black.svg">
-                                <md-tooltip  class="hidden-xs" md-direction="top">
-                                </md-tooltip>
-                            </md-icon>
-                        </a>
+                        <div>
+                            <a href ng-click="notesCtrl.expandNote=true"
+                               ng-show="!notesCtrl.expandNote"
+                            >
+                                <md-icon class="pull-right" md-svg-src="/img/icons/arrow_upward_black.svg">
+                                    <md-tooltip class="hidden-xs" md-direction="top">
+                                        Expand note
+                                    </md-tooltip>
+                                </md-icon>
+                            </a>
+                            <a href ng-click="notesCtrl.expandNote=false" ng-show="notesCtrl.expandNote">
+                                <md-icon class="pull-right" md-svg-src="/img/icons/arrow_downward_black.svg">
+                                    <md-tooltip class="hidden-xs" md-direction="top">
+                                    </md-tooltip>
+                                </md-icon>
+                            </a>
+                        </div>
                     </div>
                     <wysiwyg-edit class="note_editor"
                                   config="editorConfig"

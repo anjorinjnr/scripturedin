@@ -6,7 +6,7 @@
     HeaderController.prototype.onSearchKeyPress = function (e) {
         var self = this;
         if (e && e.keyCode == 13) {
-            $location.url('/read?p=' + self.searchTerm);
+            self.location_.url('/read?p=' + self.searchTerm);
         }
     };
     App.controller('headerController', HeaderController);

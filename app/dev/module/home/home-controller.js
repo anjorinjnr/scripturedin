@@ -9,9 +9,6 @@
         self.getFeed();
     };
 
-    /**
-     * Get scripture
-     */
     HomeController.prototype.getFeed = function () {
         var self = this;
         self.userService.getFeed().then(function (resp) {
@@ -21,7 +18,3 @@
 
     App.controller('homeController', HomeController);
 })();
-App.controller('homeController', function ($scope, alertService, userService, authService, bibleService) {
-
-
-});

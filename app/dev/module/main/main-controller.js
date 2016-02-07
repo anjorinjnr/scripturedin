@@ -37,12 +37,8 @@
 
     MainCtrl.prototype.loginFacebookUser = function () {
         var self = this;
-        var data = {
-            'email': self.fbUser.email,
-            'access_token': self.fbUser.access_token,
-            'auth': 'facebook'
-        };
-        self.authService.login(data);
+        self.fbUser.auth = 'facebook';
+        self.authService.login(self.fbUser);
     };
 
     /**

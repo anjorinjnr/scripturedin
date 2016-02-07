@@ -138,7 +138,7 @@ App
             },
             link: function (scope, element) {
                 var feed = scope.feed;
-
+                feed.showComments = (feed.comment_count > 5) ? false : true;
                 scope.util = util;
                 scope.user = authService.user;
 
@@ -195,33 +195,9 @@ App
                         scope.likeSermon();
                     }
                 };
-                scope.likeSermon = function () {
-                    if (scope.busy) return;
-                    if (_.isUndefined(scope.user['fav_sermon_keys'])) {
-                        scope.user.fav_sermon_keys = [];
-                    }
 
-                    var i = scope.user.fav_sermon_keys.indexOf(feed.id);
-                    if (i >= 0) {
-                        scope.busy = true;
-                        userService.unlikeSermon(feed.id).then(function (resp) {
-                            scope.busy = false;
-                            if (resp.data.status == 'success') {
-                                feed.like_count -= 1;
-                                scope.user.fav_sermon_keys.splice(i, 1);
-                            }
-                        });
-                        //unlike
-                    } else {
-                        scope.busy = true;
-                        userService.likeSermon(feed.id).then(function (resp) {
-                            scope.busy = false;
-                            if (resp.data.status == 'success') {
-                                feed.like_count += 1;
-                                scope.user.fav_sermon_keys.push(feed.id);
-                            }
-                        });
-                    }
+                scope.likeSermon = function () {
+                    userService.likeSermon(scope.user, feed);
                 };
 
 

@@ -65,4 +65,12 @@ indexes:
   - name: __key__
   - name: first_name
   - name: last_name
+  - name: profile_photo
+  - name: title
+
+- kind: User
+  properties:
+  - name: __key__
+  - name: first_name
+  - name: last_name
   - name: title

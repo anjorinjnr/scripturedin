@@ -1,45 +1,4 @@
 (function () {
-
-    //var Controller = function (bibleService, $scope) {
-    //    var self = this;
-    //
-    //    console.log($scope);
-    //    console.log(self)
-    //    return;
-    //    //create scripture object from text
-    //    console.log($scope)
-    //    var scripture = bibleService.parseScripture($scope.text);
-    //
-    //    console.log(scripture);
-    //
-    //    self.getPassage(scripture);
-    //
-    //    //get the available bible versions
-    //    bibleService.versions().then(function (resp) {
-    //        scope.versions = resp.data;
-    //    });
-    //
-    //    /**
-    //     * Reload scripture using selected translation
-    //     * @param trans
-    //     */
-    //    self.changeTranslation = function (trans) {
-    //        scripture.translation = trans.abbr.toLowerCase();
-    //        self.getPassage(scripture);
-    //    };
-    //
-    //    /**
-    //     * Load scripture from server
-    //     * @param {Object} scripture
-    //     */
-    //    self.getPassage = function (scripture) {
-    //        self.loading = true;
-    //        bibleService.getPassage(scripture).then(function (resp) {
-    //            self.loading = false;
-    //            self.scripture = resp.data;
-    //        });
-    //    };
-    //};
     App.directive('chipShowModalOnClick', function (bibleService) {
         return {
             restrict: 'A',

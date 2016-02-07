@@ -1,5 +1,5 @@
 application: scripturedin
-version: auto
+version: v1-0-5
 runtime: python27
 api_version: 1
 threadsafe: yes
@@ -9,33 +9,34 @@ handlers:
   static_files: favicon.ico
   upload: favicon\.ico
 
-- url: /task//.*
+- url: /task/.*
   script: main.app
   login: admin
 
 - url: /api/.*
   script: main.app
+  secure: always
 
 #uncomment for local dev
 - url: /
-  static_files: app/dev/index.html
-  upload: app
-
-- url: (.*)
-  static_files: app/dev\1
-  upload: app
-
-#uncomment for prod
-#- url: /
-#  static_files: app/prod/index.html
+#  static_files: app/dev/index.html
 #  upload: app
-#
 #
 #- url: (.*)
-#  static_files: app/prod\1
+#  static_files: app/dev\1
 #  upload: app
-#
-#
+
+#uncomment for prod
+- url: /
+  static_files: app/prod/index.html
+  upload: app
+  secure: always
+
+- url: (.*)
+  static_files: app/prod\1
+  upload: app
+  secure: always
+
 
 libraries:
 - name: webapp2
