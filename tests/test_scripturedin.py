@@ -235,7 +235,7 @@ class ScripturedinTestCase(unittest.TestCase):
         m.key = m.put()
 
         _user = model.User.query(model.User.key == u.key).get(
-            projection=[model.User.first_name, model.User.last_name,
+            projection=[model.User.first_name, model.User.last_name, model.User.profile_photo,
                         model.User.title])
         # load first feed
         initial = model.get_feed(m.key.id(), page_size=1)

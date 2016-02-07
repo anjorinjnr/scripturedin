@@ -18,7 +18,7 @@ handlers:
   secure: always
 
 #uncomment for local dev
-- url: /
+#- url: /
 #  static_files: app/dev/index.html
 #  upload: app
 #
