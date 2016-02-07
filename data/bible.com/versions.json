@@ -13,21 +13,9 @@
   },
   {
     "lang": "English",
-    "id": 37,
-    "abbr": "CEB",
-    "title": "Common English Bible"
-  },
-  {
-    "lang": "English",
     "id": 303,
     "abbr": "CEVDCUS06",
     "title": "Contemporary English Version"
-  },
-  {
-    "lang": "English",
-    "id": 42,
-    "abbr": "CPDV",
-    "title": "Catholic Public Domain Version"
   },
   {
     "lang": "English",
@@ -58,12 +46,6 @@
     "id": 69,
     "abbr": "GNTD",
     "title": "Good News Translation (US Version)"
-  },
-  {
-    "lang": "English",
-    "id": 1359,
-    "abbr": "ICB",
-    "title": "International Children’s Bible"
   },
   {
     "lang": "English",
@@ -154,17 +136,5 @@
     "id": 1204,
     "abbr": "WEBBE",
     "title": "World English Bible British Edition"
-  },
-  {
-    "lang": "English",
-    "id": 1209,
-    "abbr": "WMB",
-    "title": "World Messianic Bible"
-  },
-  {
-    "lang": "English",
-    "id": 1207,
-    "abbr": "WMBBE",
-    "title": "World Messianic Bible British Edition"
   }
 ]

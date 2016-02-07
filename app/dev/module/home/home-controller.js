@@ -1,32 +1,27 @@
-/**
- * Created by eanjorin on 12/10/15.
- */
-App.controller('homeController', function ($rootScope, userService, authService, bibleService) {
+(function () {
 
-    var self = this;
-
-       console.log(authService.user);
-    /*
-     listen to search event
-     */
-    $rootScope.$on('search', function (ev, b) {
-        self.getScripture(b.query)
-    });
+    var HomeController = function ($scope, alertService, userService, bibleService) {
+        var self = this;
+        self.scope_ = $scope;
+        self.bibleService = bibleService;
+        self.userService = userService;
+        self.alertService = alertService;
+        self.getFeed();
+    };
 
     /**
      * Get scripture
      */
-    self.getScripture = function (query) {
-        bibleService.get(query).then(function (resp) {
-            console.log(resp.data);
+    HomeController.prototype.getFeed = function () {
+        var self = this;
+        self.userService.getFeed().then(function (resp) {
+            self.feedData = resp.data;
         });
     };
 
-    self.getFeed = function () {
-        userService.getFeed().then(function (resp) {
-           self.feedData = resp.data;
-        });
-    };
+    App.controller('homeController', HomeController);
+})();
+App.controller('homeController', function ($scope, alertService, userService, authService, bibleService) {
 
-    self.getFeed();
+
 });
