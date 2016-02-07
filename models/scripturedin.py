@@ -47,6 +47,12 @@ class BaseModel(ndb.Model):
         if self._has_index:
             self.update_index()
 
+class File(BaseModel):
+    blobstore_key = ndb.TextProperty()
+    file_name = ndb.StringProperty()
+    file_path = ndb.StringProperty()
+    file_type = ndb.StringProperty()
+
 
 class User(AuthUser):
     title = type_string(default='')
@@ -58,6 +64,7 @@ class User(AuthUser):
     church_key = type_key()
     is_pastor = type_bool()
     fav_sermon_keys = type_key(kind='Sermon', repeated=True)
+    profile_photo = type_string()
 
     _has_index = True
 
@@ -135,6 +142,7 @@ class Church(BaseModel):
             # todo index other fields
             doc = search.Document(doc_id=str(doc_id),
                                   fields=[search.TextField(name='name', value=str(self.name)),
+                                          search.TextField(name='city', value=str(self.city)),
                                           search.TextField(name='website', value=str(self.website))])
             Church.get_index().put(doc)
         except (search.Error, UnicodeEncodeError) as e:
@@ -275,18 +283,24 @@ def update_user(id, data):
                 elif val in ['m', 'male']:
                     user.gender = 'm'
             if key == 'is_pastor':
-                if type(val) == bool:
+                if isinstance(val, bool):
                     user.is_pastor = val
-                elif val.lower() in ['t', 'true', 'y', 'yes']:
+                elif isinstance(val, str) and  val.lower() in ['t', 'true', 'y', 'yes']:
                     user.is_pastor = True
                 else:
                     user.is_pastor = False
-            if key == 'church_id':
+            if key == 'church' and isinstance(val, str):
+                user.church_key = save_church({'name': val}).key
+            if key in ['church_id', 'church_key']:
                 user.church_key = ndb.Key('Church', val)
             if key == 'title':
                 user.title = val
+            if key == 'first_name':
+                user.first_name = val
+            if key == 'last_name':
+                user.last_name = val
+
         user.put()
-        user.update_index()
     return user
 
 
@@ -435,7 +449,7 @@ def _update_sermon(user_id, data, publish=False):
                 qsts.append(q)
         sermon.questions = qsts
 
-    if 'privacy' in data and data['privacy'].lower() in PRIVACY:
+    if 'privacy' in data and data['privacy'].lower() in PRIVACY_OPTIONS:
         sermon.privacy = data['privacy'].lower()
     else:
         sermon.privacy = 'public'
@@ -454,13 +468,71 @@ def publish_sermon(user_id, data):
     return _update_sermon(user_id, data, True)
 
 
-def get_sermons_by_church(church_id, ):
-    return Sermon.query(Sermon.church_key == ndb.Key('Church', int(church_id)),
-                        Sermon.publish == True).fetch()
+def get_sermons_by_church(church_id, cursor=None, page_size=100):
+    """Return published sermons in this church.
+
+    Args:
+        church_id: the church id
+        cursor: optional cursor for paging
+        page_size: optional page size
+
+    Returns:
+        Returns dict with results
+    """
+
+    if isinstance(cursor, str):
+        cursor = Cursor(urlsafe=cursor)
+
+    church_key = ndb.Key('Church', int(church_id))
+    total = Sermon.query(Sermon.church_key == church_key, Sermon.publish == True).count(keys_only=True)
+    q = Sermon.query(Sermon.church_key == church_key, Sermon.publish == True).order(-Sermon.created_at)
+
+    if cursor:
+        sermons, next_curs, more = q.fetch_page(page_size, start_cursor=cursor)
+    else:
+        sermons, next_curs, more = q.fetch_page(page_size)
+
+    data = [_process_sermon(sermon) for sermon in sermons]
+    logging.info(data[0]['pastor'])
+    return {
+        'sermons': data,
+        'next': next_curs.urlsafe() if more and next_curs else None,
+        'total': total,
+        'page_size': page_size
+    }
 
 
-def get_sermons_by_pastor(pastor):
-    pass
+def get_sermons_by_pastor(pastor_id, cursor=None, page_size=100):
+    """Return published sermons created by specified pastor.
+
+    Args:
+        pastor_id: the pastor id
+        cursor: optional cursor for paging
+        page_size: optional page size
+
+    Returns:
+        Returns dict with results
+
+    """
+    if isinstance(cursor, str):
+        cursor = Cursor(urlsafe=cursor)
+
+    pastor_key = ndb.Key('User', int(pastor_id))
+    total = Sermon.query(Sermon.created_by == pastor_key, Sermon.publish == True).count(keys_only=True)
+    q = Sermon.query(Sermon.created_by == pastor_key, Sermon.publish == True).order(-Sermon.created_at)
+
+    if cursor:
+        sermons, next_curs, more = q.fetch_page(page_size, start_cursor=cursor)
+    else:
+        sermons, next_curs, more = q.fetch_page(page_size)
+
+    data = [_process_sermon(sermon) for sermon in sermons]
+    return {
+        'sermons': data,
+        'next': next_curs.urlsafe() if more and next_curs else None,
+        'total': total,
+        'page_size': page_size
+    }
 
 
 def save_comment(data):
@@ -806,26 +878,43 @@ def create_feed(obj):
     feed.put()
 
 
+def _get_mini_user_info(user_key):
+    user = user_key.get()
+    return {'id': user.key.id(),
+            'title': user.title,
+            'first_name': user.first_name,
+            'last_name': user.last_name
+            }
+
+
+def get_mini_church_info(church_key):
+    church = church_key.get()
+    return {'id': church.key.id(),
+            'name': church.name,
+            'website': church.website,
+            'city': church.city
+            }
+
+
+def _process_sermon(sermon):
+    sermon_ = util.model_to_dict(sermon)
+    sermon_['pastor'] = _get_mini_user_info(sermon.created_by)
+    sermon_['church'] = get_mini_church_info(sermon.church_key)
+    return sermon_
+
+
 def _process_note(note):
     note_ = util.model_to_dict(note)
     if note.sermon_key:
         sermon = note.sermon_key.get()
-        pastor = sermon.created_by.get()
-        church = sermon.church_key.get()
         note_['sermon'] = {
             'id': sermon.key.id(),
             'title': sermon.title,
-            'pastor': {
-                'id': pastor.key.id(),
-                'title': pastor.title,
-                'first_name': pastor.first_name,
-                'last_name': pastor.last_name
-            },
-            'church': {
-                'id': church.key.id(),
-                'name': church.name
-            }
+            'pastor': _get_mini_user_info(sermon.created_by),
+            'church': get_mini_church_info(sermon.church_key)
         }
+    elif note.church_key:
+        note_['church'] = get_mini_church_info(note.church_key)
     return note_
 
 
@@ -910,6 +999,10 @@ def save_note(user_key, data):
             'user_key': user_key
         })
     else:
+        if 'notes' not in data:
+             raise Exception('notes is required')
+        if 'title' not in data:
+              raise Exception('title is required')
         sermon_note = SermonNote.get_by_id(int(data['id'])) if 'id' in data else SermonNote(created_by=user_key)
         sermon_note.notes = data['notes']
         sermon_note.title = data['title']
@@ -922,9 +1015,11 @@ def save_note(user_key, data):
 
         if 'church_id' in data and data['church_id']:
             sermon_note.church_key = ndb.Key('Church', int(data['church_id']))
-        elif 'church' in data and Church.query(Church.name == data['church']).get() is None:
-            ch = Church(name=data['church'])
-            ch.key = ch.put()
-            sermon_note.church_key = ch.key
+        elif sermon_note.church_key is None:
+            if 'church' in data and isinstance(data['church'], str) and Church.query(
+                            Church.name == data['church']).get() is None:
+                ch = Church(name=data['church'])
+                ch.key = ch.put()
+                sermon_note.church_key = ch.key
         sermon_note.id = sermon_note.put()
         return sermon_note

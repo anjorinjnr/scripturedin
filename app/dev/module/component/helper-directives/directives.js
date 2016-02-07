@@ -15,7 +15,7 @@ App
         }
 
     })
-    .directive('autoSave', function (userService) {
+    .directive('autoSave', function (userService, alertService) {
         return {
             restrict: 'EA',
             scope: {
@@ -30,13 +30,15 @@ App
                 }, function (n, o) {
                     if (o !== n) {
                         scope.note.saving = true;
-                        userService.saveSermonNote(scope.note).then(function (resp) {
+                        userService.saveNote(scope.note).then(function (resp) {
                             scope.note.saving = false;
                             if (resp.data.id) {
                                 //self.sermonNote.id = resp.data.id;
                                 //self.sermonNote.user_id = resp.data.created_by;
                                 // self.sermonNote.sermon_id = resp.data.sermon_key;
                                 scope.note.modified_at = resp.data.modified_at;
+                            } else {
+                                alertService.danger('<strong>Sorry!</strong> your notes are not being saved.');
                             }
                         });
                     }
@@ -84,6 +86,7 @@ App
             }
         }
     })
+
     .directive('loading', function () {
         return {
             restrict: 'EA',
@@ -134,6 +137,16 @@ App
             }
         };
     })
+    .directive('calSermonHover', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, elm) {
+                $(elm).on('mouseenter', '.fc-day-grid-event', function () {
+                    //console.log(123);
+                });
+            }
+        };
+    })
     .directive('calendar', function ($compile) {
         return {
             restrict: 'A',
@@ -144,7 +157,7 @@ App
                 eventClick: '='
             },
             link: function (scope, element, attrs) {
-
+                console.log(scope.events);
                 //Generate the Calendar
                 element.fullCalendar({
                     header: {
@@ -168,16 +181,17 @@ App
                             end: end
                         });
                     },
-
+                    eventMouseover: function (calEvent, jsEvent, view) {
+                         console.log(arguments);
+                    },
                     eventClick: function (calEvent, jsEvent, view) {
                         console.log(arguments);
                         scope.eventClick(calEvent, jsEvent, view);
                     }
                 });
 
-
                 //Add action links in calendar header
-                element.find('.fc-toolbar').append($compile(scope.actionLinks)(scope));
+                //  element.find('.fc-toolbar').append($compile(scope.actionLinks)(scope));
             }
         }
     })

@@ -2,7 +2,7 @@
     <div class="profile-menu">
         <a href="" toggle-submenu>
             <div class="profile-pic">
-                <img src="img/profile-pics/profile-pic.jpg" alt="">
+                <img ng-src="{{imagePath(authService.user)}}" alt="">
             </div>
 
             <div class="profile-info">
@@ -20,11 +20,11 @@
             <!--<li>-->
             <!--<a href=""><i class="zmdi zmdi-input-antenna"></i> Privacy Settings</a>-->
             <!--</li>-->
-            <!--<li>-->
-            <!--<a href=""><i class="zmdi zmdi-settings"></i> Settings</a>-->
-            <!--</li>-->
             <li>
-                <a href=""><i class="zmdi zmdi-time-restore"></i> Logout</a>
+            <a ui-sref="base.settings"><i class="zmdi zmdi-settings"></i> Settings</a>
+            </li>
+            <li>
+                <a href="#/logout"><i class="zmdi zmdi-time-restore"></i> Logout</a>
             </li>
         </ul>
     </div>

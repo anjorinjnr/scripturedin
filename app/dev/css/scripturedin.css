@@ -231,6 +231,7 @@ div:empty:before {
     padding-top: 130px;
 }
 
+/** large device **/
 @media (min-width: 768px) {
     .header {
         background-position: center;
@@ -252,14 +253,16 @@ div:empty:before {
     }
 }
 
+/** small device **/
 @media (max-width: 768px) {
     .header {
         background-position: left center;
-        background-size: cover;
+        background-size: cover !important;
+        /*height: 100% !important;*/
     }
 
     .header-content {
-        padding-top: 100px;
+        padding-top: 150px;
 
     }
 
@@ -268,7 +271,7 @@ div:empty:before {
     }
 
     .header-inner {
-        padding: 5px;
+        padding: 5px !important;
         padding-top: 10px;
     }
 
@@ -397,13 +400,16 @@ body.overflow {
 /*padding: 10px;*/
 /*}*/
 
-.modal-dialog {
-    width: 300px;
+.modal-content {
+    padding: 20px;
+    margin: 100px auto;
 }
 
-.modal .modal-content {
-    margin-top: 100px;
-    padding: 20px;
+.modal-login .modal-content {
+    width: 300px;
+}
+.modal-signup .modal-content{
+     width: 360px;
 }
 
 .modal .modal-body {
@@ -502,7 +508,7 @@ body.overflow {
 }
 
 name-tag a {
-    color: #AEAEAE
+    color: rgba(0, 0, 0, 0.87);
 }
 
 .note .card-header h2 {
@@ -513,8 +519,9 @@ name-tag a {
     min-height: 400px;
     max-height: 100%;
 }
+
 .toast-danger .md-toast-content {
-    background-color: rgba(234,113,113,1);
+    background-color: rgba(234, 113, 113, 1);
     height: 25%;
 }
 
@@ -522,6 +529,7 @@ name-tag a {
     background-color: #323232;
     color: #fff;
 }
+
 .alert-info button, .alert-danger .close {
     color: #fff;
     font-size: 25px;

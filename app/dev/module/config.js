@@ -16,18 +16,46 @@ App.config(function (localStorageServiceProvider) {
                 url: '/logout'
             })
             .state('main', {
-                url: '/',
+                url: '/?a',
                 templateUrl: 'module/main/main.html',
                 controller: 'mainController as mainCtrl',
                 data: {
                     role: USER_ROLES.guest
+                },
+                resolve: {
+                    fbSdk: function ($q) {
+                        var deferred = $q.defer();
+                        window.fbAsyncInit = function () {
+                            FB.init({
+                                appId: '1637149913216948',
+                                xfbml: true,
+                                version: 'v2.5'
+                            });
+                            deferred.resolve('done');
+                        };
+
+                        (function (d, s, id) {
+                            var js, fjs = d.getElementsByTagName(s)[0];
+                            if (d.getElementById(id)) {
+                                return;
+                            }
+                            js = d.createElement(s);
+                            js.id = id;
+                            js.src = "//connect.facebook.net/en_US/sdk.js";
+                            fjs.parentNode.insertBefore(js, fjs);
+                        }(document, 'script', 'facebook-jssdk'));
+
+                        return deferred.promise;
+                    }
                 }
             })
-            .state('main.signup', {
-                url: 'signup'
-            })
-            .state('main.login', {
-                url: 'login'
+
+            .state('base', {
+                abstract: true,
+                templateUrl: 'module/shared/base.html',
+                resolve: {
+                    auth: resolveAuth
+                }
             })
             .state('base.post-signup-profile', {
                 url: '/update-profile',
@@ -37,22 +65,24 @@ App.config(function (localStorageServiceProvider) {
                         controller: 'mainController as mainCtrl'
                     }
                 },
-                resolve: {
-                    auth: resolveAuth
-                },
                 data: {
                     role: USER_ROLES.user,
                     hideHeader: false,
                     pageTitle: 'Update your profile'
                 }
             })
-            .state('base', {
-                abstract: true,
-                templateUrl: 'module/shared/base.html',
-                resolve: {
-                    auth: resolveAuth
+            .state('base.settings', {
+                url: '/settings',
+                views: {
+                    'content': {
+                        templateUrl: 'module/main/settings.html',
+                        controller: 'mainController as mainCtrl'
+                    }
+                },
+                data: {
+                    role: USER_ROLES.user,
+                    pageTitle: 'Update your profile'
                 }
-
             })
             .state('base.home', {
                 url: '/home',
@@ -61,12 +91,7 @@ App.config(function (localStorageServiceProvider) {
                         templateUrl: 'module/home/home.html',
                         controller: 'homeController as homeCtrl'
                     }
-
                 },
-                resolve: {
-                    auth: resolveAuth
-                },
-
                 data: {
                     role: USER_ROLES.user
                 }
@@ -80,7 +105,6 @@ App.config(function (localStorageServiceProvider) {
                     }
                 },
                 resolve: {
-                    auth: resolveAuth,
                     sermons: function () {
                         return [];
                     },
@@ -102,9 +126,6 @@ App.config(function (localStorageServiceProvider) {
                     }
                 },
                 resolve: {
-                    sermons: function () {
-                        return [];
-                    },
                     sermon: function (bibleService, $stateParams, alertService, $q) {
                         var deferred = $q.defer();
                         bibleService.getSermon($stateParams.id).then(function (resp) {
@@ -138,31 +159,6 @@ App.config(function (localStorageServiceProvider) {
                     sermon: function () {
                         return {};
                     },
-                    sermons: function (bibleService, authService, util, $q) {
-                        var deferred = $q.defer();
-                        var events = [];
-                        if (authService.user.church_key) {
-                            bibleService.getChurchSermons(authService.user.church_key).then(function (resp) {
-                                //util.log(resp.data);
-                                var sermons = resp.data;
-                                sermons.forEach(function (s) {
-                                    s.date.forEach(function (d) {
-                                        var event = angular.copy(s);
-                                        event.start = util.toLocalDate(d);
-                                        event.className = 'bgm-cyan';
-                                        events.push(event);
-                                        //console.log(events);
-                                    });
-
-                                });
-                                deferred.resolve(events);
-                            });
-                        } else {
-                            deferred.resolve([]);
-                        }
-
-                        return deferred.promise;
-                    },
                     loadPlugin: function ($ocLazyLoad) {
                         return $ocLazyLoad.load([
                             {
@@ -194,7 +190,9 @@ App.config(function (localStorageServiceProvider) {
                         templateUrl: 'module/read/read.html',
                         controller: 'readController as readCtrl'
                     }
-
+                },
+                data: {
+                    role: USER_ROLES.user
                 }
             })
             .state('base.new-note', {
@@ -209,6 +207,10 @@ App.config(function (localStorageServiceProvider) {
                     note: function () {
                         return {};
                     }
+                },
+                data: {
+                    role: USER_ROLES.user,
+                    pageTitle: 'New Note'
                 }
             })
             .state('base.notes', {
@@ -223,6 +225,10 @@ App.config(function (localStorageServiceProvider) {
                     note: function () {
                         return {};
                     }
+                },
+                 data: {
+                    role: USER_ROLES.user,
+                    pageTitle: 'Ny Notes'
                 }
             })
             .state('base.note', {
@@ -242,6 +248,10 @@ App.config(function (localStorageServiceProvider) {
                         return deferred.promise;
 
                     }
+                },
+                  data: {
+                    role: USER_ROLES.user,
+                    pageTitle: 'Sermon Note'
                 }
             });
     });

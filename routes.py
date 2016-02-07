@@ -1,6 +1,5 @@
 import webapp2
 
-from handlers.auth_handler import AuthHandler
 from handlers.bible_handler import BibleHandler
 from handlers.comment_handler import CommentHandler
 from handlers.feed_handler import FeedHandler
@@ -50,11 +49,11 @@ ROUTES = [
           handler_method='get_requests',
           methods=['GET']),
     route(r'/api/login',
-          handler=AuthHandler,
+          handler=UserHandler,
           handler_method='login',
           methods=['POST']),
     route(r'/api/logout',
-          handler=AuthHandler,
+          handler=UserHandler,
           handler_method='logout',
           methods=['POST']),
 

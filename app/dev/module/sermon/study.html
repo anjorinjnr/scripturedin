@@ -97,7 +97,8 @@
                         <md-chips ng-model="sermonCtrl.sermon.scriptures"
                                   readonly="true">
                             <md-chip-template
-                                    ng-click="sermonCtrl.showScripture($chip)">
+                                    show-scripture-on-click
+                                    scripture="$chip">
                                 <md-tooltip>
                                     Click to read
                                 </md-tooltip>

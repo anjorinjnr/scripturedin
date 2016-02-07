@@ -1,81 +1,113 @@
-App.directive('scripture', function (bibleService) {
-    return {
-        restrict: 'E',
-        scope: {
-            //scripture: '='
-            text: '='
-        },
-        link: function (scope, element) {
+(function () {
 
-            //create scripture object from text
-            var scripture = bibleService.parseScripture(scope.text);
-            console.log(scripture);
-
-            getPassage(scripture);
-
-            //get the available bible versions
-            bibleService.versions().then(function (resp) {
-                scope.versions = resp.data;
-            });
-
-            /**
-             * Reload scripture using selected translation
-             * @param trans
-             */
-            scope.changeTranslation = function (trans) {
-                scripture.translation = trans.abbr.toLowerCase();
-                getPassage(scripture);
-            };
-
-            /**
-             * Load scripture from server
-             * @param {Object} scripture
-             */
-            function getPassage(scripture) {
-                scope.loading = true;
-                bibleService.getPassage(scripture).then(function (resp) {
-                    scope.loading = false;1
-                    scope.scripture = resp.data;
+    //var Controller = function (bibleService, $scope) {
+    //    var self = this;
+    //
+    //    console.log($scope);
+    //    console.log(self)
+    //    return;
+    //    //create scripture object from text
+    //    console.log($scope)
+    //    var scripture = bibleService.parseScripture($scope.text);
+    //
+    //    console.log(scripture);
+    //
+    //    self.getPassage(scripture);
+    //
+    //    //get the available bible versions
+    //    bibleService.versions().then(function (resp) {
+    //        scope.versions = resp.data;
+    //    });
+    //
+    //    /**
+    //     * Reload scripture using selected translation
+    //     * @param trans
+    //     */
+    //    self.changeTranslation = function (trans) {
+    //        scripture.translation = trans.abbr.toLowerCase();
+    //        self.getPassage(scripture);
+    //    };
+    //
+    //    /**
+    //     * Load scripture from server
+    //     * @param {Object} scripture
+    //     */
+    //    self.getPassage = function (scripture) {
+    //        self.loading = true;
+    //        bibleService.getPassage(scripture).then(function (resp) {
+    //            self.loading = false;
+    //            self.scripture = resp.data;
+    //        });
+    //    };
+    //};
+    App.directive('chipShowModalOnClick', function (bibleService) {
+        return {
+            restrict: 'A',
+            link: function (scope, element) {
+                $(element).on('click', 'md-chip', function (e) {
+                    var scripture = angular.element(e.currentTarget).scope().$chip;
+                    bibleService.showScriptureModal(scripture);
                 });
-            };
 
-            //     self.askForComment = function (ev) {
-            //$mdDialog.show({
-            //    controller: function ($scope, $mdDialog) {
-            //        var self = this;
-            //        self.$scope = $scope;
-            //        self.request = {};
-            //        self.request.tags = [];
-            //        self.request.invites = [
-            //            {
-            //                'type': 'email'
-            //            }
-            //        ];
-            //        self.newInvite = function () {
-            //            self.request.invites.push({
-            //                'type': 'email'
-            //            });
-            //        };
-            //        self.removeInvite = function (i) {
-            //            self.request.invites.splice(i, 1);
-            //        };
-            //        self.submitForm = function () {
-            //            console.log($('#reqForm'));
-            //            console.log(self.request);
-            //            // $scope.$emit('submitRequestEvent');
-            //
-            //        };
-            //
-            //    },
-            //    controllerAs: 'reqCtrl',
-            //    templateUrl: '/module/read/ask-comment.modal.html',
-            //    parent: angular.element(document.body),
-            //    targetEvent: ev,
-            //    clickOutsideToClose: true
-            //});
-            //}
-            /**/
-        },
-        templateUrl: 'module/component/scripture/scripture-card.html'
-    }
-});
+            }
+        }
+    });
+    App.directive('showScriptureOnClick', function (bibleService) {
+            return {
+                restrict: 'A',
+                scope: {
+                    scripture: '='
+                },
+                link: function (scope, element) {
+                    $(element).on('click', function () {
+                        bibleService.showScriptureModal(scope.scripture);
+                    });
+                }
+            }
+        })
+        .directive('scripture', function (bibleService) {
+            return {
+                restrict: 'E',
+                scope: {
+                    //scripture: '='
+                    text: '='
+                },
+                link: function (scope, element) {
+
+                    //create scripture object from text
+                    var scripture = bibleService.parseScripture(scope.text);
+
+                    //console.log(scripture);
+
+                    getPassage(scripture);
+
+                    //get the available bible versions
+                    bibleService.versions().then(function (resp) {
+                        scope.versions = resp.data;
+                    });
+
+                    /**
+                     * Reload scripture using selected translation
+                     * @param trans
+                     */
+                    scope.changeTranslation = function (trans) {
+                        scripture.translation = trans.abbr.toLowerCase();
+                        getPassage(scripture);
+                    };
+
+                    /**
+                     * Load scripture from server
+                     * @param {Object} scripture
+                     */
+                    function getPassage(scripture) {
+                        scope.loading = true;
+                        bibleService.getPassage(scripture).then(function (resp) {
+                            scope.loading = false;
+                            scope.scripture = resp.data;
+                        });
+                    };
+                },
+                templateUrl: 'module/component/scripture/scripture-card.html'
+            };
+        });
+})();

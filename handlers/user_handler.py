@@ -3,28 +3,85 @@ from models import scripturedin as model
 from handlers.base_handler import user_required
 from service import util
 import logging
-
+from webapp2_extras.auth import InvalidAuthIdError, InvalidPasswordError
 from service.validator import Validator
 
 
 class UserHandler(base_handler.BaseHandler):
+    def login(self):
+        """Login user into the app.
+
+        A user can login using email credentials or using services like facebook.
+        A logging in with facebook, we first check if a user with the email exists
+        as facebook login/signup get's handled here.
+        If the email exists, we can treat this as a login, only have to validate the
+        facebook access_token.
+        If the email doesn't exist then we treat this as a signup with facebook.
+        """
+        data = self.request_data()
+        auth = data['auth'] if 'auth' in data else 'email'
+        if auth == 'email' and 'email' in data:
+            try:
+                email = data['email']
+                password = data['password']
+                u = self.auth.get_user_by_password(email, password, remember=True)
+                self.write_response(self._user_response(self.user))
+            except (InvalidAuthIdError, InvalidPasswordError, KeyError) as e:
+                logging.info('Login with email failed for user %s because of %s', email, type(e))
+                self.error_response('Invalid credentials, please try again.')
+        elif auth == 'facebook':
+            try:
+                user = model.get_user_by_email(data['email'])
+                if user:
+                    # user with email already exist, we validate token and login
+                    if util._validate_facebook_token(data['access_token']):
+                        # user = model.get_user_by_email(data['email'])
+                        self.auth.set_session(self.auth.store.user_to_dict(user), remember=True)
+                        self.write_response(self._user_response(user))
+                    else:
+                        self.error_response('Invalid login credentials.')
+                else:
+                    resp = self._facebook_signup(data)
+                    if resp and resp[0]:
+                        user = resp[1]
+                        user.profile_photo = data['profile_photo'] if 'profile_photo' in data else None
+                        user.put()
+                        # start new session
+                        self.auth.set_session(self.auth.store.user_to_dict(user), remember=True)
+                        self.write_model(user)
+                    else:
+                        self.write_response(resp[1])
+            except Exception as e:
+                logging.info('Login with facebok failed for user %s because of %s',
+                             data['email'] if 'email' in data else '', type(e))
+                self.error_response('Unable to complete facebook login, please try again')
+
+    def logout(self):
+        self.auth.unset_session()
+        return self.success_response()
+
     def current_user(self):
         if self.user:
-            self.write_model(self.user)
+            user = util.model_to_dict(self.user)
+            if self.user.church_key:
+                user['church'] = model.get_mini_church_info(self.user.church_key)
+            self.write_response(user)
         else:
             self.write_response({'status': 'no active user session'})
 
     @user_required
     def update_profile(self):
         # logging.info(self.user)
-        data = self.request_data()
-        user = model.update_user(self.user.key.id(), data)
-        if user:
+        try:
+            data = self.request_data()
+            user = model.update_user(self.user.key.id(), data)
             user = util.model_to_dict(user)
+            if self.user.church_key:
+                user['church'] = model.get_mini_church_info(self.user.church_key)
             self.write_response(user)
-        else:
-            return self.error_response()
-
+        except Exception as e:
+            logging.info(e)
+            self.error_response('Update failed..')
 
     @user_required
     def search(self):
@@ -50,21 +107,15 @@ class UserHandler(base_handler.BaseHandler):
         self.write_model(note)
 
     def signup(self):
+        """Handles email signup. """
         try:
             data = self.request_data()
-            resp = None
-            if 'password' in data:
-                resp = self._email_signup(data)
-            elif 'channel' in data and data['channel'] == 'facebook':
-                resp = self._facebook_signup(data)
-
+            resp = self._email_signup(data)
             if resp and resp[0]:
                 user = resp[1]
                 # start new session
                 self.auth.set_session(self.auth.store.user_to_dict(user), remember=True)
-                # print self.auth.session
-                user_dict = util.model_to_dict(user)
-                self.write_response(user_dict)
+                self.write_model(user)
             else:
                 if 'email' in resp[1]:
                     self.error_response('An account with %s already exists' % data['email'])
@@ -72,13 +123,13 @@ class UserHandler(base_handler.BaseHandler):
                     self.error_response(resp[1])
         except Exception as e:
             logging.error(e.message)
-
             self.error_response('Unable to complete signup.')
 
     def _email_signup(self, data):
         validator = Validator({'email': 'required|email',
-                               # 'first_name': 'required',
-                               # 'last_name': 'required'
+                               'first_name': 'required',
+                               'last_name': 'required',
+                               'password': 'required'
                                },
                               data,
                               {'email': 'email is required',
@@ -104,11 +155,8 @@ class UserHandler(base_handler.BaseHandler):
                                'access_token': 'access token is required'}
                               )
         if validator.is_valid():
-            user = model.get_user_by_email(data['email'])
-            if user:
-                if util._validate_facebook_token(data['access_token']):
-                    return (True, user)
-            elif util._validate_facebook_token(data['access_token']):
+            if util._validate_facebook_token(data['access_token']):
+                logging.info(data)
                 return self._create_user(data)
             else:
                 return (False, 'Failed to verify access token')
@@ -136,4 +184,5 @@ class UserHandler(base_handler.BaseHandler):
                                                     first_name=data['first_name'],
                                                     last_name=data['last_name'],
                                                     verified=True)
+            logging.info(user_data)
         return user_data

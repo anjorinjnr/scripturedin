@@ -1,7 +1,7 @@
 App.service('alertService', function ($mdToast) {
     var self = this;
     var _config = {
-        delay: 100000,
+        delay: 4000,
         type: 'info'
     };
     self.info = function (message, config) {
@@ -10,7 +10,7 @@ App.service('alertService', function ($mdToast) {
         if (_.isArray(message)) {
             message = message.join('<br>');
         }
-        notify(message, config)
+        self.notify(message, c);
     };
     self.danger = function (message, config) {
         var c = _.merge(_config, config);
@@ -19,9 +19,9 @@ App.service('alertService', function ($mdToast) {
         if (_.isArray(message)) {
             message = message.join('<br>');
         }
-        notify(message, c)
+        self.notify(message, c)
     };
-    function notify(message, config) {
+    self.notify = function (message, config) {
         $.notifyClose();
         $.notify({
             message: message

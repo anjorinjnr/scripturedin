@@ -11,7 +11,7 @@ App
         }
 
     })
-    .directive('comment', function (userService, authService, alertService) {
+    .directive('comment', function (userService, util, authService, alertService) {
         return {
             restrict: 'E',
             scope: {
@@ -19,7 +19,8 @@ App
             },
             link: function (scope, element) {
 
-                scope.user = authService.user;
+                scope.util = util;
+                scope.user = authService.getUser();
 
                 /**
                  * Like or unlike comment
@@ -129,7 +130,7 @@ App
             templateUrl: 'module/component/feed/comments.html'
         }
     })
-    .directive('feed', function (authService, userService) {
+    .directive('feed', function (authService, util, userService) {
         return {
             restrict: 'E',
             scope: {
@@ -137,7 +138,8 @@ App
             },
             link: function (scope, element) {
                 var feed = scope.feed;
-                console.log(feed);
+
+                scope.util = util;
                 scope.user = authService.user;
 
 
@@ -149,7 +151,7 @@ App
                                     //with comment array and
                                     //next for cursor id
                                     feed.comments.comments.unshift(resp.data);
-                                    feed.newComment_ =  '';
+                                    feed.newComment_ = '';
                                     feed.comment_count++;
                                 } else {
                                     alertService.danger('Failed to post comment, please try again');

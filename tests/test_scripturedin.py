@@ -309,7 +309,7 @@ class ScripturedinTestCase(unittest.TestCase):
 
     # @mock.patch('models.scripturedin.SermonNote.put')
     @mock.patch('models.scripturedin.SermonNote.get_by_id')
-    def test_create_note(self, mock_sermon_get):
+    def test_save_note(self, mock_sermon_get):
         # test note for existing sermon
         sermon = model.Sermon(title='test sermon')
         sermon.put()
@@ -320,15 +320,16 @@ class ScripturedinTestCase(unittest.TestCase):
             }
         }
         user = ndb.Key('User', 1)
-        note = model.create_note(user, data)
+        note = model.save_note(user, data)
         self.assertEqual(data['notes'], note.notes)
 
         # test note for adhoc sermon
         data = {
             'notes': 'loremzo ipsum',
+            'title': 'bla bla',
             'pastor': 'Pastor Foo Bar',
         }
-        note = model.create_note(user, data)
+        note = model.save_note(user, data)
         self.assertEqual(data['notes'], note.notes)
         self.assertEqual(data['pastor'], note.pastor)
 
@@ -338,13 +339,13 @@ class ScripturedinTestCase(unittest.TestCase):
         church.put()
         data = {
             'notes': 'loremzo ipsum',
+            'title': 'bla bla',
             'pastor_id': pastor.key.id(),
             'church_id': church.key.id(),
         }
-        note = model.create_note(user, data)
+        note = model.save_note(user, data)
         self.assertEqual(data['notes'], note.notes)
         self.assertIsNone(note.sermon_key)
         self.assertIsNone(note.pastor)
         self.assertEqual(pastor.key, note.pastor_key)
         self.assertEqual(church.key, note.church_key)
-

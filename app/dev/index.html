@@ -40,47 +40,9 @@
 </head>
 
 <body ng-class="{overflow: appCtrl.sideMenu}">
-<script>
-    window.fbAsyncInit = function () {
-        FB.init({
-            appId: '1637149913216948',
-            xfbml: true,
-            version: 'v2.5'
-        });
-//        FB.getLoginStatus(function (response) {
-//            if (response.status === 'connected') {
-//                // Logged into your app and Facebook.
-//                FB.api('/me', function (response) {
-//                     console.log(JSON.stringify(response));H
-//                });
-//            } else if (response.status === 'not_authorized') {
-//                // The person is logged into Facebook, but not your app.
-//                console.log('Please log into this app.');
-//            } else {
-//                // The person is not logged into Facebook, so we're not sure if
-//                // they are logged into this app or not.
-//                console.log('Please log into Facebook.');
-//            }
-//        });
-    };
-
-    (function (d, s, id) {
-        var js, fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) {
-            return;
-        }
-        js = d.createElement(s);
-        js.id = id;
-        js.src = "//connect.facebook.net/en_US/sdk.js";
-        fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));
-
-</script>
 
 <div ui-view autoscroll='true'></div>
-<!--<data ui-view="header"></data>-->
-<!--<data ui-view="content"></data>-->
-<!--<data ui-view="footer"></data>-->
+
 
 <!-- Older IE warning message -->
 <!--[if lt IE 9]>
@@ -153,9 +115,9 @@
 <script src="vendors/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 <script src="vendors/bower_components/angular-material/angular-material.js"></script>
 <script src="vendors/bower_components/angular-material-data-table/dist/md-data-table.js"></script>
+<script src="vendors/bower_components/ng-file-upload-shim/ng-file-upload-shim.min.js"></script>
+<script src="vendors/bower_components/ng-file-upload/ng-file-upload.min.js"></script>
 <script src="vendors/bower_components/remarkable-bootstrap-notify/dist/bootstrap-notify.min.js"></script>
-<!--<script src="vendors/bootstrap-growl/bootstrap-growl.min.js"></script>-->
-<!--<script src="vendors/bower_components/angular-chosen-localytics/chosen.js"></script>-->
 
 <!-- Common Vendors -->
 <script src="vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
@@ -167,18 +129,11 @@
 <script src="vendors/bower_components/moment/min/moment.min.js"></script>
 <script src="vendors/bower_components/autosize/dist/autosize.min.js"></script>
 
-
-<!--<script src="vendors/bower_components/angular-summernote/dist/angular-summernote.min.js"></script>-->
-
-<!--<script src="vendors/bower_components/ng-table/dist/ng-table.min.js"></script>-->
-<!--<script src="https://apis.google.com/js/platform.js" async defer></script>-->
 <script src="https://apis.google.com/js/api:client.js"></script>
 <!-- Placeholder for IE9 -->
 <!--[if IE 9 ]>
 <script src="vendors/bower_components/jquery-placeholder/jquery.placeholder.min.js"></script>
 <![endif]-->
-
-
 
 
 <!-- App level -->
@@ -198,64 +153,11 @@
 <script src="module/component/helper-filters/filters.js"></script>
 <script src="module/component/feed/feed-directive.js"></script>
 <script src="module/component/scripture/scripture-directive.js"></script>
-<!--<script src="module/component/comment/comment-directive.js"></script>-->
+
 <script src="module/component/bible/bible-data.js"></script>
 <script src="module/component/bible/bible-service.js"></script>
 <script src="module/component/alert/alert-service.js"></script>
 <script src="module/component/util/util.js"></script>
-<!--<script src="js/templates.js"></script>-->
-<!--<script src="js/controllers/ui-bootstrap.js"></script>-->
-<!--<script src="js/controllers/table.js"></script>-->
-<script>
-
-    startApp = function () {
-        console.log(2222);
-        gapi.load('auth2', function () {
-            // Retrieve the singleton for the GoogleAuth library and set up the client.
-            auth2 = gapi.auth2.init({
-                client_id: '153948310480-t6ragv3oundj31e93qq9q1e2tode7q6g.apps.googleusercontent.com',
-                cookiepolicy: 'single_host_origin',
-                // Request scopes in addition to 'profile' and 'email'
-                //scope: 'additional_scope'
-            });
-            console.log(auth2.currentUser.get());
-            if (auth2.isSignedIn.get()) {
-                console.log(22);
-                var profile = auth2.currentUser.get().getBasicProfile();
-                console.log('ID: ' + profile.getId());
-                console.log('Name: ' + profile.getName());
-                console.log('Image URL: ' + profile.getImageUrl());
-                console.log('Email: ' + profile.getEmail());
-            }
-            attachSignin(document.getElementById('glogin'));
-            //console.log(auth2.currentUser.get());
-
-        });
-    };
-    function onSignIn(googleUser) {
-        var profile = googleUser.getBasicProfile();
-        console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
-        console.log('Name: ' + profile.getName());
-        console.log('Image URL: ' + profile.getImageUrl());
-        console.log('Email: ' + profile.getEmail());
-    }
-    ;
-
-    function attachSignin(element) {
-//        auth2.attachClickHandler(element, {},
-//                function (googleUser) {
-//                    auth2.signIn();
-//                    console.log(googleUser.getBasicProfile());
-//                }, function (error) {
-//                    alert(JSON.stringify(error, undefined, 2));
-//                });
-    }
-    startApp();
-</script>
-
-<!-- Template Modules -->
-<!--<script src="js/modules/template.js"></script>-->
-
 </body>
 </html>
 
