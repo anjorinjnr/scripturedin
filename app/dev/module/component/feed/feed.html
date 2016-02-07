@@ -2,7 +2,7 @@
     <div class="card-header">
         <div class="media">
             <div class="pull-left">
-                <img class="lv-img" src="img/profile-pics/1.jpg" alt="">
+                <img class="lv-img" ng-src="{{util.imagePath(feed.user)}}" alt="">
             </div>
 
             <div class="media-body m-t-5">
@@ -28,12 +28,12 @@
             class="wall-attrs clearfix list-inline list-unstyled">
             <li class="wa-stats">
                 <span ng-if="feed.comment_count > 0"><i class="zmdi zmdi-comments"></i>
-                    {{::feed.comment_count}}</span>
+                    {{feed.comment_count}}</span>
                 <span>
                 <a ng-click="like()"
                    href
                    ng-class="{'c-gray': !liked(), 'c-lightblue': liked() }">
-                    <i class="zmdi zmdi-thumb-up"></i> {{::feed.like_count}}
+                    <i class="zmdi zmdi-thumb-up"></i> {{feed.like_count}}
                 </a>
                     </span>
 
@@ -77,9 +77,9 @@
             </div>
 
         </div>
-         <p ng-if="!feed.showComments" class="m-t-10 m-b-0"><a href ng-click="feed.showComments = true">View comments</a></p>
-         <p ng-if="feed.showComments" class="m-t-10 m-b-0"><a href ng-click="feed.showComments = false">Collapse comments</a></p>
+         <p ng-if="feed.comments.comments.length > 5" ng-hide="feed.showComments" class="m-t-10 m-b-0"><a href ng-click="feed.showComments = true">View comments</a></p>
+         <p ng-if="feed.comments.comments.length > 5" ng-show="feed.showComments" class="m-t-10 m-b-0"><a href ng-click="feed.showComments = false">Collapse comments</a></p>
     </div>
 
-    <comments ng-if="feed.showComments" data="::feed.comments"></comments>
+    <comments ng-if="feed.showComments" data="feed.comments"></comments>
 </div>

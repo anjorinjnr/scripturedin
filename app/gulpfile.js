@@ -45,8 +45,10 @@ gulp.task('vendor-js', function () {
 });
 
 gulp.task('copy-assets', function () {
-    return gulp.src(['dev/img/**', 'dev/fonts/**', 'dev/media/**',
-            'dev/data/**','dev/vendors/bower_components/material-design-iconic-font/dist/fonts'], {base: 'dev'})
+    var assets = ['dev/img/**', 'dev/fonts/**', 'dev/media/**',
+        'dev/data/**', 'dev/vendors/bower_components/material-design-iconic-font/dist/fonts'].concat(vendor.lazy);
+
+    return gulp.src(assets, {base: 'dev'})
         .pipe(gulp.dest('prod'));
 });
 gulp.task('styles', function () {

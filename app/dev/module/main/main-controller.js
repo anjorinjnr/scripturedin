@@ -1,42 +1,80 @@
-App.controller('mainController', function ($timeout, $state, $scope, userService,
-                                           authService, bibleService, alertService) {
-    //Welcome Message
-    //growlService.growl('Welcome back Mallinda!', 'inverse')
+(function () {
 
-    var self = this;
-    self.scope = $scope;
-    self.user = authService.getUser();
-    self.newChurch = {};
-    self.updateProfile = function () {
-        self.user.church_id = self.user.church.id;
+    var MainCtrl = function ($timeout, $state, $scope, userService,
+                             authService, $uibModal, $stateParams,
+                             bibleService, alertService) {
+        var self = this;
+        self.scope_ = $scope;
+        self.state_ = $state;
+        self.modal_ = $uibModal;
+        self.user = authService.getUser();
+        //console.log(self.user.gender);
+        self.newChurch = {};
+        self.userService = userService;
+        self.authService = authService;
+        self.alertService = alertService;
+        self.bibleService = bibleService;
 
-        //console.log(self.profile);
-        userService.updateProfile(self.user).then(function (resp) {
-            if (resp.data.id) {
-                self.user = resp.data;
-                authService.createSession(self.user);
-                $scope.$emit('alert', 'Changes saved');
-                $state.go('base.home');
-            } else {
-                $scope.$emit('alert', 'Failed to save changes.');
 
+        if ($state.$current.name == 'main') {
+
+            self.authService.checkFbLoginStatus().then(function (resp) {
+                if (!_.isEmpty(resp)) {
+                    self.fbUser = resp;
+                    self.showLogin();
+                }
+            });
+
+            if ($stateParams.a == 'login') {
+                self.showLogin();
+            } else if ($stateParams.a == 'signup') {
+                self.showSignup();
             }
-        });
+        }
 
 
     };
-    //if login or signup
-    authService.checkFbLoginStatus();
 
-    //if post signup profile
+    MainCtrl.prototype.loginFacebookUser = function () {
+        var self = this;
+        self.fbUser.auth = 'facebook';
+        self.authService.login(self.fbUser);
+    };
+
+    /**
+     * Save changes to user profile.
+     * If saveAndDone is true, redirect to home page after save.
+     * @param saveAndDone
+     */
+    MainCtrl.prototype.updateProfile = function (saveAndDone) {
+        var self = this;
+        if (_.isObject(self.user.church)) {
+            self.user.church_key = self.user.church.id;
+        }
+
+        //console.log(self.profile);
+        self.userService.updateProfile(self.user).then(function (resp) {
+            if (resp.data.id) {
+                self.user = resp.data;
+                if (saveAndDone) {
+                    self.state_.go('base.home');
+                } else {
+                    self.alertService.info('Profile updated');
+                }
+            } else {
+                self.alertService.danger('Changes not saved, please try again.');
+            }
+        });
+    };
+
     /**
      * Provide auto complete for church select input
      * @param val
      * @returns {Array}
      */
-    self.getChurch = function (val) {
+    MainCtrl.prototype.getChurch = function (val) {
+        var self = this;
         var match = [];
-
         if (val && val.length >= 2) {
             val = val.toLowerCase();
             self.churches.forEach(function (c) {
@@ -48,112 +86,175 @@ App.controller('mainController', function ($timeout, $state, $scope, userService
         return match;
     };
 
-    /**
-     * Get list of saved churches from server
-     */
-    // console.log($state);
-    if ($state.current.name == 'base.post-signup-profile') {
-        self.churches = bibleService.getChurches().then(function (resp) {
-            self.churches = _.sortBy(resp.data, 'name');
-            var church = _.find(self.churches, {'id': self.user.church_key});
-            self.user.church = church;
+    MainCtrl.prototype.showEmailSignup = function () {
+        var self = this;
+        var ctrl = self;
+        var modalInstance = self.modal_.open({
+            templateUrl: 'module/main/email-signup-modal.html',
+            controller: function () {
+                var self = this;
+                self.login = function () {
+                    modalInstance.close();
+                    ctrl.showLogin();
+                };
+                self.signup = function (form) {
+                    if (form.$valid) {
+                        ctrl.authService.signup(self.user,
+                            function (user) {
+                                modalInstance.close();
+                                if (!user.church_key) {
+                                    ctrl.state_.go('base.post-signup-profile');
+                                } else {
+                                    ctrl.state_.go('base.home');
+                                }
+                            }, function (data) {
+                                self.error = data.message;
+                            }
+                        );
+                    }
+                };
+            },
+            controllerAs: 'modalCtrl',
+            size: 'signup'
         });
-
-    }
-
-
-    self.fbLogin = function (action) {
-        authService.facebookLogin(action);
     };
 
-    self.signUp = function (form) {
+    /**
+     * Starts the facebook login/signup process.
+     */
+    MainCtrl.prototype.loginWithFacebook = function (signup) {
         var self = this;
-        console.log(form);
-        if (form.$valid) {
-          authService.signup(self.user, function(data){
-              console.log(data);
-              alertService.danger(data.message);
+        this.authService.facebookLogin(function () {
+            if (signup) {
+                self.state_.go('base.post-signup-profile');
+            }
 
-          });
+        }, function () {
+            self.alertService.danget('Login with facebook failed. Please try again.')
+        });
+    };
+
+    MainCtrl.prototype.showLogin = function () {
+        var self = this;
+
+        function modalInstances(ctrl) {
+            var modalInstance = self.modal_.open({
+                animation: true,
+                templateUrl: 'module/main/login-modal.html',
+                controller: function () {
+                    var self = this;
+                    self.main = ctrl;
+
+                    //facebook user conneced but not logged,
+                    //login user in.
+                    self.continueWithFacebook = function () {
+                        modalInstance.close();
+                        self.main.loginFacebookUser();
+                    };
+
+                    self.loginWithFacebook = function () {
+                        modalInstance.close();
+                        self.main.loginWithFacebook(false);
+                    };
+                    self.showSignupModal = function () {
+                        modalInstance.close();
+                        ctrl.showSignup();
+                    };
+
+                    //attempt to log user in with email
+                    self.loginWithEmail = function (form) {
+                        if (form.$valid && !_.isEmpty(self.email) && !_.isEmpty(self.password)) {
+                            ctrl.authService.emailLogin(self.email, self.password,
+                                function (user) {
+                                    modalInstance.close();
+                                    ctrl.state_.go('base.home');
+                                }, function (error) {
+                                    self.error = error;
+
+                                });
+                        }
+                    };
+                },
+                controllerAs: 'modalCtrl',
+                size: 'login',
+                backdrop: true,
+                keyboard: true
+
+            });
+        };
+        modalInstances(self)
+
+    };
+
+
+    /**
+     * Display the signup modal.
+     * The signup modal allows a user to login using facebook or email.
+     * The user can also launch the login modal from here.
+     * If the user wants to login via email, we display the emailsignup modal.
+     * If the user wants to login to fb, we intiate the fb login workflow
+     */
+    MainCtrl.prototype.showSignup = function () {
+        var self = this;
+
+        function modal(ctrl) {
+            var modalInstance = self.modal_.open({
+                templateUrl: 'module/main/signup-modal.html',
+                controller: function () {
+                    this.showLoginModal = function () {
+                        modalInstance.close();
+                        ctrl.showLogin();
+                    };
+
+                    this.signupWithFacebook = function () {
+                        modalInstance.close();
+                        ctrl.loginWithFacebook(true);
+
+                    };
+                    this.showEmailSignupModal = function () {
+                        modalInstance.close();
+                        ctrl.showEmailSignup();
+                    };
+                },
+                controllerAs: 'modalCtrl',
+                size: 'signup'
+            });
+        };
+        modal(self)
+    };
+
+
+    MainCtrl.prototype.churchLabel = function (c) {
+        if (!_.isObject(c)) return;
+        if (_.isEmpty(c.city)) {
+            return c.name;
+        } else {
+            return c.name + ' (' + c.city + ')';
         }
     };
-
-
     /**
-     * Create church in server
-     * Add to church list on client
-     * and set new church as the selected church
+     * Create church in server and set the church as the user's
+     * selected church
      */
-    self.addChurch = function () {
-        if (!_.isUndefined(self.newChurch.name)) {
-            bibleService.addChurch(self.newChurch).then(function (resp) {
-                self.newChurch = {};
-                if (resp.data.id) {
-                    var ch = resp.data;
-                    self.churches.push(ch);
-                    self.profile.church = ch;
-                    $scope.newChurch = $scope.noResults = false;
-
+    MainCtrl.prototype.addChurch = function (form) {
+        var self = this;
+        if (form.$valid) {
+            self.bibleService.addChurch(self.newChurch).then(function (resp) {
+                var church = resp.data;
+                if (church.id) {
+                    self.newChurch = {}; //reset
+                    self.user.church = church;
+                    self.new_church = false;
+                    self.noResults = false;
+                } else {
+                    self.alertService.info('Unable to add sermon, try again.');
                 }
             });
         }
     };
 
-    // Detact Mobile Browser
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        angular.element('html').addClass('ismobile');
-    }
-
-
-    // By default template has a boxed layout
-    this.layoutType = localStorage.getItem('ma-layout-status');
-
-    // For Mainmenu Active Class
-    this.$state = $state;
-
-    //Close sidebar on click
-    this.sidebarStat = function (event) {
-        if (!angular.element(event.target).parent().hasClass('active')) {
-            this.sidebarToggle.left = false;
-        }
-    }
-
-    //Listview Search (Check listview pages)
-    this.listviewSearchStat = false;
-
-    this.lvSearch = function () {
-        this.listviewSearchStat = true;
-    }
-
-    //Listview menu toggle in small screens
-    this.lvMenuStat = false;
-
-    //Blog
-    this.wallCommenting = [];
-
-    this.wallImage = false;
-    this.wallVideo = false;
-    this.wallLink = false;
-
-    //Skin Switch
-    this.currentSkin = 'blue';
-
-    this.skinList = [
-        'lightblue',
-        'bluegray',
-        'cyan',
-        'teal',
-        'green',
-        'orange',
-        'blue',
-        'purple'
-    ]
-
-    this.skinSwitch = function (color) {
-        this.currentSkin = color;
-    }
-
-})
+    App.controller('mainController', MainCtrl);
+})();
 
 
 

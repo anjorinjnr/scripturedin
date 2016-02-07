@@ -9,11 +9,11 @@ from service import util
 import sys
 from google.appengine.ext import vendor
 
-
 rootdir = os.path.dirname(os.path.abspath(__file__))
 lib = os.path.join(rootdir, 'lib')
 sys.path.append(lib)
 vendor.add(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'lib'))
+
 
 def _IsDevEnv():
     """Returns whether we are in a development environment (non-prod)."""
@@ -40,3 +40,7 @@ config['webapp2_extras.auth'] = {
 app = webapp2.WSGIApplication(routes.ROUTES,
                               config=config,
                               debug=_IsDevEnv() or _IsLocalEnv())
+
+task_queue_app = webapp2.WSGIApplication(routes.TASK_ROUTES,
+                                         config=config,
+                                         debug=_IsDevEnv() or _IsLocalEnv())

@@ -1,0 +1,157 @@
+<div class="container">
+
+    <!--<div class="block-header">-->
+    <!--<h2>Data Tables-->
+    <!--<small>ng-table is a powerfull AngularJs ready Data Table with tons of customizable options. Read more <a-->
+    <!--target="_blank" href="http://ng-table.com/#/">here</a> for detailed documentation and HowTos...-->
+    <!--</small>-->
+    <!--</h2>-->
+
+    <!--<ul class="actions m-t-20 hidden-xs">-->
+    <!--<li class="dropdown" uib-dropdown>-->
+    <!--<a href="" uib-dropdown-toggle>-->
+    <!--<i class="zmdi zmdi-more-vert"></i>-->
+    <!--</a>-->
+
+    <!--<ul class="dropdown-menu dropdown-menu-right">-->
+    <!--<li>-->
+    <!--<a href="">Privacy Settings</a>-->
+    <!--</li>-->
+    <!--<li>-->
+    <!--<a href="">Account Settings</a>-->
+    <!--</li>-->
+    <!--<li>-->
+    <!--<a href="">Other Settings</a>-->
+    <!--</li>-->
+    <!--</ul>-->
+    <!--</li>-->
+    <!--</ul>-->
+    <!--</div>-->
+
+    <div class="card note">
+        <div class="card-header">
+            <h2>New Note:
+                <strong><span ng-if="!notesCtrl.note.sermon">{{notesCtrl.note.title}}</span>
+                    <a ui-sref="base.sermon-view({id: notesCtrl.note.sermon.id})"
+                       ng-if="notesCtrl.note.sermon">
+                        {{notesCtrl.note.sermon.title}}
+                    </a></strong>
+            </h2>
+        </div>
+
+        <div class="card-body p-20">
+            <div class="row" ng-hide="notesCtrl.expandNote">
+                <div class="col-sm-6">
+                    <div class="form-group  m-b-30" ng-class="{'has-error': notesCtrl.missingTitle}">
+                        <div class="fg-line">
+                            <label class="fg-label">Sermon Title</label>
+                            <input type="text"
+                                   ng-model="notesCtrl.note.title"
+                                   placeholder="Enter sermon title"
+                                   uib-typeahead="s.label for s in notesCtrl.findSermon($viewValue)"
+                                   typeahead-loading="loadingSermon"
+                                   typeahead-on-select="notesCtrl.sermonSelect($item, $model)"
+                                   typeahead-no-results="noResults"
+                                   class="form-control">
+
+                        </div>
+                    </div>
+                    <div class="form-group  m-b-30">
+                        <div class="fg-line">
+                            <label class="fg-label">Preacher</label>
+                            <input type="text"
+                                   ng-model="notesCtrl.note.pastor"
+                                   placeholder="Enter preacher's name"
+                                   uib-typeahead="p.full_name for p in notesCtrl.findPastor($viewValue)"
+                                   typeahead-loading="loadingPastor"
+                                   typeahead-on-select="notesCtrl.pastorSelect($item)"
+                                   typeahead-no-results="noResults"
+
+                                   class="form-control">
+
+                        </div>
+                    </div>
+                    <div class="form-group  m-b-30">
+                        <div class="fg-line">
+                            <label class="fg-label">Church</label>
+                            <input type="text"
+                                   ng-model="notesCtrl.note.church"
+                                   placeholder="Enter church's name"
+                                   uib-typeahead="c.name for c in notesCtrl.findChurch($viewValue)"
+                                   typeahead-loading="loadingSermon"
+                                   typeahead-on-select="notesCtrl.churchSelect($item)"
+                                   typeahead-no-results="noResults"
+                                   class="form-control">
+
+                        </div>
+                    </div>
+
+                    <div class="form-group  m-b-30">
+                        <div class="fg-line">
+                            <label class="fg-label">Main Scripture(s)</label>
+                            <md-chips
+                                    ng-model="notesCtrl.note.scriptures"
+                                    chip-show-modal-on-click
+                                    md-transform-chip="notesCtrl.onScriptureAdd($chip)"
+                                    placeholder="Enter a scripture"
+                                    secondary-placeholder="e.g John 3:16">
+                            </md-chips>
+                            <small style="color:#9e9e9e; float: right" class="help-block">
+                                Type a
+                                scripture
+                                then press enter.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="note-info">
+                      <span class="text-left f-10 m-r-20"
+                            ng-if="notesCtrl.note.modified_at"
+                            style="height: 20px">
+                        Last modified: {{notesCtrl.note.modified_at | formatDate:'MMM D, YYYY [at] h:mm a'}}
+                      </span>
+                        <span ng-if="notesCtrl.missingTitle"
+                              class="c-red">Please enter a sermon title before typing. <strong>Your notes are not
+                            saved!</strong></span>
+                    <span class="text-right f-1-"
+                          style="height: 20px">
+                        <span ng-show="notesCtrl.note.saving">Saving...</span>
+                    </span>
+                        <div>
+                            <a href ng-click="notesCtrl.expandNote=true"
+                               ng-show="!notesCtrl.expandNote"
+                            >
+                                <md-icon class="pull-right" md-svg-src="/img/icons/arrow_upward_black.svg">
+                                    <md-tooltip class="hidden-xs" md-direction="top">
+                                        Expand note
+                                    </md-tooltip>
+                                </md-icon>
+                            </a>
+                            <a href ng-click="notesCtrl.expandNote=false" ng-show="notesCtrl.expandNote">
+                                <md-icon class="pull-right" md-svg-src="/img/icons/arrow_downward_black.svg">
+                                    <md-tooltip class="hidden-xs" md-direction="top">
+                                    </md-tooltip>
+                                </md-icon>
+                            </a>
+                        </div>
+                    </div>
+                    <wysiwyg-edit class="note_editor"
+                                  config="editorConfig"
+                                  content="notesCtrl.note.notes">
+                        <!--<auto-save note="notesCtrl.note"></auto-save>-->
+                    </wysiwyg-edit>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+

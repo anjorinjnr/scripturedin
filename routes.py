@@ -1,6 +1,5 @@
 import webapp2
 
-from handlers.auth_handler import AuthHandler
 from handlers.bible_handler import BibleHandler
 from handlers.comment_handler import CommentHandler
 from handlers.feed_handler import FeedHandler
@@ -12,18 +11,8 @@ from handlers.user_handler import UserHandler
 
 route = webapp2.Route
 ROUTES = [
-    route(r'/api/requests',
-          handler=RequestHandler,
-          handler_method='get_requests',
-          methods=['GET']),
-    route(r'/api/login',
-          handler=AuthHandler,
-          handler_method='login',
-          methods=['POST']),
-    route(r'/api/logout',
-          handler=AuthHandler,
-          handler_method='logout',
-          methods=['POST']),
+
+    # /user/* routes
     route(r'/api/user',
           handler=UserHandler,
           handler_method='current_user',
@@ -32,22 +21,69 @@ ROUTES = [
           handler=UserHandler,
           handler_method='update_profile',
           methods=['POST']),
+    route(r'/api/user/<user_id:\d+>/sermon/<sermon_id:\d+>/note',
+          handler=SermonHandler,
+          handler_method='get_sermon_note',
+          methods=['GET']),
+    route(r'/api/user/notes',
+          handler=UserHandler,
+          handler_method='get_notes',
+          methods=['GET']),
+    route(r'/api/user/note',
+          handler=UserHandler,
+          handler_method='post_note',
+          methods=['POST']),
+    route(r'/api/user/search',
+          handler=UserHandler,
+          handler_method='search',
+          methods=['GET']),
+
+    route(r'/api/note/<note_id:\d+>',
+          handler=UserHandler,
+          handler_method='get_note',
+          methods=['GET']),
+
+    route(r'/api/requests',
+          handler=RequestHandler,
+          handler_method='get_requests',
+          methods=['GET']),
+    route(r'/api/login',
+          handler=UserHandler,
+          handler_method='login',
+          methods=['POST']),
+    route(r'/api/logout',
+          handler=UserHandler,
+          handler_method='logout',
+          methods=['POST']),
+
     route(r'/api/signup',
           handler=UserHandler,
           handler_method='signup',
           methods=['POST']),
+
+    # /church routes
     route(r'/api/churches',
           handler=MiscHandler,
           handler_method='get_churches',
+          methods=['GET']),
+    route(r'/api/church/search',
+          handler=MiscHandler,
+          handler_method='find_church',
           methods=['GET']),
     route(r'/api/church',
           handler=MiscHandler,
           handler_method='add_church',
           methods=['POST']),
+
+    # /sermon/*  routes
     route(r'/api/sermon',
           handler=SermonHandler,
           handler_method='save',
           methods=['POST']),
+    route(r'/api/sermon/find',
+          handler=SermonHandler,
+          handler_method='find',
+          methods=['GET']),
     route(r'/api/sermon',
           handler=SermonHandler,
           handler_method='get',
@@ -68,10 +104,19 @@ ROUTES = [
           handler=SermonHandler,
           handler_method='save_note',
           methods=['POST']),
-    route(r'/api/user/<user_id:\d+>/sermon/<sermon_id:\d+>/note',
+    route(r'/api/sermon/<sermon_id:\d+>/like',
           handler=SermonHandler,
-          handler_method='get_sermon_note',
-          methods=['GET']),
+          handler_method='like',
+          methods=['POST']),
+    route(r'/api/sermon/<sermon_id:\d+>/log',
+          handler=SermonHandler,
+          handler_method='log_view',
+          methods=['POST']),
+    route(r'/api/sermon/<sermon_id:\d+>/unlike',
+          handler=SermonHandler,
+          handler_method='unlike',
+          methods=['POST']),
+
     route(r'/api/comment/<ref_key:\d+>',
           handler=CommentHandler,
           handler_method='post',
@@ -88,20 +133,8 @@ ROUTES = [
           handler=CommentHandler,
           handler_method='unlike',
           methods=['POST']),
-    route(r'/api/sermon/<sermon_id:\d+>/like',
-          handler=SermonHandler,
-          handler_method='like',
-          methods=['POST']),
-    route(r'/api/sermon/<sermon_id:\d+>/log',
-          handler=SermonHandler,
-          handler_method='log_view',
-          methods=['POST']),
-    route(r'/api/sermon/<sermon_id:\d+>/unlike',
-          handler=SermonHandler,
-          handler_method='unlike',
-          methods=['POST']),
 
-    #/feed routes
+    # /feed routes
     (r'/api/feeds', FeedHandler),
     # /bible routes
     (r'/api/bible', BibleHandler),
@@ -111,9 +144,9 @@ ROUTES = [
           methods=['GET']),
 
     # tasks,
-    route(r'/api/task/load-church',
+    route(r'/api/task',
           handler=TaskHandler,
-          handler_method='load_church',
+          handler_method='queue_task',
           methods=['POST']),
     route(r'/api/task/books',
           handler=TaskHandler,
@@ -124,5 +157,17 @@ ROUTES = [
           handler=TaskHandler,
           handler_method='persist_note_data',
           methods=['GET']),
+
+]
+
+TASK_ROUTES = [
+    webapp2.Route(r'/_tasks/load_churches',
+                  handler=TaskHandler,
+                  handler_method='task_load_churches',
+                  methods=['POST']),
+    webapp2.Route(r'/_tasks/index_churches',
+                  handler=TaskHandler,
+                  handler_method='task_index_churches',
+                  methods=['POST']),
 
 ]

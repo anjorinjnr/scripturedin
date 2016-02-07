@@ -1,0 +1,94 @@
+<!--<div class="modal-header">-->
+<!--<h4 class="modal-title">Modal Title</h4>-->
+<!--</div>-->
+<div class="modal-body login-modal">
+    <div ng-if="modalCtrl.main.fbUser">
+        <p class="f-16 c-black">WELCOME BACK, CONTINUE AS</p>
+        <ul class="list-group">
+            <li class="list-group-item" style="cursor: hand" ng-click="modalCtrl.continueWithFacebook()">
+
+                <img class="lv-img m-r-10" src="{{modalCtrl.main.fbUser.picture.data.url}}"
+                     alt="Facebok profile photo">
+                {{modalCtrl.main.fbUser.first_name}} {{modalCtrl.main.fbUser.last_name}}
+
+            </li>
+
+        </ul>
+        <p class="text-center"><a class="c-gray f-13" href
+                                  ng-click="modalCtrl.main.fbUser=null">Login As Another User</a></p>
+    </div>
+    <div ng-if="!modalCtrl.main.fbUser">
+        <div class="social-buttons">
+            <button
+                    ng-click="modalCtrl.loginWithFacebook()"
+                    class="btn btn-default btn-block btn-icon-text btn-facebook waves-effect m-b-10"><i
+                    class="zmdi zmdi-facebook pull-left"></i>
+                Login with Facebook
+            </button>
+            <!--<button class="btn btn-default btn-block btn-icon-text waves-effect m-b-10"><i class="zmdi zmdi-facebook pull-left"></i> Home</button>-->
+        </div>
+        <div class="signup-or-separator m-b-20">
+            <span class="h6 signup-or-separator--text">or</span>
+            <hr>
+        </div>
+        <div class="m-t-10 alert alert-danger" ng-if="modalCtrl.error">
+            <p ng-bind-html="modalCtrl.error"></p>
+        </div>
+        <form name="loginForm" ng-submit="modalCtrl.loginWithEmail(loginForm)"
+              novalidate
+              style="padding: 15px">
+            <div class="input-group m-b-20"
+                 ng-class="{'has-error':loginForm.$submitted && loginForm.email.$invalid}">
+                <!--<span class="input-group-addon"><i class="zmdi zmdi-account"></i></span>-->
+
+                <div class="fg-line">
+                    <input id="email"
+                           name="email"
+                           ng-model="modalCtrl.email"
+                           type="email"
+                           required
+                           placeholder="Email Address"
+                           class="form-control">
+                    <small ng-if="loginForm.$submitted && loginForm.email.$invalid"
+                           class="help-block">Email is required
+                    </small>
+                </div>
+            </div>
+
+            <div class="input-group m-b-20"
+                 ng-class="{'has-error':loginForm.$submitted && loginForm.password.$invalid}">
+                <!--<span class="input-group-addon"><i class="zmdi zmdi-email"></i></span>-->
+
+                <div class="fg-line">
+                    <input type="password"
+                           name="password"
+                           placeholder="Password"
+                           ng-model="modalCtrl.password"
+                           required
+                           class="form-control"
+                           id="password">
+                    <small ng-if="loginForm.$submitted && loginForm.password.$invalid"
+                           class="help-block">Password is required
+                    </small>
+                </div>
+            </div>
+
+            <div class="input-group" style="width: 100%">
+                <button type="submit"
+                        class="btn btn-lg btn-block btn-primary waves-effect">Login
+                </button>
+            </div>
+        </form>
+    </div>
+    <hr class="m-t-5 m-b-5">
+</div>
+<div class="modal-footer" style="text-align: center">
+    Don't have an account? <a href ng-click="modalCtrl.showSignupModal()">Sign up</a>
+</div>
+<!--<div class="outer">-->
+<!--<div class="middle">-->
+<!--<div class="inner">-->
+<!---->
+<!--</div>-->
+<!--</div>-->
+<!--</div>-->

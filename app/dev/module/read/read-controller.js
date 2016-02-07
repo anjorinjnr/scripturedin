@@ -1,90 +1,49 @@
-App.controller('readController', function ($location, bibleService,
-                                           $mdDialog, userService) {
+(function () {
 
-    var self = this;
-    var query = $location.search();
-    self.versions = bibleService.versions();
+    var ReadCtrl = function ($location, bibleService, $scope,
+                             $mdDialog, userService) {
 
-    $(document.body).bind('mouseup', function (e) {
-        var selection;
-        if (window.getSelection) {
-            selection = window.getSelection();
-        } else if (document.selection) {
-            selection = document.selection.createRange();
-        }
-        var selected = selection.toString();
-        if (!_.isEmpty(selected)) {
-            console.log(e);
-            console.log(selection.anchorNode.parentNode.id);
-            console.log(selected);
-            console.log(selected.split(/v\d+:/));
-        }
+        var self = this;
+        self.location_ = $location;
+        self.bibleService = bibleService;
+        self.scope_ = $scope;
+        self.mdDialog = $mdDialog;
+        self.userService = userService;
 
-    });
-    $('.verse').select(function () {
-        console.log(arguments);
-    });
-    if (query.p) {
-        bibleService.get(query.p).then(function (resp) {
-            self.bible = resp.data;
-            //console.log(scrip);
-            switch (self.bible.type) {
-                case 'verse':
-                    self.bible.data = _.groupBy(self.bible.book, function (b) {
-                        return b.book_name + ' ' + b.chapter_nr;
-                    });
-                    console.log(self.bible);
-            }
+
+        self.versions = bibleService.versions();
+
+        self.processParams();
+        $scope.$on('$locationChangeSuccess', function (e) {
+            self.processParams();
         });
-    }
 
-    self.selected = {};
+
+        self.selected = {};
+
+    };
+
+    ReadCtrl.prototype.processParams = function () {
+        var self = this;
+        var query = self.location_.search();
+        if (query.p) {
+            self.scripture = query.p;
+        }
+
+    };
 
     /**
      * Highlight or unhighlight selected row
      * @param verse
      * @param book
      */
-    self.highlight = function (verse, book) {
+    ReadCtrl.prototype.highlight = function (verse, book) {
+        var self = this;
         if (!(book in self.selected)) {
             self.selected[book] = {};
         }
         self.selected[book][verse] = !self.selected[book][verse];
     };
 
-    self.askForComment = function (ev) {
-        $mdDialog.show({
-            controller: function ($scope, $mdDialog) {
-                var self = this;
-                self.$scope = $scope;
-                self.request = {};
-                self.request.tags = [];
-                self.request.invites = [
-                    {
-                        'type': 'email'
-                    }
-                ];
-                self.newInvite = function () {
-                    self.request.invites.push({
-                        'type': 'email'
-                    });
-                };
-                self.removeInvite = function (i) {
-                    self.request.invites.splice(i, 1);
-                };
-                self.submitForm = function () {
-                    console.log($('#reqForm'));
-                    console.log(self.request);
-                   // $scope.$emit('submitRequestEvent');
-
-                };
-
-            },
-            controllerAs: 'reqCtrl',
-            templateUrl: '/module/read/ask-comment.modal.html',
-            parent: angular.element(document.body),
-            targetEvent: ev,
-            clickOutsideToClose: true
-        });
-    }
-});
+    App.controller('readController', ReadCtrl);
+})();

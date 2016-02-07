@@ -1,6 +1,6 @@
 <div class="media m-b-10" id="{{comment.id}}">
     <a href="" class="pull-left">
-        <img src="img/profile-pics/5.jpg" alt="" class="lv-img-sm">
+        <img ng-src="{{util.imagePath(comment.user)}}" alt="" class="lv-img-sm">
     </a>
 
     <div class="media-body">
@@ -21,7 +21,7 @@
         <!-- start replies here -->
         <div class="media" ng-repeat="r in comment.replies.comments">
             <a href="" class="pull-left">
-                <img src="img/profile-pics/5.jpg" alt=""
+                <img ng-src="{{util.imagePath(r.user)}}" alt=""
                      class="lv-img-sm">
             </a>
 

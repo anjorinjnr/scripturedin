@@ -3,12 +3,11 @@
         <h2>{{::sermonCtrl.sermon.church.name}}</h2>
     </div>
     <div class="card" id="profile-main">
-        <div class="pm-overview c-overflow" ng--show="true">
+        <div class="pm-overview c-overflow" ng-hide="sermonCtrl.maximize">
 
             <div class="pmo-block pmo-contact hidden-xs">
                 <h2>Pastor Info</h2>
-                <h5>{{::sermonCtrl.sermon.pastor.first_name | sentencecase}}
-                    {{::sermonCtrl.sermon.pastor.last_name | sentencecase}}
+                <h5><name-tag user="sermonCtrl.sermon.pastor"></name-tag>
                 </h5>
                 <ul>
                     <li><i class="zmdi zmdi-email"></i> {{
@@ -37,7 +36,7 @@
             </div>
         </div>
 
-        <div class="pm-body clearfix">
+        <div class="pm-body clearfix" ng-class="{'p-l-0': sermonCtrl.maximize} ">
 
             <div class="pmb-block">
                 <div class="pmbb-header">
@@ -45,10 +44,7 @@
                     <h1 class="md-display-3 m-b-5">
                         {{::sermonCtrl.sermon.title}}</h1>
 
-                    <p class="p-l-5">by {{::sermonCtrl.sermon.pastor.first_name
-                        | sentencecase}}
-                        {{::sermonCtrl.sermon.pastor.last_name |
-                        sentencecase}}</p>
+                    <p class="p-l-5">by <name-tag user="sermonCtrl.sermon.pastor"></name-tag></p>
 
                     <div class="m-b-25">
                         <hr>
@@ -97,7 +93,8 @@
                         <md-chips ng-model="sermonCtrl.sermon.scriptures"
                                   readonly="true">
                             <md-chip-template
-                                    ng-click="sermonCtrl.showScripture($chip)">
+                                    show-scripture-on-click
+                                    scripture="$chip">
                                 <md-tooltip>
                                     Click to read
                                 </md-tooltip>
@@ -107,22 +104,12 @@
                     </div>
 
 
-                    <ul class="actions">
-                        <li><a href="">
-                            <i class="zmdi zmdi-window-maximize"></i>
+                    <ul class="actions hidden-xs">
+                        <li><a href ng-click="sermonCtrl.maximize = !sermonCtrl.maximize;">
+                            <i class="zmdi "
+                               ng-class="{'zmdi-window-restore': sermonCtrl.maximize,
+                               'zmdi-window-maximize': !sermonCtrl.maximize}"></i>
                         </a></li>
-                        <!--<li class="dropdown" uib-dropdown>-->
-                        <!--<a href="" uib-dropdown-toggle>-->
-                        <!--<i class="zmdi zmdi-more-vert"></i>-->
-                        <!--</a>-->
-
-                        <!--<ul class="dropdown-menu dropdown-menu-right">-->
-
-                        <!--<li>-->
-                        <!--<a data-ng-click="pctrl.editSummary = 1" href="">Edit</a>-->
-                        <!--</li>-->
-                        <!--</ul>-->
-                        <!--</li>-->
                     </ul>
                 </div>
             </div>
@@ -147,7 +134,7 @@
                                     <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
                                     <div class="md-list-item-text ">
                                         <div class="row">
-                                            <div class="col-sm-1">{{$index +
+                                            <div class="col-sm-1 text-center">{{$index +
                                                 1}}
                                             </div>
                                             <div class="col-sm-10">
@@ -172,7 +159,7 @@
                                     <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
                                     <div class="md-list-item-text ">
                                         <div class="row">
-                                            <div class="col-sm-1">{{$index +
+                                            <div class="col-sm-1 text-center">{{$index +
                                                 1}}
                                             </div>
                                             <div class="col-sm-10">

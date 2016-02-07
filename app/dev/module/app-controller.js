@@ -1,14 +1,11 @@
-App.controller('appController', function () {
+App.controller('appController', function ($scope, sidebarToggle) {
 
     var self = this;
     self.fabMenu = {
         isOpen: false
     };
 
-    self.sidebarToggle = {
-        left: false,
-        right: false
-    };
+    self.sidebarToggle = sidebarToggle;
 
     //Close sidebar on click
     self.sidebarStat = function (event) {
@@ -19,6 +16,6 @@ App.controller('appController', function () {
         }
     };
 
-    self.ver = '0.1';
+    self.ver = '1.0';
 
 });

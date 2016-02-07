@@ -17,6 +17,7 @@ class MiscHandlerTestCase(unittest.TestCase):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_memcache_stub()
+        self.testbed.init_search_stub()
         self.testbed.init_datastore_v3_stub()
         config = {}
         config['webapp2_extras.sessions'] = {
@@ -32,6 +33,7 @@ class MiscHandlerTestCase(unittest.TestCase):
                                                      methods=['POST'])],
                                       config=config)
         self.testapp = webtest.TestApp(app)
+
 
     @mock.patch('webapp2_extras.auth.Auth.get_user_by_session')
     def test_add_church(self, mock_get_user_by_session):

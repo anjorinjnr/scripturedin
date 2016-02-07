@@ -5,7 +5,7 @@ import time
 
 import webapp2
 
-from google.appengine.api import users
+from models import scripturedin as model
 
 from webapp2_extras import sessions
 from webapp2_extras import auth
@@ -33,6 +33,12 @@ def user_required(handler):
 
 class BaseHandler(webapp2.RequestHandler):
     """Base class for request handlers."""
+
+    def _user_response(self, user_object):
+        user = util.model_to_dict(user_object)
+        if user_object.church_key:
+            user['church'] = model.get_mini_church_info(user_object.church_key)
+        return user
 
     @webapp2.cached_property
     def config(self):

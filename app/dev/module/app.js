@@ -8,60 +8,83 @@ var App = angular.module('scripturedIn', [
         'angular-loading-bar',
         'oc.lazyLoad',
         'ngWYSIWYG',
-        //'localytics.directives'
-        //'nouislider'
-        //'ngTable'
+        'md.data.table',
+        'ngFileUpload'
     ])
     .constant('USER_ROLES', {
         guest: 'guest',
         pastor: 'pastor',
         user: 'user'
     })
-    .run(function ($rootScope, authService, $state, $mdToast, bibleService) {
-
-            //var toast =
-            $rootScope.$on('alert', function (e, message, duration) {
-                console.log($mdToast.simple());
-                var duration = duration ? duration : 4000;
-                // $mdToast.showSimple(message);
-                $mdToast.show(
-                    $mdToast.simple()
-                        .textContent(message)
-                        .position('top right')
-                        .hideDelay(duration)
-                );
-
-
-            });
-
+    .service('sidebarToggle', function () {
+        return {
+            left: false
+        };
+    })
+    .config(function ($uiViewScrollProvider) {
+        $uiViewScrollProvider.useAnchorScroll();
+    })
+    .run(function ($rootScope, alertService, util, authService, $state, $mdToast, sidebarToggle) {
+        
             $rootScope.authService = authService;
             $rootScope.$state = $state;
 
-            console.log($state);
             /**
-             * Perform state checks
+             * Return profile picture for user,
+             * if user has profile picture we use that,
+             * else we display an avatar based on the gender
+             * @param user
+             * @returns {*}
+             */
+            $rootScope.imagePath = function (user) {
+                return util.imagePath(user);
+            };
+            $rootScope.$on('$stateChangeSuccess', function () {
+                sidebarToggle.left = false;
+            });
+
+            /**
+             * Perform state checks.
+             *
+             * This block runs first before each state is activated,
+             * before the resolve block(if any) in the state runs.
              */
             $rootScope.$on('$stateChangeStart', function (event, toState) {
 
+
                 console.log(toState);
-                // console.log(toState.resolve.auth());
+                // if the user is activating the logout state
+                // we basically need to log the user out of the client and server
+                // and redirect to the login state
                 if (toState.url === '/logout') {
-                    console.log('logout');
                     event.preventDefault();
                     authService.logout();
                     return;
                 }
+
                 if (authService.hasSession()) {
-                    if (toState.url === '/' || toState.url === 'login') {
+                    // if user has an active session (at least on the client
+                    // and is trying to access the welcome, login or signup state, we simply redirect
+                    // such user to the application home state
+                    if (toState.name === 'main') {
                         event.preventDefault();
                         $state.go('base.home');
+                        return;
+                    } else if (!authService.isAuthorized(toState)) {
+                        console.log('go home');
+                        event.preventDefault();
+                        $state.go('base.home');
+                        return;
                     }
-                } else if (toState.data && !authService.isAuthorized(toState.data.role)) {
-                    event.preventDefault();
-                    $state.go('main.login');
-
+                } else {
+                    console.log('no session');
+                    // use does not have an active session on the client, user can only view the main state
+                    // or any other state that allows guest access
+                    if (toState.name != 'main' && !authService.isAuthorized(toState)) {
+                        event.preventDefault();
+                        $state.go('main', {a: 'login'});
+                    }
                 }
-
 
             });
             $rootScope.editorConfig = {
@@ -72,12 +95,8 @@ var App = angular.module('scripturedIn', [
                     },
                     {name: 'paragraph', items: ['orderedList', 'unorderedList', 'outdent', 'indent', '-']},
                     {name: 'doers', items: ['removeFormatting', 'undo', 'redo', '-']},
-                    {name: 'colors', items: ['fontColor', 'backgroundColor', '-']},
-                    //{name: 'links', items: ['image', 'hr', 'symbols', 'link', 'unlink', '-']},
-                    //{ name: 'tools', items: ['print', '-'] },
-                    //{name: 'styling', items: ['font', 'size', 'format']},
+                    {name: 'colors', items: ['fontColor', 'backgroundColor', '-']}
                 ]
             };
-
         }
     );

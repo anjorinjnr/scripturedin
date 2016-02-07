@@ -3,19 +3,34 @@
  */
 App
 
-    .directive('name-tag', function () {
+    .directive('nameTag', function () {
         return {
-            restrict: 'A',
-            link: function (scope, element, attr) {
-            }
+            restrict: 'E',
+            scope: {
+                user: '='
+            },
+            template: '<a href ><span ng-if="user.title">{{user.title}}</span>' +
+            '<span> {{user.first_name | sentencecase}}</span>' +
+            '<span> {{user.last_name | sentencecase}}</span> </a>'
         }
 
+    })
+    .directive('autoSave', function (noteService) {
+        return {
+            restrict: 'EA',
+            scope: {
+                note: '='
+            },
+            link: function (scope) {
+                noteService.startSaving(scope, scope.note);
+            }
+        }
     })
     .directive('focusCursor', function () {
         return {
             restrict: 'A',
             link: function (scope, element, attr) {
-              //  console.log(element);
+                //  console.log(element);
                 var node = element;
                 node.focus();
                 //var caret = 0; // insert caret after the 10th character say
@@ -51,6 +66,7 @@ App
             }
         }
     })
+
     .directive('loading', function () {
         return {
             restrict: 'EA',
@@ -101,6 +117,16 @@ App
             }
         };
     })
+    .directive('calSermonHover', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, elm) {
+                $(elm).on('mouseenter', '.fc-day-grid-event', function () {
+                    //console.log(123);
+                });
+            }
+        };
+    })
     .directive('calendar', function ($compile) {
         return {
             restrict: 'A',
@@ -111,7 +137,7 @@ App
                 eventClick: '='
             },
             link: function (scope, element, attrs) {
-
+                console.log(scope.events);
                 //Generate the Calendar
                 element.fullCalendar({
                     header: {
@@ -135,16 +161,29 @@ App
                             end: end
                         });
                     },
-
+                    eventMouseover: function (calEvent, jsEvent, view) {
+                        console.log(arguments);
+                    },
                     eventClick: function (calEvent, jsEvent, view) {
                         console.log(arguments);
                         scope.eventClick(calEvent, jsEvent, view);
                     }
                 });
 
-
                 //Add action links in calendar header
-                element.find('.fc-toolbar').append($compile(scope.actionLinks)(scope));
+                //  element.find('.fc-toolbar').append($compile(scope.actionLinks)(scope));
+            }
+        }
+    })
+    .directive('toggleSubmenu', function () {
+
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+                element.click(function () {
+                    element.next().slideToggle(200);
+                    element.parent().toggleClass('toggled');
+                });
             }
         }
     })

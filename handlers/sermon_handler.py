@@ -10,6 +10,14 @@ import logging
 
 class SermonHandler(base_handler.BaseHandler):
 
+    @user_required
+    def find(self):
+        query = self.request.get('query')
+        if query:
+            sermons = model.find_sermon(query, self.user.key)
+            self.write_model(sermons)
+        else:
+            self.write_response([])
 
     @user_required
     def like(self, sermon_id):
@@ -62,10 +70,14 @@ class SermonHandler(base_handler.BaseHandler):
                 self.error_response('sermon not found')
         else:
             params = self.request.GET
-            sermons = []
+            results = {}
+            cursor = params['cursor'] if 'cursor' in params else None
             if 'church_id' in params:
-                sermons = model.get_sermons_by_church(params['church_id'])
-            self.write_model(sermons)
+                results = model.get_sermons_by_church(params['church_id'], cursor=cursor)
+            elif 'pastor_id' in params:
+                results = model.get_sermons_by_pastor(params['pastor_id'], cursor=cursor)
+
+            self.write_model(results)
 
 
     @user_required

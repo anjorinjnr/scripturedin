@@ -29,6 +29,13 @@ indexes:
   - name: created_at
     direction: desc
 
+- kind: Sermon
+  properties:
+  - name: church_key
+  - name: publish
+  - name: created_at
+    direction: desc
+
 - kind: SermonComment
   properties:
   - name: reply_to
@@ -41,11 +48,25 @@ indexes:
   - name: created_at
     direction: desc
 
+- kind: SermonNote
+  properties:
+  - name: created_by
+  - name: created_at
+    direction: desc
+
 - kind: User
   properties:
   - name: __key__
   - name: first_name
   - name: last_name
+
+- kind: User
+  properties:
+  - name: __key__
+  - name: first_name
+  - name: last_name
+  - name: profile_photo
+  - name: title
 
 - kind: User
   properties:

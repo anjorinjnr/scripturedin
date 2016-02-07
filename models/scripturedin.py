@@ -9,6 +9,7 @@ from webapp2_extras import security
 from webapp2_extras.appengine.auth.models import User as AuthUser
 from google.appengine.api import memcache
 from service import util
+from google.appengine.api import search
 
 # alias ndb types
 type_string = ndb.StringProperty
@@ -21,14 +22,19 @@ type_bool = ndb.BooleanProperty
 type_date = ndb.DateProperty
 type_datetime = ndb.DateTimeProperty
 
-
-PRIVACY = ('public', 'members')
+PRIVACY_PUBLIC = 'public'
+PRIVACY_MEMBER = 'members'
+PRIVACY_OPTIONS = (PRIVACY_PUBLIC, PRIVACY_MEMBER)
 
 
 class BaseModel(ndb.Model):
     created_at = type_int()
     created_by = type_key()
     modified_at = type_int()
+    deleted = type_bool()
+    deleted_at = type_int()
+
+    _has_index = False
 
     def _pre_put_hook(self):
         """Pre-put operations. Store UTC timestamp(s) in milliseconds."""
@@ -36,6 +42,21 @@ class BaseModel(ndb.Model):
         self.modified_at = now
         if not self.created_at:
             self.created_at = now
+        if self.deleted:
+            self.deleted_at = now
+
+    def _post_put_hook(self, future):
+        """Post-put operations. Store UTC timestamp(s) in milliseconds."""
+        o = future.get_result().get()
+        if o._has_index:
+            o.update_index()
+
+
+class File(BaseModel):
+    blobstore_key = ndb.TextProperty()
+    file_name = ndb.StringProperty()
+    file_path = ndb.StringProperty()
+    file_type = ndb.StringProperty()
 
 
 class User(AuthUser):
@@ -48,9 +69,53 @@ class User(AuthUser):
     church_key = type_key()
     is_pastor = type_bool()
     fav_sermon_keys = type_key(kind='Sermon', repeated=True)
+    profile_photo = type_string()
 
-    # def get_id(self):
-    #     return self.id
+
+    _has_index = True
+
+    created_at = type_int()
+    modified_at = type_int()
+    deleted = type_bool()
+    deleted_at = type_int()
+
+    def _pre_put_hook(self):
+        """Pre-put operations. Store UTC timestamp(s) in milliseconds."""
+        now = int(time.time() * 1000)
+        self.modified_at = now
+        if not self.created_at:
+            self.created_at = now
+        if self.deleted:
+            self.deleted_at = now
+
+    def _post_put_hook(self, future):
+        """Post-put operations. Store UTC timestamp(s) in milliseconds."""
+        future.get_result().get().update_index()
+
+    @classmethod
+    def get_index(cls):
+        return search.Index('USER')
+
+    def update_index(self):
+        """Create and update document index for user"""
+        full_name = ''
+        try:
+            doc_id = self.key.id()
+            # todo index other fields
+            if self.title:
+                full_name = '%s %s %s' % (self.title, self.first_name, self.last_name)
+            else:
+                full_name = '%s %s' % (self.first_name, self.last_name)
+
+            doc = search.Document(doc_id=str(doc_id),
+                                  fields=[search.TextField(name='title', value=str(self.title)),
+                                          search.TextField(name='first_name', value=str(self.first_name)),
+                                          search.TextField(name='last_name', value=str(self.last_name)),
+                                          search.TextField(name='full_name', value=full_name)
+                                          ])
+            User.get_index().put(doc)
+        except (search.Error, UnicodeEncodeError) as e:
+            logging.error('Error updating index %s: %s' % (full_name, e.message))
 
     def set_password(self, raw_password):
         """Sets the password for the current user
@@ -71,7 +136,7 @@ class Scripture(ndb.Model):
 
 class Feed(BaseModel):
     ref_key = type_key()
-    privacy = type_string(choices=PRIVACY, repeated=True)
+    privacy = type_string(choices=PRIVACY_OPTIONS, repeated=True)
 
 
 class Notification(ndb.Model):
@@ -81,7 +146,6 @@ class Notification(ndb.Model):
 
 class Church(BaseModel):
     name = type_string()
-    name_lower_case = type_string()
     address = type_string()
     website = type_string()
     country = type_string()
@@ -89,10 +153,33 @@ class Church(BaseModel):
     city = type_string()
     denom = type_string()
 
+    _has_index = True
+
+    @classmethod
+    def get_index(cls):
+        return search.Index('CHURCH')
+
+    def update_index(self):
+        """Create and update document index for church"""
+        try:
+            doc_id = self.key.id()
+            # todo index other fields
+            doc = search.Document(doc_id=str(doc_id),
+                                  fields=[search.TextField(name='name', value=str(self.name)),
+                                          search.TextField(name='city', value=str(self.city)),
+                                          search.TextField(name='website', value=str(self.website))])
+            Church.get_index().put(doc)
+        except (search.Error, UnicodeEncodeError) as e:
+            logging.error('Error updating index %s: %s ' % (self.name, e.message))
+
 
 class SermonNote(BaseModel):
     sermon_key = type_key(kind='Sermon')
     notes = type_string()
+    pastor = type_string()
+    title = type_string()
+    pastor_key = type_key(kind='User')
+    church_key = type_key(kind='Church')
 
 
 class Comment(BaseModel):
@@ -123,7 +210,23 @@ class Sermon(BaseModel):
     viewers_key = type_key(kind='User', repeated=True)
     likers_key = type_key(kind='User', repeated=True)
     commenters_key = type_key(kind='User', repeated=True)
-    privacy = type_string(choices=PRIVACY)
+    privacy = type_string(choices=PRIVACY_OPTIONS)
+
+    _has_index = True
+
+    @classmethod
+    def get_index(cls):
+        return search.Index('SERMON')
+
+    def update_index(self):
+        """Create and update document index for sermon"""
+        try:
+            doc_id = self.key.id()
+            # todo index other fields
+            doc = search.Document(doc_id=str(doc_id), fields=[search.TextField(name='title', value=str(self.title))])
+            Sermon.get_index().put(doc)
+        except (search.Error, UnicodeEncodeError) as e:
+            logging.error('Error updating index %s ' % e)
 
 
 class Tags(BaseModel):
@@ -204,18 +307,119 @@ def update_user(id, data):
                 elif val in ['m', 'male']:
                     user.gender = 'm'
             if key == 'is_pastor':
-                if type(val) == bool:
+                if isinstance(val, bool):
                     user.is_pastor = val
-                elif val.lower() in ['t', 'true', 'y', 'yes']:
+                elif isinstance(val, str) and val.lower() in ['t', 'true', 'y', 'yes']:
                     user.is_pastor = True
                 else:
                     user.is_pastor = False
-            if key == 'church_id':
+            if key == 'church' and isinstance(val, str):
+                user.church_key = save_church({'name': val}).key
+            if key in ['church_id', 'church_key']:
                 user.church_key = ndb.Key('Church', val)
             if key == 'title':
                 user.title = val
+            if key == 'first_name':
+                user.first_name = val
+            if key == 'last_name':
+                user.last_name = val
+
         user.put()
     return user
+
+
+def find_users(query, pastor_only=False):
+    """Find sermon that match for the query."""
+    try:
+        index = User.get_index()
+        # todo implement paging with cursors
+        search_results = index.search(query)
+        results = []
+        for doc in search_results:
+            add = True
+            user = User.get_by_id(int(doc.doc_id))
+            if pastor_only and user and user.is_pastor:
+                add = False
+
+            if add:
+                res = {'id': int(doc.doc_id)}
+                for field in doc.fields:
+                    res[field.name] = field.value
+                results.append(res)
+
+        return results
+    except search.Error as e:
+        logging.error('Error searching sermon  %s ' % e)
+
+
+def find_church(query):
+    """Find churches that match for the query."""
+    try:
+        index = Church.get_index()
+        # todo implement paging with cursors
+        search_results = index.search(query)
+        results = []
+        for doc in search_results:
+            res = {'id': int(doc.doc_id)}
+            for field in doc.fields:
+                res[field.name] = field.value
+            results.append(res)
+        return results
+    except search.Error as e:
+        logging.error('Error searching sermon  %s ' % e)
+
+
+def find_sermon(query, user_key=None):
+    """Find sermon that match for the query."""
+
+    user = user_key.get() if user_key else None
+
+    def filter(sermon):
+        """Filter sermon and add extra data."""
+        if sermon.privacy == PRIVACY_MEMBER and (not user or user.church_key != sermon.church_key):
+            return
+
+        pastor = sermon.created_by.get()
+        church = sermon.church_key.get()
+        sermon_ = util.model_to_dict(sermon)
+        sermon_['pastor'] = {
+            'id': pastor.key.id(),
+            'title': pastor.title,
+            'first_name': pastor.first_name,
+            'last_name': pastor.last_name
+        }
+        sermon_['church'] = {
+            'id': church.key.id(),
+            'name': church.name
+        }
+        return sermon_
+
+    try:
+        index = Sermon.get_index()
+        # todo implement paging with cursors
+        search_results = index.search(query)
+        results = []
+        # for doc in search_results:
+        #     res = {'doc_id': int(doc.doc_id)}
+        #     for field in doc.fields:
+        #         res[field.name] = field.value
+        #     results.append(res)
+        #
+        # create list of keys from search results
+        for doc in search_results:
+            results.append(ndb.Key('Sermon', int(doc.doc_id)))
+
+        # query all found items
+        sermons = ndb.get_multi(results)
+        results = []
+        # apply filter to found results
+        for sermon in sermons:
+            res = filter(sermon)
+            if res:
+                results.append(res)
+        return results
+    except search.Error as e:
+        logging.error('Error searching sermon  %s ' % e)
 
 
 def _update_sermon(user_id, data, publish=False):
@@ -236,7 +440,7 @@ def _update_sermon(user_id, data, publish=False):
         raise Exception('user must be a pastor to create a sermon')
 
     sermon = get_sermon(data['id']) if 'id' in data else Sermon(
-            created_by=user.key)
+        created_by=user.key)
     sermon.title = data['title']
     sermon.created_by = user.key
     sermon.publish = publish
@@ -245,7 +449,7 @@ def _update_sermon(user_id, data, publish=False):
         for d in data['date']:
             try:
                 sermon.date.append(
-                        datetime.datetime.utcfromtimestamp(float(d) / 1000.0))
+                    datetime.datetime.utcfromtimestamp(float(d) / 1000.0))
             except ValueError:
                 logging.info('Cannot parse d %s' % d)
     # @todo validate scripture
@@ -270,13 +474,14 @@ def _update_sermon(user_id, data, publish=False):
                 qsts.append(q)
         sermon.questions = qsts
 
-    if 'privacy' in data and data['privacy'].lower() in PRIVACY:
+    if 'privacy' in data and data['privacy'].lower() in PRIVACY_OPTIONS:
         sermon.privacy = data['privacy'].lower()
     else:
         sermon.privacy = 'public'
 
     sermon.church_key = user.church_key
     sermon.key = sermon.put()
+
     return sermon
 
 
@@ -288,13 +493,70 @@ def publish_sermon(user_id, data):
     return _update_sermon(user_id, data, True)
 
 
-def get_sermons_by_church(church_id, ):
-    return Sermon.query(Sermon.church_key == ndb.Key('Church', int(church_id)),
-                        Sermon.publish == True).fetch()
+def get_sermons_by_church(church_id, cursor=None, page_size=100):
+    """Return published sermons in this church.
+
+    Args:
+        church_id: the church id
+        cursor: optional cursor for paging
+        page_size: optional page size
+
+    Returns:
+        Returns dict with results
+    """
+
+    if isinstance(cursor, str):
+        cursor = Cursor(urlsafe=cursor)
+
+    church_key = ndb.Key('Church', int(church_id))
+    total = Sermon.query(Sermon.church_key == church_key, Sermon.publish == True).count(keys_only=True)
+    q = Sermon.query(Sermon.church_key == church_key, Sermon.publish == True).order(-Sermon.created_at)
+
+    if cursor:
+        sermons, next_curs, more = q.fetch_page(page_size, start_cursor=cursor)
+    else:
+        sermons, next_curs, more = q.fetch_page(page_size)
+
+    data = [_process_sermon(sermon) for sermon in sermons]
+    return {
+        'sermons': data,
+        'next': next_curs.urlsafe() if more and next_curs else None,
+        'total': total,
+        'page_size': page_size
+    }
 
 
-def get_sermons_by_pastor(pastor):
-    pass
+def get_sermons_by_pastor(pastor_id, cursor=None, page_size=100):
+    """Return published sermons created by specified pastor.
+
+    Args:
+        pastor_id: the pastor id
+        cursor: optional cursor for paging
+        page_size: optional page size
+
+    Returns:
+        Returns dict with results
+
+    """
+    if isinstance(cursor, str):
+        cursor = Cursor(urlsafe=cursor)
+
+    pastor_key = ndb.Key('User', int(pastor_id))
+    total = Sermon.query(Sermon.created_by == pastor_key, Sermon.publish == True).count(keys_only=True)
+    q = Sermon.query(Sermon.created_by == pastor_key, Sermon.publish == True).order(-Sermon.created_at)
+
+    if cursor:
+        sermons, next_curs, more = q.fetch_page(page_size, start_cursor=cursor)
+    else:
+        sermons, next_curs, more = q.fetch_page(page_size)
+
+    data = [_process_sermon(sermon) for sermon in sermons]
+    return {
+        'sermons': data,
+        'next': next_curs.urlsafe() if more and next_curs else None,
+        'total': total,
+        'page_size': page_size
+    }
 
 
 def save_comment(data):
@@ -352,40 +614,14 @@ def save_comment(data):
     return comment
 
 
-def save_sermon_note(data):
-    if 'notes' not in data:
-        raise Exception('notes is required and cannot be empty')
-    if 'user_key' not in data:
-        raise Exception('user id is required')
-    if 'sermon_key' not in data:
-        raise Exception('sermon id is required')
-
-    logging.info(data)
-
-    sermon = SermonNote.get_by_id(
-            int(data['id'])) if 'id' in data else SermonNote()
-    sermon.notes = data['notes']
-    if isinstance(data['sermon_key'], ndb.Key):
-        sermon.sermon_key = data['sermon_key']
-    else:
-        sermon.sermon_key = Sermon.get_by_id(int(data['sermon_key'])).key
-
-    if isinstance(data['user_key'], ndb.Key):
-        sermon.created_by = data['user_key']
-    else:
-        sermon.created_by = User.get_by_id(int(data['user_key'])).key
-    sermon.id = sermon.put()
-    return sermon
-
-
 def get_sermons():
     pass
 
 
 def get_sermon_note(user_id, sermon_id):
     return SermonNote.query(
-            SermonNote.created_by == ndb.Key('User', int(user_id)),
-            SermonNote.sermon_key == ndb.Key('Sermon', int(sermon_id))).get()
+        SermonNote.created_by == ndb.Key('User', int(user_id)),
+        SermonNote.sermon_key == ndb.Key('Sermon', int(sermon_id))).get()
 
 
 def get_comment_replies(comment_id, cursor=None, page_size=10):
@@ -403,8 +639,8 @@ def get_comment_replies(comment_id, cursor=None, page_size=10):
     try:
 
         q = Comment.query(
-                Comment.reply_to == ndb.Key('Comment', int(comment_id))).order(
-                -Comment.created_at)
+            Comment.reply_to == ndb.Key('Comment', int(comment_id))).order(
+            -Comment.created_at)
         if cursor:
             comments, next_curs, more = q.fetch_page(page_size,
                                                      start_cursor=cursor)
@@ -415,7 +651,7 @@ def get_comment_replies(comment_id, cursor=None, page_size=10):
         for c in comments:
             reply = util.model_to_dict(c)
             reply['user'] = User.query(User.key == c.created_by).get(
-                    projection=[User.first_name, User.last_name, User.title])
+                projection=[User.first_name, User.last_name, User.title, User.profile_photo])
             replies.append(reply)
 
         return {
@@ -498,7 +734,7 @@ def get_comments(type, id, cursor=None, page_size=20):
         comment['ref_kind'] = c.ref_key.kind()
         comment['replies'] = get_comment_replies(c.key.id())
         comment['user'] = User.query(User.key == c.created_by).get(
-                projection=[User.first_name, User.last_name, User.title])
+            projection=[User.first_name, User.last_name, User.profile_photo, User.title])
         data.append(comment)
 
     return {
@@ -627,9 +863,8 @@ def get_feed(user_id, cursor=None, last_time=None, page_size=15):
                                                        sermon.key.id(),
                                                        page_size=5)
                 sermon_dict['user'] = User.query(
-                        User.key == sermon.created_by).get(
-                        projection=[User.first_name, User.last_name,
-                                    User.title])
+                    User.key == sermon.created_by).get(
+                    projection=[User.first_name, User.last_name, User.profile_photo, User.title])
                 return sermon_dict
 
     if last_time:
@@ -643,7 +878,6 @@ def get_feed(user_id, cursor=None, last_time=None, page_size=15):
         # return feeds from this point
         feeds, next_curs, more = q.fetch_page(page_size, start_cursor=cursor)
     else:
-        print 'gere'
         feeds, next_curs, more = q.fetch_page(page_size)
 
     filtered = []
@@ -665,3 +899,154 @@ def create_feed(obj):
     feed.ref_key = obj.key
     feed.created_by = obj.created_by
     feed.put()
+
+
+def get_mini_user_info(user_key):
+    user = user_key.get()
+    return {'id': user.key.id(),
+            'title': user.title,
+            'first_name': user.first_name,
+            'last_name': user.last_name
+            }
+
+
+def get_mini_church_info(church_key):
+    church = church_key.get()
+    return {'id': church.key.id(),
+            'name': church.name,
+            'website': church.website,
+            'city': church.city
+            }
+
+
+def _process_sermon(sermon):
+    sermon_ = util.model_to_dict(sermon)
+    sermon_['pastor'] = get_mini_user_info(sermon.created_by)
+    sermon_['church'] = get_mini_church_info(sermon.church_key)
+    return sermon_
+
+
+def _process_note(note):
+    logging.info(note)
+    note_ = util.model_to_dict(note)
+    if note.sermon_key:
+        sermon = note.sermon_key.get()
+        note_['sermon'] = {
+            'id': sermon.key.id(),
+            'title': sermon.title,
+            'pastor': get_mini_user_info(sermon.created_by),
+            'church': get_mini_church_info(sermon.church_key)
+        }
+    else:
+        if note.church_key:
+            note_['church'] = get_mini_church_info(note.church_key)
+        if note.pastor_key:
+            note_['pastor'] = get_mini_user_info(note.pastor_key)
+    return note_
+
+
+def get_note(user_key, note_id):
+    """Return a note saved by a user."""
+
+    note = SermonNote.get_by_id(int(note_id))
+
+    # todo apply privacy/share settings, so others with access can get a note
+
+    # only return note if requested by creator
+    if note and note.created_by == user_key:
+        return _process_note(note)
+
+
+def get_user_notes(user_key, cursor=None, page_size=15):
+    """Return (sermon) notes created by this user."""
+
+    if isinstance(cursor, str):
+        cursor = Cursor(urlsafe=cursor)
+
+    # todo consider using async here
+    total = SermonNote.query(SermonNote.created_by == user_key).count(keys_only=True)
+    if cursor:
+        notes, next_curs, more = SermonNote.query(SermonNote.created_by == user_key).order(
+            -SermonNote.created_at).fetch_page(page_size, start_cursor=cursor)
+    else:
+        notes, next_curs, more = SermonNote.query(SermonNote.created_by == user_key).order(
+            -SermonNote.created_at).fetch_page(page_size)
+
+    data = [_process_note(note) for note in notes]
+    return {
+        'notes': data,
+        'next': next_curs.urlsafe() if more and next_curs else None,
+        'total': total,
+        'page_size': page_size
+    }
+
+
+def save_sermon_note(data):
+    if 'notes' not in data:
+        raise Exception('notes is required and cannot be empty')
+    if 'user_key' not in data:
+        raise Exception('user id is required')
+    if 'sermon_key' not in data:
+        raise Exception('sermon id is required')
+
+    logging.info(data)
+
+    sermon_note = SermonNote.get_by_id(
+        int(data['id'])) if 'id' in data else SermonNote()
+    sermon_note.notes = data['notes']
+    if isinstance(data['sermon_key'], ndb.Key):
+        sermon_note.sermon_key = data['sermon_key']
+    else:
+        sermon_note.sermon_key = Sermon.get_by_id(int(data['sermon_key'])).key
+
+    if isinstance(data['user_key'], ndb.Key):
+        sermon_note.created_by = data['user_key']
+    else:
+        sermon_note.created_by = User.get_by_id(int(data['user_key'])).key
+    sermon_note.id = sermon_note.put()
+    return sermon_note
+
+
+def save_note(user_key, data):
+    """Create or update new note.
+
+    A user can create notes for an existing sermon or for a non-existing sermon.
+
+    Args:
+        user_key: Id of the user
+        data: Dict with information about the note to be saved
+
+    Returns:
+        Created/saved note
+    """
+    if 'sermon' in data and 'id' in data['sermon']:
+        return save_sermon_note({
+            'sermon_key': data['sermon']['id'],
+            'notes': data['notes'],
+            'user_key': user_key
+        })
+    else:
+        if 'notes' not in data:
+            raise Exception('notes is required')
+        if 'title' not in data:
+            raise Exception('title is required')
+        sermon_note = SermonNote.get_by_id(int(data['id'])) if 'id' in data else SermonNote(created_by=user_key)
+        sermon_note.notes = data['notes']
+        sermon_note.title = data['title']
+        if 'pastor_id' in data and data['pastor_id']:
+            sermon_note.pastor_key = ndb.Key('User', int(data['pastor_id']))
+        elif 'pastor' in data:
+            sermon_note.pastor = data['pastor']
+        # else:
+        #     raise Exception('pastor name or id is required')
+
+        if 'church_id' in data and data['church_id']:
+            sermon_note.church_key = ndb.Key('Church', int(data['church_id']))
+        elif sermon_note.church_key is None:
+            if 'church' in data and isinstance(data['church'], str) and Church.query(
+                            Church.name == data['church']).get() is None:
+                ch = Church(name=data['church'])
+                ch.key = ch.put()
+                sermon_note.church_key = ch.key
+        sermon_note.id = sermon_note.put()
+        return sermon_note

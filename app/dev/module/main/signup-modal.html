@@ -1,0 +1,26 @@
+<div class="modal-body">
+    <div class="social-buttons">
+        <button class="btn btn-default btn-block btn-icon-text btn-facebook waves-effect m-b-10 "
+                ng-click="modalCtrl.signupWithFacebook()">
+            <i class="zmdi zmdi-facebook pull-left"></i>
+            Sign up with Facebook
+        </button>
+        <!--<button class="btn btn-default btn-block btn-icon-text waves-effect m-b-10"><i class="zmdi zmdi-facebook pull-left"></i> Home</button>-->
+    </div>
+    <div class="signup-or-separator m-b-20">
+        <span class="h6 signup-or-separator--text">or</span>
+        <hr>
+    </div>
+    <button ng-click="modalCtrl.showEmailSignupModal()"
+            class="btn btn-default btn-block btn-icon-text waves-effect m-b-20"><i
+            class="zmdi zmdi-email pull-left"></i>
+        Sign up with Email
+    </button>
+
+    <p>By signing up, I agree to ScripturedIn's Terms.</p>
+
+    <hr>
+</div>
+<div class="modal-footer">
+    Already a scripturein member? <a href ng-click="modalCtrl.showLoginModal()">Log in</a>
+</div>

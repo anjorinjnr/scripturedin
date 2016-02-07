@@ -92,7 +92,7 @@
                                     <!--<label>Main Scriptures</label>-->
                                     <md-chips
                                             ng-model="sermonCtrl.sermon.scriptures"
-                                            md-on-select="sermonCtrl.scriptureSelect($chip)"
+                                            chip-show-modal-on-click
                                             md-transform-chip="sermonCtrl.onScriptureAdd($chip)"
                                             placeholder="Enter a scripture"
                                             secondary-placeholder="e.g John 3:16"
@@ -118,8 +118,9 @@
                                         <p>Provide a short summary or introduction for sermon. This is highly
                                             recommended but not required.</p>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <wysiwyg-edit
+                                                        class="summary"
                                                         config="editorConfig"
                                                         content="sermonCtrl.sermon.summary">
 
@@ -131,42 +132,50 @@
                                 </md-tab>
                                 <md-tab label="Sermon Notes">
                                     <md-content class="md-padding">
-                                        <div class="m-b-10 pull-right">
-                                            <a ng-click="sermonCtrl.noteStyle='point'"
-                                               ng-if="sermonCtrl.noteStyle == 'note'"
-                                               href>
-                                                <strong>Switch to point style</strong>
-                                                <small>(note is a list of specific points)</small>
-                                                <!--<md-tooltip md-direction="right">-->
-                                                <!--Use the point style if you like to emphasize specific points.-->
-                                                <!--</md-tooltip>-->
 
-                                            </a>
-                                            <a ng-if="sermonCtrl.noteStyle == 'point'"
-                                               ng-click="sermonCtrl.noteStyle='note'"
-                                               href>
-                                                <strong>Switch to note style</strong>
-                                                <small>(note is free form text)</small>
-                                                <!--<md-tooltip md-direction="right">-->
-                                                <!--Use the note style if you like your sermon to be read as a series-->
-                                                <!--of paragraphs.-->
-                                                <!--</md-tooltip>-->
 
-                                            </a>
+                                        <div class="m-b-10">
+                                            <span>Enter the main sermon notes here.</span>
+                                            <span ng-if="sermonCtrl.noteStyle == 'note'">
+                                                  <a ng-click="sermonCtrl.noteStyle='point'" href>
+                                                      <strong>Switch to point style</strong>
+                                                  </a>
+                                            <small>(note is a list of specific points)</small>
+                                            </span>
+
+                                             <span ng-if="sermonCtrl.noteStyle == 'point'">
+                                                  <a ng-click="sermonCtrl.noteStyle='note'"
+                                                     href>
+                                                      <strong>Switch to note style</strong>
+
+                                                  </a>
+                                           <small>(note is free form text)</small>
+                                            </span>
+
                                         </div>
 
-                                        <p>Enter the main sermon notes here.</p>
+
                                         <div class="style_point" ng-if="sermonCtrl.noteStyle == 'point'">
                                             <div class="row"
                                                  ng-repeat="note in sermonCtrl.sermon.notes ">
-                                                <div class="col-sm-1"
+                                                <div class="col-sm-2"
                                                      style="padding-top: 20px; text-align: center">
                                                     <h4>{{$index + 1}}</h4>
+                                                    <a class="f-25" href
+                                                       ng-click="sermonCtrl.sermon.notes.push({content:''})">
+                                                        <i class="zmdi zmdi-plus-circle"></i>
+                                                    </a>
+                                                    <a ng-if="$index > 0" href
+                                                       class="c-red f-25"
+                                                       ng-click="sermonCtrl.sermon.notes.splice($index, 1)">
+                                                        <i class="zmdi zmdi-minus-circle"></i>
+                                                    </a>
                                                 </div>
-                                                <div class="col-sm-8"
+                                                <div class="col-sm-9"
                                                      ng-class="{'has-error' : sermonCtrl.submitted && note.content.length == 0}">
                                                     <div class="form-group">
                                                         <wysiwyg-edit
+                                                                class="point"
                                                                 config="editorConfig"
                                                                 content="note.content"></wysiwyg-edit>
                                                     </div>
@@ -177,23 +186,12 @@
                                                         required
                                                     </small>
                                                 </div>
-                                                <div class="col-sm-2"
-                                                     style="padding-top: 20px">
-                                                    <a style="font-size:30px" href
-                                                       ng-click="sermonCtrl.sermon.notes.push({content:''})">
-                                                        <i class="zmdi zmdi-plus zmdi-hc-fw"></i>
-                                                    </a>
-                                                    <a ng-if="$index > 0"
-                                                       style="font-size:30px" href
-                                                       ng-click="sermonCtrl.sermon.notes.splice($index, 1)">
-                                                        <i class="zmdi zmdi-minus zmdi-hc-fw"></i>
-                                                    </a>
-                                                </div>
+
                                             </div>
                                         </div>
                                         <div class="style_note" ng-if="sermonCtrl.noteStyle == 'note'">
                                             <div class="row">
-                                                <div class="col-md-8">
+                                                <div class="col-md-12">
                                                     <wysiwyg-edit
                                                             config="editorConfig"
                                                             content="sermonCtrl.sermon.note"></wysiwyg-edit>
@@ -205,106 +203,83 @@
                                                 </div>
                                             </div>
                                         </div>
-
-                        </div>
-
-                        </md-content>
-                        </md-tab>
-                        <md-tab label="Sermon Questions">
-
-                            <md-content class="md-padding">
-                                <p>Enter questions for readers to reflect on. This is highly
-                                    recommended but not required.</p>
-                                <div class="row"
-                                     ng-repeat="question in sermonCtrl.sermon.questions">
-                                    <div class="col-sm-1"
-                                         style="padding-top: 20px; text-align: center">
-                                        <h4>{{$index + 1}}</h4>
-                                    </div>
-                                    <div class="col-sm-8">
-                                        <div class="form-group">
-                                            <wysiwyg-edit
-                                                    config="editorConfig"
-                                                    content="question.content"></wysiwyg-edit>
+                                    </md-content>
+                                </md-tab>
+                                <md-tab label="Sermon Questions">
+                                    <md-content class="md-padding">
+                                        <p>Enter questions for readers to reflect on. This is highly
+                                            recommended but not required.</p>
+                                        <div class="row"
+                                             ng-repeat="question in sermonCtrl.sermon.questions">
+                                            <div class="col-sm-2" style="padding-top: 20px; text-align: center">
+                                                <h4>{{$index + 1}}</h4>
+                                                <a class="f-25" href
+                                                   ng-click="sermonCtrl.sermon.questions.push({content:''})">
+                                                    <i class="zmdi zmdi-plus-circle"></i>
+                                                </a>
+                                                <a ng-if="$index > 0" href
+                                                   class="c-red f-25"
+                                                   ng-click="sermonCtrl.sermon.questions.splice($index, 1)">
+                                                    <i class="zmdi zmdi-minus-circle"></i>
+                                                </a>
+                                            </div>
+                                            <div class="col-sm-9">
+                                                <div class="form-group">
+                                                    <wysiwyg-edit class="point"
+                                                                  config="editorConfig"
+                                                                  content="question.content"></wysiwyg-edit>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-sm-2"
-                                         style="padding-top: 20px">
-                                        <a style="font-size:30px" href
-                                           ng-click="sermonCtrl.sermon.questions.push({content:''})">
-                                            <i class="zmdi zmdi-plus zmdi-hc-fw"></i>
-                                        </a>
-                                        <a ng-if="$index > 0"
-                                           style="font-size:30px" href
-                                           ng-click="sermonCtrl.sermon.questions.splice($index, 1)">
-                                            <i class="zmdi zmdi-minus zmdi-hc-fw"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </md-content>
-                        </md-tab>
-                        </md-tabs>
-                    </div>
-                </div>
-                <!--<div class="row">-->
-                <!--<div class="col-sm-4">-->
-                <!--Privacy Setting-->
-                <!--</div>-->
-                <!--<div class="col-sm-8">-->
-                <!--<md-input-container>-->
-                <!--&lt;!&ndash;<label>State</label>&ndash;&gt;-->
-                <!--<md-select ng-model="ctrl.userState">-->
-                <!--<md-option ng-repeat="p in sermonCtrl.privacy"-->
-                <!--value="{{p.key}">-->
-                <!--{{p.value}}-->
-                <!--</md-option>-->
-                <!--</md-select>-->
-                <!--</md-input-container>-->
-                <!--</div>-->
-                <!--</div>-->
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="btn-group dropdown m-r-5" uib-dropdown>
-                            <md-button type="button"
-                                       class="btn btn-default  waves-effect">
-                           <span ng-if="!sermonCtrl.sermon.privacy">Who should see this?
-                           </span>
-                           <span ng-if="sermonCtrl.sermon.privacy">
-                           {{sermonCtrl.sermon.privacy}}
-                           </span>
-                            </md-button>
-                            <button type="button"
-                                    class="btn btn-default dropdown-toggle waves-effect"
-                                    style="padding-bottom: 12px"
-                                    uib-dropdown-toggle>
-                                <span class="caret"></span>
-                                <span class="sr-only">Split button dropdowns</span>
-                            </button>
-                            <ul class="dropdown-menu privacy">
-                                <li
-                                        ng-class="{selected: sermonCtrl.sermon.privacy==p.key}"
-                                        data-ng-repeat="p in sermonCtrl.privacy">
-                                    <a ng-click="sermonCtrl.sermon.privacy=p.key"
-                                       href>{{p.value}} <br>
-                                        <strong class="m-t-5">{{p.info
-                                            }}</strong></a>
-                                </li>
-                            </ul>
-                            </ul>
+                                    </md-content>
+                                </md-tab>
+                            </md-tabs>
                         </div>
-                        <md-button
-                                ng-click="sermonCtrl.publish()"
-                                class="md-raised c-white bgm-blue">
-                            Publish
-                        </md-button>
-                        <md-button
-                                ng-click="sermonCtrl.save()"
-                                class="md-raised">
-                            Save
-                        </md-button>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="btn-group dropdown m-r-5" uib-dropdown>
+                                <button title="button" class="btn btn-default btn-sm waves-effect">
+                                    <span ng-if="!sermonCtrl.sermon.privacy">Who should see this?</span>
+                                    <span ng-if="sermonCtrl.sermon.privacy">{{sermonCtrl.sermon.privacy}}</span>
+                                </button>
+                                <button type="button"
+                                        class="btn btn-default dropdown-toggle waves-effect"
+                                        uib-dropdown-toggle>
+                                    <span class="caret"></span>
+                                    <span class="sr-only">Split button dropdowns</span>
+                                </button>
+                                <ul class="dropdown-menu privacy">
+                                    <li ng-class="{selected: sermonCtrl.sermon.privacy==p.key}"
+                                        data-ng-repeat="p in sermonCtrl.privacy">
+                                        <a ng-click="sermonCtrl.sermon.privacy=p.key"
+                                           href>{{p.value}} <br>
+                                            <strong class="m-t-5">{{p.info
+                                                }}</strong></a>
+                                    </li>
+                                </ul>
+                                </ul>
+                            </div>
+                            <button ng-click="sermonCtrl.publish()" class="m-r-5 btn btn-primary waves-effect">
+                                Publish
+                            </button>
+                            <button ng-click="sermonCtrl.save()" class="btn btn-default waves-effect">
+                                Save
+                            </button>
+                            <!--<md-button-->
+                            <!--ng-click="sermonCtrl.publish()"-->
+                            <!--class="md-raised  btn-sm  c-white bgm-blue">-->
+                            <!--Publish-->
+                            <!--</md-button>-->
+                            <!--<md-button-->
+                            <!--ng-class="btn-sm"-->
+                            <!--ng-click="sermonCtrl.save()"-->
+                            <!--class="md-raised">-->
+                            <!--Save-->
+                            <!--</md-button>-->
+                        </div>
                     </div>
                 </div>
-            </div>
         </form>
     </div>
 </div>
