@@ -1,5 +1,5 @@
 application: scripturedin
-version: v1-0-5
+version: v1-0-8
 runtime: python27
 api_version: 1
 threadsafe: yes

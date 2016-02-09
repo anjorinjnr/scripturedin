@@ -48,8 +48,12 @@ gulp.task('copy-assets', function () {
     var assets = ['dev/img/**', 'dev/fonts/**', 'dev/media/**',
         'dev/data/**', 'dev/vendors/bower_components/material-design-iconic-font/dist/fonts'].concat(vendor.lazy);
 
+    gulp.src('dev/vendors/bower_components/ngWYSIWYG/images/*')
+        .pipe(gulp.dest('prod/images'));
+
     return gulp.src(assets, {base: 'dev'})
         .pipe(gulp.dest('prod'));
+
 });
 gulp.task('styles', function () {
     return gulp.src(paths.styles)

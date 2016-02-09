@@ -21,7 +21,7 @@
             <!--<a href=""><i class="zmdi zmdi-input-antenna"></i> Privacy Settings</a>-->
             <!--</li>-->
             <li>
-            <a ui-sref="base.settings"><i class="zmdi zmdi-settings"></i> Settings</a>
+                <a ui-sref="base.settings"><i class="zmdi zmdi-settings"></i> Settings</a>
             </li>
             <li>
                 <a href="#/logout"><i class="zmdi zmdi-time-restore"></i> Logout</a>
@@ -32,7 +32,7 @@
     <ul class="main-menu">
 
         <li data-ui-sref-active="active">
-            <a data-ui-sref="base.home" data-ng-click="mactrl.sidebarStat($event)"><i class="zmdi zmdi-home"></i>
+            <a data-ui-sref="base.home"><i class="zmdi zmdi-home"></i>
                 Home</a>
         </li>
         <li class="sub-menu" data-ng-class="{ 'active toggled': mactrl.$state.includes('headers') }">
@@ -52,7 +52,7 @@
             </ul>
         </li>
         <li data-ui-sref-active="active">
-            <a data-ui-sref="base.sermon-browse" data-ng-click="appCtrl.sidebarStat($event)">
+            <a data-ui-sref="base.sermon-browse">
                 <i>
                     <md-icon md-svg-src="/img/icons/speaker_notes_black.svg"></md-icon>
                 </i> Sermons</a>

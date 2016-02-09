@@ -1,12 +1,30 @@
 (function () {
 
-    var UserService = function ($http, authService) {
+    var UserService = function ($http, authService, localStorageService, APP_CONSTANTS) {
         var self = this;
         self.http_ = $http;
+        self.storage = localStorageService;
         self.authService = authService;
         self.user = authService.user;
+        self.APP_CONSTANTS = APP_CONSTANTS;
     };
 
+    UserService.prototype.saveConfig = function (conf) {
+        this.storage.set('_user_config', conf);
+    };
+
+    UserService.prototype.getConfig = function () {
+        var self = this;
+        var config = self.storage.get('_user_config');
+        if (config == null) {
+            var tip_note_auto_save = self.APP_CONSTANTS.TIP_NOTE_AUTO_SAVE;
+            config = {
+                tip_note_auto_save: false
+            };
+            self.saveConfig(config);
+        }
+        return config;
+    };
     UserService.prototype.signUp = function (user) {
         return this.http_.post('/api/signup', user);
     };

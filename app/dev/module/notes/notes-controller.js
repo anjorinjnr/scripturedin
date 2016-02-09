@@ -2,7 +2,7 @@
 
     var NotesCtrl = function (userService, bibleService, $scope,
                               $state, note, $q, $scope, noteService,
-                              alertService) {
+                              alertService, APP_CONSTANTS) {
         var self = this;
         self.userService = userService;
         self.bibleService = bibleService;
@@ -11,17 +11,33 @@
         self.note = note;
         self.scope_ = $scope;
         self.noteService = noteService;
-
+        self.APP_CONSTANTS = APP_CONSTANTS;
+        self.userConfig = userService.getConfig();
         if ($state.current.name == 'base.notes') {
             self.page = 1;
             self.getNotes();
         }
         if ($state.current.name == 'base.new-note') {
             self.note.scriptures = [];
-            //$scope.$watch('notesCtrl.note.notes', function (n) {
-            //    self.saveNote();
-            //})
+
             self.saveNote();
+            /**
+             * If user is creating note for the first time, we
+             * show a tip so they know that notes are saved automatically
+             */
+            if (!self.userConfig[self.APP_CONSTANTS.TIP_NOTE_AUTO_SAVE]) {
+                swal({
+                    title: "<strong>Quick Tip!</strong>",
+                    text: "Your notes are saved automatically as you type.",
+                    type: "info",
+                    html: true,
+                    confirmButtonText: 'Got it!'
+                }, function () {
+                    self.userConfig[self.APP_CONSTANTS.TIP_NOTE_AUTO_SAVE] = true;
+                    self.userService.saveConfig(self.userConfig);
+                });
+            }
+
         }
     };
 

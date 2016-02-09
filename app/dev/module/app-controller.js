@@ -1,21 +1,16 @@
-App.controller('appController', function ($scope, sidebarToggle) {
+(function () {
 
-    var self = this;
-    self.fabMenu = {
-        isOpen: false
+    var AppController = function ($scope, appService) {
+
+        var self = this;
+        self.fabMenu = {
+            isOpen: false
+        };
+        self.appService = appService;
+
     };
-
-    self.sidebarToggle = sidebarToggle;
-
-    //Close sidebar on click
-    self.sidebarStat = function (event) {
-
-        if (!angular.element(event.target).parent().hasClass('active')) {
-            self.sidebarToggle.left = false;
-
-        }
+    AppController.prototype.switchLayout = function () {
+        this.appService.layout = (this.appService.layout == 1) ? 0 : 1;
     };
-
-    self.ver = '1.0';
-
-});
+    App.controller('appController', AppController);
+})();

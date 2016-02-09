@@ -38,7 +38,10 @@
     <!--<link href="css/demo.css" rel="stylesheet">-->
 
 </head>
-<body ng-class="{overflow: appCtrl.sideMenu, 'gray-body': $state.current.name.indexOf('base') >= 0}">
+<body ng-class="{overflow: appCtrl.sideMenu,
+                'sw-toggled': $state.current.name != 'main' && appCtrl.appService.layout == 1,
+                'gray-body': $state.current.name.indexOf('base') >= 0
+                }">
 
 <div ui-view autoscroll='true'></div>
 

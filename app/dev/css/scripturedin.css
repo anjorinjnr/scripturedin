@@ -233,6 +233,15 @@ div:empty:before {
 
 /** large device **/
 @media (min-width: 768px) {
+
+    .center-search {
+        position: relative !important;
+        background: none !important;
+        opacity: 1 !important;
+        margin: 0 auto !important;
+        width: 600px !important;
+    }
+
     .header {
         background-position: center;
         background-size: cover;
@@ -251,10 +260,15 @@ div:empty:before {
     .menu-trigger {
         display: none;
     }
+
+    #top-search {
+        display: none;
+    }
 }
 
 /** small device **/
 @media (max-width: 768px) {
+
     .header {
         background-position: left center;
         background-size: cover !important;
@@ -373,32 +387,6 @@ body.overflow {
     font-size: 20px;
     margin-right: 40px;
 }
-
-/*.modal {*/
-/*width: 100%;*/
-/*padding: 0;*/
-/*display: table !important;*/
-/*height: 100%;*/
-/*position: absolute;*/
-/*top: 0;*/
-/*left: 0;*/
-/*margin: 0;*/
-/*}*/
-
-/*.modal-dialog {*/
-/*padding: 0;*/
-/*vertical-align: middle;*/
-/*display: table-cell;*/
-/*margin: 0;*/
-/*}*/
-
-/*.modal-content {*/
-/*width: 300px;*/
-/*background-color: #fff;*/
-/*margin: 0 auto;*/
-/*text-align: left;*/
-/*padding: 10px;*/
-/*}*/
 
 .modal-content {
     padding: 20px;
@@ -520,7 +508,7 @@ name-tag a {
     max-height: 100%;
 }
 
-wysiwyg-edit .tinyeditor .sizer{
+wysiwyg-edit .tinyeditor .sizer {
     min-height: 400px;
 }
 
@@ -553,4 +541,8 @@ wysiwyg-edit.summary .tinyeditor .sizer {
 
 .f-25 {
     font-size: 25px !important;
+}
+
+#header {
+    height: 70px;
 }

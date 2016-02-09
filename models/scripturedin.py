@@ -375,6 +375,7 @@ def find_sermon(query, user_key=None):
     user = user_key.get() if user_key else None
 
     def filter(sermon):
+        if sermon is None: return
         """Filter sermon and add extra data."""
         if sermon.privacy == PRIVACY_MEMBER and (not user or user.church_key != sermon.church_key):
             return

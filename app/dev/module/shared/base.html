@@ -1,12 +1,13 @@
 <header ng-hide="$state.current.data.hideHeader"
         id="header"
+        ng-class="{'search-toggled': appCtrl.appService.searchToggle}"
         ng-controller="headerController as headerCtrl"
-        data-current-skin="blue"
-        style="height: 70px">
+        data-current-skin="blue">
+
     <ul class="header-inner clearfix">
         <li id="menu-trigger"
-            ng-click="appCtrl.sidebarToggle.left = !appCtrl.sidebarToggle.left"
-            data-ng-class="{ 'open': appCtrl.sidebarToggle.left === true }">
+            ng-click="appCtrl.appService.sidebarToggle.left = !appCtrl.appService.sidebarToggle.left"
+            data-ng-class="{ 'open': appCtrl.appService.sidebarToggle.left === true }">
             <div class="line-wrap">
                 <div class="line top"></div>
                 <div class="line center"></div>
@@ -17,19 +18,43 @@
         <li class="logo hidden-xs">
             <a href="/#/home">scripturedIn</a>
         </li>
+        <li class="pull-right">
+            <ul class="top-menu">
 
+                <li id="toggle-width">
+                    <div class="toggle-switch">
+                        <input id="tw-switch" type="checkbox" hidden="hidden"
+                               ng-checked="appCtrl.appService.layout == 1"
+                               ng-click="appCtrl.switchLayout()">
+                        <label for="tw-switch" class="ts-helper"></label>
+                    </div>
+                </li>
+
+                <li id="top-search" style="padding-top: 8px">
+                    <a href
+                       data-ng-click="appCtrl.appService.searchToggle=true;">
+                        <i   style="font-size: 35px" class="tm-icon zmdi zmdi-search"></i>
+                    </a>
+                </li>
+            </ul>
+        </li>
     </ul>
-
     <!-- when mobile, reduce width and float right -->
-    <div id="top-search-wrap" class="hidden-xs"
-         style="position: relative; background: none;opacity:1;margin: 0 auto; width: 600px;">
-        <div class="tsw-inner" style="max-width: 500px">
-            <!--<i id="top-search-close" class="zmdi zmdi-arrow-left" data-ng-click="hctrl.closeSearch()"></i>-->
+    <div id="top-search-wrap" class="center-search">
+        <div class="tsw-inner hidden-xs" >
             <input focus type="text"
                    data-ng-keypress="headerCtrl.onSearchKeyPress($event)"
                    data-ng-model="headerCtrl.searchTerm"
-                   placeholder="Search for bible verse e.g john 3:16"
+                   placeholder="Search for bible verse e.g prob 31, john 3:16, mark 5:1-6"
                    style="padding: 0 10px 0 20px; font-size: 14px">
+        </div>
+        <div class="tsw-inner" ng-if="appCtrl.appService.searchToggle">
+            <i id="top-search-close" class="zmdi zmdi-arrow-left" data-ng-click="appCtrl.appService.searchToggle=false"></i>
+            <input focus
+                   type="text"
+                   data-ng-keypress="headerCtrl.onSearchKeyPress($event)"
+                   data-ng-model="headerCtrl.searchTerm"
+                   placeholder="Look up bible verse e.g john 3:16">
         </div>
     </div>
 
@@ -38,7 +63,7 @@
 
 <section id="main">
     <aside id="sidebar" data-ng-include="'module/shared/sidebar-left.html'"
-           data-ng-class="{ 'toggled': appCtrl.sidebarToggle.left === true }">
+           data-ng-class="{ 'toggled': appCtrl.appService.sidebarToggle.left === true }">
 
     </aside>
     <section id="content" class="main-page-content" ui-view="content" autoscroll='true'>

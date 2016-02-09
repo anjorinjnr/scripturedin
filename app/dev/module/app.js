@@ -16,16 +16,22 @@ var App = angular.module('scripturedIn', [
         pastor: 'pastor',
         user: 'user'
     })
-    .service('sidebarToggle', function () {
+    .constant('APP_CONSTANTS', {
+        TIP_NOTE_AUTO_SAVE: 'tip_note_auto_save'
+    })
+    .service('appService', function () {
         return {
-            left: false
+            sidebarToggle: false,
+            searchToggle: false,
+            layout: 1,
+            ver: '1.0.5'
         };
     })
     .config(function ($uiViewScrollProvider) {
         $uiViewScrollProvider.useAnchorScroll();
     })
-    .run(function ($rootScope, alertService, util, authService, $state, $mdToast, sidebarToggle) {
-        
+    .run(function ($rootScope, alertService, util, authService, userService, $state, $mdToast, appService) {
+
             $rootScope.authService = authService;
             $rootScope.$state = $state;
 
@@ -40,7 +46,7 @@ var App = angular.module('scripturedIn', [
                 return util.imagePath(user);
             };
             $rootScope.$on('$stateChangeSuccess', function () {
-                sidebarToggle.left = false;
+                appService.sidebarToggle.left = false;
             });
 
             /**

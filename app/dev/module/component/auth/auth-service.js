@@ -89,7 +89,7 @@
         var self = this;
         self.http_.post('/api/logout').then(function (resp) {
             if (resp.data.status == 'success') {
-                self.localStorageService.clearAll();
+                self.localStorageService.remove('user');
                 self.user = {};
                 window.location = '/';
             }
