@@ -215,14 +215,21 @@ div:empty:before {
 }
 
 .intro-text-bg {
-    background-color: rgba(72, 41, 46, 0.26);
+    background-color: rgba(21, 15, 16, 0.59);
     padding: 15px;
 }
 
-.intro-text-bg p {
+.intro-text-bg h1 {
     margin-bottom: 0px;
     color: rgba(255, 255, 255, 0.95);
-    font-size: 62px;
+    font-size: 50px;
+    text-align: center;
+}
+
+.intro-text-bg p {
+    padding-top: 10px;
+    color: rgba(224, 224, 224, 0.77);
+    font-size: 20px;
     text-align: center;
 }
 
@@ -270,13 +277,14 @@ div:empty:before {
 @media (max-width: 768px) {
 
     .header {
-        background-position: left center;
-        background-size: cover !important;
+        background-position: top left;
+        background-size: 100% 90% !important;
+        height: 550px !important;
         /*height: 100% !important;*/
     }
 
     .header-content {
-        padding-top: 150px;
+        padding-top: 100px;
 
     }
 
@@ -293,10 +301,10 @@ div:empty:before {
         font-size: 28px;
     }
 
-    .intro-text-bg p {
-        font-size: 45px;
-        text-align: center;
-    }
+    /*.intro-text-bg p {*/
+    /*font-size: 45px;*/
+    /*text-align: center;*/
+    /*}*/
 }
 
 .info {
