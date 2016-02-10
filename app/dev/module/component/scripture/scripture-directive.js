@@ -24,7 +24,7 @@
                 }
             }
         })
-        .directive('scripture', function (bibleService) {
+        .directive('scriptureCard', function (bibleService) {
             return {
                 restrict: 'E',
                 scope: {
@@ -36,7 +36,7 @@
                     //create scripture object from text
                     var scripture = bibleService.parseScripture(scope.text);
 
-                    //console.log(scripture);
+                    console.log(scripture);
 
                     getPassage(scripture);
 

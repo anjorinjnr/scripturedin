@@ -106,6 +106,16 @@ class UserHandler(base_handler.BaseHandler):
         note = model.save_note(self.user.key, data)
         self.write_model(note)
 
+    @user_required
+    def save_post(self):
+        try:
+            data = self.request_data()
+            post = model.save_post(self.user.key, data)
+            feed = model.create_feed(post)
+            self.write_model(model.process_feed(feed, self.user, ref_object=post))
+        except Exception as e:
+            self.error_response(e.message)
+
     def signup(self):
         """Handles email signup. """
         try:
@@ -186,3 +196,19 @@ class UserHandler(base_handler.BaseHandler):
                                                     verified=True)
             logging.info(user_data)
         return user_data
+
+    @user_required
+    def like_post(self, post_id):
+        try:
+            if model.like_post(post_id, self.user.key):
+                self.success_response()
+        except Exception as e:
+            self.error_response([e.message])
+
+    @user_required
+    def unlike_post(self, post_id):
+        try:
+            if model.unlike_post(post_id, self.user.key):
+                self.success_response()
+        except Exception as e:
+            self.error_response([e.message])

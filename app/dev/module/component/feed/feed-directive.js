@@ -130,7 +130,7 @@ App
             templateUrl: 'module/component/feed/comments.html'
         }
     })
-    .directive('feed', function (authService, util, userService) {
+    .directive('feed', function (authService, util, userService, $compile) {
         return {
             restrict: 'E',
             scope: {
@@ -144,60 +144,83 @@ App
 
 
                 scope.postComment = function (comment) {
-                    if (feed.kind == 'Sermon') {
-                        userService.postComment({comment: comment}, feed.id, 'Sermon').then(function (resp) {
-                                if (resp.data.id) {
-                                    //feed.comments is an object
-                                    //with comment array and
-                                    //next for cursor id
-                                    feed.comments.comments.unshift(resp.data);
-                                    feed.newComment_ = '';
-                                    feed.comment_count++;
-                                } else {
-                                    alertService.danger('Failed to post comment, please try again');
-                                }
+
+                    userService.postComment({comment: comment}, feed.id, feed.kind).then(function (resp) {
+                            if (resp.data.id) {
+                                //feed.comments is an object
+                                //with comment array and
+                                //next for cursor id
+                                feed.comments.comments.unshift(resp.data);
+                                feed.newComment_ = '';
+                                feed.comment_count++;
+                            } else {
+                                alertService.danger('Failed to post comment, please try again');
                             }
-                        )
-                    }
+                        }
+                    )
+
 
                 };
-                //process display text
-                if (feed.kind == 'Sermon') {
-                    if (_.isEmpty(feed.summary)) {
-                        if (!_.isEmpty(feed.note)) {
-                            feed.displayText = feed.note;
-                        } else {
-                            feed.displayText = '';
-                            // sermon not in bullet points.
-                            for (var i = 0; i < feed.notes.length; i++) {
-                                feed.displayText += feed.notes[i].content + '. ';
-                            }
+                scope.more = function () {
+                    feed.displayText = feed.fullText;
+                };
 
-                        }
-                    } else {
-                        feed.displayText = feed.summary;
+                function formatContent(content) {
+                    var l = content.length;
+                    if (l > 600) {
+                        console.log($compile('<a  href ng-click="test()">more</a>')(scope));
+                        return util.trim(content, 600) + '...' + '<a  href ng-click="more()">more</a>';
                     }
+                    return content;
+                }
+
+                //process display text
+                switch (feed.kind) {
+                    case 'Sermon':
+                        feed.fullText = feed.displayText = '<h3 class="m-t-5 m-b-5"><a href="#/sermon/' + feed.id + '">' + feed.title + '</a></h3> <br>';
+                        console.log(feed.displayText);
+                        if (_.isEmpty(feed.summary)) {
+                            if (!_.isEmpty(feed.note)) {
+                                feed.displayText += formatContent(feed.note);
+                                feed.fullText += (feed.note);
+                            } else {
+                                // sermon not in bullet points.
+                                var content = '';
+                                for (var i = 0; i < feed.notes.length; i++) {
+                                    content += feed.notes[i].content;
+                                }
+                                feed.displayText += formatContent(content);
+                                feed.fullText += feed.note;
+
+                            }
+                        } else {
+                            feed.displayText += formatContent(feed.summary);
+                            feed.fullText += feed.summary;
+                        }
+                        break;
+                    case 'Post':
+                        feed.displayText = formatContent(feed.content);
+                        feed.fullText = feed.content;
                 }
 
 
                 scope.busy = false;
 
                 scope.liked = function () {
-                    if (feed.kind == 'Sermon') {
-                        var i = scope.user.fav_sermon_keys.indexOf(feed.id);
-                        return i >= 0;
-                    }
-                    return false;
+                    return feed.likers_key.indexOf(scope.user.id) >= 0;
+                    //if (feed.kind == 'Sermon') {
+                    //    var i = scope.user.fav_sermon_keys.indexOf(feed.id);
+                    //    return i >= 0;
+                    //}
+                    //return false;
                 };
                 //handle like or unlike
                 scope.like = function () {
                     if (feed.kind == 'Sermon') {
-                        scope.likeSermon();
+                        userService.likeSermon(scope.user, feed);
+                    } else if (feed.kind == 'Post') {
+                        userService.likePost(scope.user, feed)
                     }
-                };
-
-                scope.likeSermon = function () {
-                    userService.likeSermon(scope.user, feed);
                 };
 
 

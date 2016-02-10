@@ -554,3 +554,10 @@ wysiwyg-edit.summary .tinyeditor .sizer {
 #header {
     height: 70px;
 }
+
+.scripture-highlight {
+    background-color: rgba(214, 210, 25, 0.2);
+    padding: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}

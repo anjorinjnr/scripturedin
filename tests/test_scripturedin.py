@@ -227,21 +227,20 @@ class ScripturedinTestCase(unittest.TestCase):
                          church_key=ndb.Key('Church', '999'))
         s.key = s.put()
 
-        model.Feed(ref_key=s1.key).put()
-        model.Feed(ref_key=s2.key).put()
-        model.Feed(ref_key=s3.key).put()
+        f1 = model.Feed(ref_key=s1.key).put()
+        f2 = model.Feed(ref_key=s2.key).put()
+        f3 = model.Feed(ref_key=s3.key).put()
 
         m = model.User(first_name='john', last_name='doe', church_key=c.key)
         m.key = m.put()
 
-        _user = model.User.query(model.User.key == u.key).get(
-            projection=[model.User.first_name, model.User.last_name, model.User.profile_photo,
-                        model.User.title])
+        _user = model.get_mini_user_info(u.key)
         # load first feed
         initial = model.get_feed(m.key.id(), page_size=1)
         data = util.model_to_dict(s3)
         data['user'] = _user
         data['kind'] = 'Sermon'
+        data['feed_id'] = f3.id()
         data['comments'] = {'comments': [], 'next': None}
         self.assertEquals([data], initial['feeds'])
 
@@ -250,6 +249,7 @@ class ScripturedinTestCase(unittest.TestCase):
         data = util.model_to_dict(s2)
         data['user'] = _user
         data['kind'] = 'Sermon'
+        data['feed_id'] = f2.id()
         data['comments'] = {'comments': [], 'next': None}
         self.assertEquals([data], more['feeds'])
 
@@ -257,12 +257,13 @@ class ScripturedinTestCase(unittest.TestCase):
         s4 = model.Sermon(title='sermon 4', church_key=c.key, created_by=u.key)
         s4.key = s4.put()
 
-        model.Feed(ref_key=s4.key).put()
+        f4 = model.Feed(ref_key=s4.key).put()
 
         new = model.get_feed(m.key.id(), last_time=initial['ts'], page_size=1)
         data = util.model_to_dict(s4)
         data['user'] = _user
         data['kind'] = 'Sermon'
+        data['feed_id'] = f4.id()
         data['comments'] = {'comments': [], 'next': None}
         self.assertEquals([data], new['feeds'])
 
@@ -270,6 +271,7 @@ class ScripturedinTestCase(unittest.TestCase):
         more = model.get_feed(m.key.id(), cursor=more['next'], page_size=1)
         data = util.model_to_dict(s1)
         data['user'] = _user
+        data['feed_id'] = f1.id()
         data['kind'] = 'Sermon'
         data['comments'] = {'comments': [], 'next': None}
         self.assertEquals([data], more['feeds'])
@@ -306,6 +308,34 @@ class ScripturedinTestCase(unittest.TestCase):
         self.assertEquals(sermon_note.created_by.id(), data['user_key'])
         self.assertEquals(sermon_note.sermon_key.id(), data['sermon_key'])
         self.assertEquals(data['notes'], sermon_note.notes)
+
+
+    def test_save_post(self):
+        user = model.User(first_name='foo')
+        user.key = user.put()
+        data = {u'content': u'feedasasas'}#{'content': 'sample post'}
+        post = model.save_post(user.key, data)
+        self.assertEqual(post.content, data['content'])
+        self.assertEqual(post.created_by, user.key)
+        self.assertEqual(post.privacy, model.PRIVACY_PUBLIC)
+
+
+        data = {'content': 'sample <strong>post</strong>', 'privacy': model.PRIVACY_ME}
+        post = model.save_post(user.key, data)
+        self.assertEqual(post.content, data['content'])
+        self.assertEqual(post.created_by, user.key)
+        self.assertEqual(post.privacy, model.PRIVACY_ME)
+
+        data = {
+            'id' : post.key.id(),
+            'content' : 'update sample <strong>post</strong>',
+            'privacy': model.PRIVACY_PUBLIC
+        }
+        post = model.save_post(user.key, data)
+        self.assertEqual(post.content, data['content'])
+        self.assertEqual(post.created_by, user.key)
+        self.assertEqual(post.privacy, model.PRIVACY_PUBLIC)
+
 
     # @mock.patch('models.scripturedin.SermonNote.put')
     @mock.patch('models.scripturedin.SermonNote.get_by_id')

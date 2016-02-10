@@ -24,7 +24,9 @@ type_datetime = ndb.DateTimeProperty
 
 PRIVACY_PUBLIC = 'public'
 PRIVACY_MEMBER = 'members'
-PRIVACY_OPTIONS = (PRIVACY_PUBLIC, PRIVACY_MEMBER)
+PRIVACY_ME = 'only me'
+PRIVACY_FRIENDS = 'friends'
+PRIVACY_OPTIONS = (PRIVACY_PUBLIC, PRIVACY_MEMBER, PRIVACY_FRIENDS, PRIVACY_ME)
 
 
 class BaseModel(ndb.Model):
@@ -70,7 +72,6 @@ class User(AuthUser):
     is_pastor = type_bool()
     fav_sermon_keys = type_key(kind='Sermon', repeated=True)
     profile_photo = type_string()
-
 
     _has_index = True
 
@@ -210,7 +211,7 @@ class Sermon(BaseModel):
     viewers_key = type_key(kind='User', repeated=True)
     likers_key = type_key(kind='User', repeated=True)
     commenters_key = type_key(kind='User', repeated=True)
-    privacy = type_string(choices=PRIVACY_OPTIONS)
+    privacy = type_string(choices=PRIVACY_OPTIONS, default=PRIVACY_PUBLIC)
 
     _has_index = True
 
@@ -226,7 +227,7 @@ class Sermon(BaseModel):
             doc = search.Document(doc_id=str(doc_id), fields=[search.TextField(name='title', value=str(self.title))])
             Sermon.get_index().put(doc)
         except (search.Error, UnicodeEncodeError) as e:
-            logging.error('Error updating index %s ' % e)
+            logging.error('Error updating index %s ', e)
 
 
 class Tags(BaseModel):
@@ -243,6 +244,58 @@ class Request(BaseModel):
     # {book: '', 'chapter': ''; 'translation':'',
     # selection:[{verse: 12, selected: ''},...]}
     scripture = ndb.JsonProperty()
+
+
+class Post(BaseModel):
+    content = type_text()
+    privacy = type_string(choices=PRIVACY_OPTIONS, default=PRIVACY_PUBLIC)
+    like_count = type_int(default=0)
+    view_count = type_int(default=0)
+    comment_count = type_int(default=0)
+    likers_key = type_key(kind='User', repeated=True)
+    viewers_key = type_key(kind='User', repeated=True)
+    commenters_key = type_key(kind='User', repeated=True)
+
+    _has_index = True
+
+    @classmethod
+    def get_index(cls):
+        return search.Index('POST')
+
+    def update_index(self):
+        """Create and update document index"""
+        try:
+            doc_id = self.key.id()
+            # todo index other fields
+            doc = search.Document(doc_id=str(doc_id),
+                                  fields=[search.HtmlField(name='content', value=str(self.content))])
+            Post.get_index().put(doc)
+        except (search.Error, UnicodeEncodeError) as e:
+            logging.error('Error updating index %s ', e)
+
+
+def create_feed(obj):
+    feed = Feed.query(Feed.ref_key == obj.key).get()
+    if feed is None:
+        feed = Feed()
+        feed.ref_key = obj.key
+        feed.created_by = obj.created_by
+        feed.put()
+    return feed
+
+
+def save_post(user_key, data):
+    logging.info(data)
+    if not isinstance(user_key, ndb.Key):  # todo may want to actually validate the key
+        raise Exception('a valid user is required')
+    if 'content' not in data or len(str(data['content']).strip()) == 0:
+        raise Exception('a post cannot be empty.')
+    post = Post.get_by_id(int(data['id'])) if 'id' in data else Post()
+    post.content = data['content']
+    post.created_by = user_key
+    post.privacy = data['privacy'] if 'privacy' in data and data['privacy'] in PRIVACY_OPTIONS else PRIVACY_PUBLIC
+    post.key = post.put()
+    return post
 
 
 def get_user_by_email(email):
@@ -478,7 +531,7 @@ def _update_sermon(user_id, data, publish=False):
     if 'privacy' in data and data['privacy'].lower() in PRIVACY_OPTIONS:
         sermon.privacy = data['privacy'].lower()
     else:
-        sermon.privacy = 'public'
+        sermon.privacy = PRIVACY_PUBLIC
 
     sermon.church_key = user.church_key
     sermon.key = sermon.put()
@@ -601,16 +654,24 @@ def save_comment(data):
         parent.reply_count += 1
         parent.put()
 
-    if comment.ref_key.kind() == 'Sermon':
-        # if commenting on a sermon, increment the number of comments and add
-        #  the user to the list of commenters
-        sermon = comment.ref_key.get()
-        if not sermon.commenters_key:
-            sermon.commenters_key = []
-        if comment.created_by not in sermon.commenters_key:
-            sermon.commenters_key.append(comment.created_by)
-            sermon.comment_count = len(sermon.commenters_key)
-            sermon.put()
+    ref = comment.ref_key.get()
+    if not ref.commenters_key:
+        ref.commenters_key = []
+    if comment.created_by not in ref.commenters_key:
+        ref.commenters_key.append(comment.created_by)
+        ref.comment_count = len(ref.commenters_key)
+        ref.put()
+
+    # if comment.ref_key.kind() == 'Sermon':
+    #     # if commenting on a sermon, increment the number of comments and add
+    #     #  the user to the list of commenters
+    #     sermon = comment.ref_key.get()
+    #     if not sermon.commenters_key:
+    #         sermon.commenters_key = []
+    #     if comment.created_by not in sermon.commenters_key:
+    #         sermon.commenters_key.append(comment.created_by)
+    #         sermon.comment_count = len(sermon.commenters_key)
+    #         sermon.put()
 
     return comment
 
@@ -748,6 +809,22 @@ def get_sermon_comments(sermon_id, cursor):
     return get_comments('Sermon', sermon_id, cursor)
 
 
+def like_post(post_id, user_key):
+    post = Post.get_by_id(int(post_id))
+    if user_key not in post.likers_key:
+        post.likers_key.append(user_key)
+        post.like_count += 1
+        post.put()
+        return True
+
+def unlike_post(post_id, user_key):
+    post = Post.get_by_id(int(post_id))
+    if user_key in post.likers_key:
+        post.likers_key.remove(user_key)
+        post.like_count -= 1
+        post.put()
+        return True
+
 def like_sermon(sermon_id, user_id):
     """Action for a user to like a sermon.
 
@@ -825,6 +902,32 @@ def log_sermon_view(sermon_id, user_id):
         return True
 
 
+# apply this function to each item and return a result if the feed is
+# applicable to the user
+def process_feed(feed, user, ref_object=None):
+    valid = False
+    item = feed.ref_key.get() if ref_object is None else ref_object
+    if feed.ref_key.kind() == 'Sermon':
+        if item.privacy == PRIVACY_PUBLIC:
+            valid = True
+        elif item.privacy == PRIVACY_MEMBER and user.church_key and user.church_key == item.church_key:
+            valid = True
+    elif feed.ref_key.kind() == 'Post':
+        # todo, implement friends later
+        if item.privacy == PRIVACY_PUBLIC:
+            valid = True
+        elif item.privacy == PRIVACY_ME and item.created_by == user.key:
+            valid = True
+
+    if valid:
+        feed_item = util.model_to_dict(item)
+        feed_item['kind'] = item.key.kind()
+        feed_item['feed_id'] = feed.key.id()
+        feed_item['comments'] = get_comments(item.key.kind(), item.key.id(), page_size=5)
+        feed_item['user'] = get_mini_user_info(item.created_by)
+        return feed_item
+
+
 def get_feed(user_id, cursor=None, last_time=None, page_size=15):
     """Returns news feed for a user.
 
@@ -852,22 +955,6 @@ def get_feed(user_id, cursor=None, last_time=None, page_size=15):
 
     user = User.get_by_id(user_id)
 
-    # apply this function to each item and return a result if the feed is
-    # applicable to the user
-    def filter_feed(item):
-        if item.ref_key.kind() == 'Sermon':
-            sermon = item.ref_key.get()
-            if user.church_key and user.church_key == sermon.church_key:
-                sermon_dict = util.model_to_dict(sermon)
-                sermon_dict['kind'] = sermon.key.kind()
-                sermon_dict['comments'] = get_comments(sermon.key.kind(),
-                                                       sermon.key.id(),
-                                                       page_size=5)
-                sermon_dict['user'] = User.query(
-                    User.key == sermon.created_by).get(
-                    projection=[User.first_name, User.last_name, User.profile_photo, User.title])
-                return sermon_dict
-
     if last_time:
         # query feeds created after this time
         q = Feed.query(Feed.created_at > last_time).order(-Feed.created_at)
@@ -884,7 +971,7 @@ def get_feed(user_id, cursor=None, last_time=None, page_size=15):
     filtered = []
 
     for f in feeds:
-        resp = filter_feed(f)
+        resp = process_feed(f, user)
         if resp:
             filtered.append(resp)
 
@@ -895,19 +982,13 @@ def get_feed(user_id, cursor=None, last_time=None, page_size=15):
     }
 
 
-def create_feed(obj):
-    feed = Feed()
-    feed.ref_key = obj.key
-    feed.created_by = obj.created_by
-    feed.put()
-
-
 def get_mini_user_info(user_key):
     user = user_key.get()
     return {'id': user.key.id(),
             'title': user.title,
             'first_name': user.first_name,
-            'last_name': user.last_name
+            'last_name': user.last_name,
+            'profile_photo': user.profile_photo
             }
 
 
@@ -1051,3 +1132,9 @@ def save_note(user_key, data):
                 sermon_note.church_key = ch.key
         sermon_note.id = sermon_note.put()
         return sermon_note
+
+
+def get_object_feed(object_key):
+    logging.info(object_key)
+    logging.info(Feed.query().fetch())
+    return Feed.query(Feed.ref_key == object_key).get()

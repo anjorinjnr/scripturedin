@@ -13,6 +13,10 @@
         this.storage.set('_user_config', conf);
     };
 
+    UserService.prototype.savePost = function (data) {
+        return this.http_.post('/api/user/post', data, {ignoreLoadingBar: true});
+    };
+
     UserService.prototype.getConfig = function () {
         var self = this;
         var config = self.storage.get('_user_config');
@@ -87,6 +91,12 @@
     UserService.prototype.unlikeComment = function (commentId) {
         return this.http_.post('/api/comment/' + commentId + '/unlike', {}, {ignoreLoadingBar: true});
     };
+    UserService.prototype.likePost_ = function (postId) {
+        return this.http_.post('/api/user/post/' + postId + '/like', {}, {ignoreLoadingBar: true});
+    };
+    UserService.prototype.unlikePost_ = function (postId) {
+        return this.http_.post('/api/user/post/' + postId + '/unlike', {}, {ignoreLoadingBar: true});
+    };
 
     UserService.prototype.likeSermon_ = function (sermonId) {
         return this.http_.post('/api/sermon/' + sermonId + '/like', {}, {ignoreLoadingBar: true});
@@ -95,6 +105,27 @@
         return this.http_.post('/api/sermon/' + sermonId + '/unlike', {}, {ignoreLoadingBar: true});
     };
 
+    UserService.prototype.likePost = function (user, post) {
+        var self = this;
+        var i = post.likers_key.indexOf(user.id);
+        if (i >= 0) {
+            //unlike
+            self.unlikePost_(post.id).then(function (resp) {
+                if (resp.data.status == 'success') {
+                    post.likers_key.splice(i, 1);
+                    post.like_count--;
+                }
+            });
+        } else {
+            //like
+            self.likePost_(post.id).then(function (resp) {
+                if (resp.data.status == 'success') {
+                    post.likers_key.push(user.id);
+                    post.like_count++;
+                }
+            });
+        }
+    };
     /**
      * Like or unlike sermon
      * @param user
@@ -103,28 +134,28 @@
     UserService.prototype.likeSermon = function (user, sermon) {
         var self = this;
         if (self.busy) return;
-        if (_.isUndefined(user['fav_sermon_keys'])) {
-            user.fav_sermon_keys = [];
-        }
 
-        var i = user.fav_sermon_keys.indexOf(sermon.id);
+        var i = sermon.likers_key.indexOf(user.id);
         if (i >= 0) {
+            //unlike
             self.busy = true;
             self.unlikeSermon_(sermon.id).then(function (resp) {
                 self.busy = false;
                 if (resp.data.status == 'success') {
-                    sermon.like_count -= 1;
-                    user.fav_sermon_keys.splice(i, 1);
+                    sermon.like_count--;
+                    user.fav_sermon_keys.splice(user.fav_sermon_keys.indexOf(sermon.id), 1);
+                    sermon.likers_key.splice(i, 1);
                 }
             });
-            //unlike
         } else {
+            //like
             self.busy = true;
             self.likeSermon_(sermon.id).then(function (resp) {
                 self.busy = false;
                 if (resp.data.status == 'success') {
-                    sermon.like_count += 1;
+                    sermon.like_count++;
                     user.fav_sermon_keys.push(sermon.id);
+                    sermon.likers_key.push(user.id);
                 }
             });
         }
