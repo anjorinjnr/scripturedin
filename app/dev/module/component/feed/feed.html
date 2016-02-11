@@ -1,4 +1,4 @@
-<div class="card">
+<div class="card animate-show" ng-hide="feed.remove">
     <div class="card-header">
         <div class="media">
             <div class="pull-left">
@@ -7,6 +7,22 @@
 
             <div class="media-body m-t-5">
                 <!--<a href class="pull-right"><i class="zmdi zmdi-thumb-up"></i></a>-->
+                <ul class="actions" ng-if="showActionMenu()">
+                    <li class="dropdown" uib-dropdown>
+                        <a href="" uib-dropdown-toggle>
+                            <i class="zmdi zmdi-more-vert"></i>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-right">
+                            <li>
+                                <a href ng-click="edit()">Edit</a>
+                            </li>
+                            <li>
+                                <a ng-click="delete()" href="">Delete</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
                 <h2 class="f-20">
                     <a class="c-black">
                         <!--{{::feed.title}}-->
@@ -24,13 +40,30 @@
     </div>
 
     <div class="card-body card-padding">
-        <p class="m-b-15" bind-html-compile="feed.displayText"></p>
+        <!--<textarea  ng-if="editing" ng-model="editContent" class="f-e-c wcci-text c-black" data-auto-size>-->
 
-        <ul class="wall-attrs clearfix list-inline list-unstyled">
+        <!--</textarea>-->
+        <div ng-show="editing">
+            <div contenteditable class="f-edit"></div>
+            <div class="m-t-15">
+                <button ng-click="saveChanges()"
+                        class="btn btn-sm btn-primary">Save Changes
+                </button>
+                <button class="btn btn-sm btn-link"
+                        data-ng-click="editing=false">Cancel
+                </button>
+            </div>
+        </div>
+
+        <p ng-hide="editing" class="f-c" class="m-b-15" bind-html-compile="feed.displayText"></p>
+
+        <ul ng-hide="editing" class="wall-attrs clearfix list-inline list-unstyled">
             <li class="wa-stats">
                 <span>
-                    <i class="zmdi zmdi-comments"></i>
-                    <span ng-if="feed.comment_count > 0">{{feed.comment_count}}</span>
+                    <a href data-ng-click="feed.commenting = true" class="c-gray">
+                        <i class="zmdi zmdi-comments"></i>
+                        <span ng-if="feed.comment_count > 0">{{feed.comment_count}}</span>
+                    </a>
                 </span>
                 <span>
                 <a ng-click="like()" href ng-class="{'c-gray': !liked(), 'c-lightblue': liked() }">

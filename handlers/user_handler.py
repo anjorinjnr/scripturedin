@@ -111,9 +111,13 @@ class UserHandler(base_handler.BaseHandler):
         try:
             data = self.request_data()
             post = model.save_post(self.user.key, data)
-            feed = model.create_feed(post)
-            self.write_model(model.process_feed(feed, self.user, ref_object=post))
+            if 'id' in data:
+                self.write_model(post)
+            else:
+                feed = model.create_feed(post)
+                self.write_model(model.process_feed(feed, self.user, ref_object=post))
         except Exception as e:
+            logging.error(e)
             self.error_response(e.message)
 
     def signup(self):
@@ -203,6 +207,7 @@ class UserHandler(base_handler.BaseHandler):
             if model.like_post(post_id, self.user.key):
                 self.success_response()
         except Exception as e:
+            logging.info(e)
             self.error_response([e.message])
 
     @user_required
@@ -211,4 +216,14 @@ class UserHandler(base_handler.BaseHandler):
             if model.unlike_post(post_id, self.user.key):
                 self.success_response()
         except Exception as e:
-            self.error_response([e.message])
+            logging.info(e)
+        self.error_response([e.message])
+
+    @user_required
+    def delete_post(self, post_id):
+        try:
+            if model.delete_post(post_id, self.user.key):
+                self.success_response()
+        except Exception as e:
+            logging.info(e)
+            self.error_response('failed to delete post')

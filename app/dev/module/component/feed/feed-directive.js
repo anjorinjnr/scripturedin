@@ -130,7 +130,7 @@ App
             templateUrl: 'module/component/feed/comments.html'
         }
     })
-    .directive('feed', function (authService, util, userService, $compile) {
+    .directive('feed', function (authService, util, userService, $timeout, $compile, bibleService, alertService) {
         return {
             restrict: 'E',
             scope: {
@@ -142,7 +142,10 @@ App
                 scope.util = util;
                 scope.user = authService.user;
 
-
+                /**
+                 * Add new comment to post
+                 * @param comment
+                 */
                 scope.postComment = function (comment) {
 
                     userService.postComment({comment: comment}, feed.id, feed.kind).then(function (resp) {
@@ -152,17 +155,92 @@ App
                                 //next for cursor id
                                 feed.comments.comments.unshift(resp.data);
                                 feed.newComment_ = '';
+                                feed.commenting = false;
                                 feed.comment_count++;
                             } else {
                                 alertService.danger('Failed to post comment, please try again');
                             }
                         }
-                    )
-
-
+                    );
                 };
+
+                /**
+                 * Return true if the feed is editable (updated or deleted),
+                 * basically if the user viewing the feed is the author
+                 * @returns {boolean}
+                 */
+                scope.showActionMenu = function () {
+                    if (feed.kind == 'Post' && feed.created_by == scope.user.id) {
+                        return true;
+                    }
+                    return false;
+                };
+                /**
+                 * Show the entire content, when the user clicks more.
+                 */
                 scope.more = function () {
                     feed.displayText = feed.fullText;
+                };
+
+                /**
+                 * Delete Post
+                 */
+                scope.delete = function () {
+                    if (feed.kind == 'Post') {
+                        userService.deletePost(feed.id).then(function (resp) {
+                            if (resp.data.status == 'success') {
+                                feed.remove = true;
+                            } else {
+                                alertService.info('Unable to remove feed, please try again')
+                            }
+                        });
+
+                    }
+
+                };
+
+                /**
+                 * Save edit
+                 */
+                scope.saveChanges = function () {
+                    if (feed.kind == 'Post') {
+                        //@todo add privacy setting
+                        var update = $(element).find('div.f-edit').text();
+                        update = bibleService.formatScripturesInText(update);
+                        userService.savePost({id: feed.id, content: update}).then(function (resp) {
+                            if (resp.data.id) {
+                                scope.editing = false;
+                                feed.content = feed.fullText = resp.data.content;
+                                feed.displayText = formatContent(feed.content);
+                            } else {
+                                alertService.info('Unable to save changed. please try again');
+                            }
+                        }, function (e) {
+                            console.log(e);
+                        });
+                    }
+                };
+                /**
+                 * When user clicks edit, render content in editable div and set cursor at the end
+                 */
+                scope.edit = function () {
+                    if (scope.editing) return;
+                    scope.editing = true;
+                    scope.editContent = $(element).find('p.f-c').text();
+                    var editDiv = $(element).find('div.f-edit');
+                    editDiv.html(scope.editContent).focus();
+                    $timeout(function () {
+                        var div = editDiv.get(0);
+                        var textNode = div.firstChild;
+                        var caret = scope.editContent.length;
+                        var range = document.createRange();
+                        range.setStart(textNode, caret);
+                        range.setEnd(textNode, caret);
+                        var sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }, 100);
+
                 };
 
                 function formatContent(content) {
@@ -206,15 +284,17 @@ App
 
                 scope.busy = false;
 
+                /**
+                 * Check if current user already liked this feed.
+                 * @returns {boolean}
+                 */
                 scope.liked = function () {
                     return feed.likers_key.indexOf(scope.user.id) >= 0;
-                    //if (feed.kind == 'Sermon') {
-                    //    var i = scope.user.fav_sermon_keys.indexOf(feed.id);
-                    //    return i >= 0;
-                    //}
-                    //return false;
                 };
-                //handle like or unlike
+
+                /**
+                 * Like or unlike feed
+                 */
                 scope.like = function () {
                     if (feed.kind == 'Sermon') {
                         userService.likeSermon(scope.user, feed);

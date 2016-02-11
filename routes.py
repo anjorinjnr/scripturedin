@@ -49,6 +49,10 @@ ROUTES = [
           handler=UserHandler,
           handler_method='unlike_post',
           methods=['POST']),
+    route(r'/api/post/<post_id:\d+>',
+          handler=UserHandler,
+          handler_method='delete_post',
+          methods=['DELETE']),
 
     route(r'/api/note/<note_id:\d+>',
           handler=UserHandler,

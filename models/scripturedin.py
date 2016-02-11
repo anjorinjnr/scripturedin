@@ -288,7 +288,7 @@ def save_post(user_key, data):
     logging.info(data)
     if not isinstance(user_key, ndb.Key):  # todo may want to actually validate the key
         raise Exception('a valid user is required')
-    if 'content' not in data or len(str(data['content']).strip()) == 0:
+    if 'content' not in data or len(u''.join((data['content'])).encode('utf-8').strip()) == 0:
         raise Exception('a post cannot be empty.')
     post = Post.get_by_id(int(data['id'])) if 'id' in data else Post()
     post.content = data['content']
@@ -1135,6 +1135,11 @@ def save_note(user_key, data):
 
 
 def get_object_feed(object_key):
-    logging.info(object_key)
-    logging.info(Feed.query().fetch())
     return Feed.query(Feed.ref_key == object_key).get()
+
+def delete_post(post_id, key):
+    post = Post.get_by_id(int(post_id))
+    if post.created_by == key:
+        feed = get_object_feed(post.key)
+        ndb.delete_multi([feed.key, post.key])
+        return True
