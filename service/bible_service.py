@@ -28,6 +28,7 @@ def fetch_(version, book, chapter, verse=None):
         return data
     else:
         try:
+            logging.info('fetching %s', url)
             result = urlfetch.fetch(url)
             if result.status_code == 200:
                 data = json.loads(result.content)
@@ -95,7 +96,7 @@ def get_passage(book, chapter, verses, translation='kjv'):
             verse = p['human'].split(':')[1]
             p_verses.append({
                 'verse': int(verse),
-                'content': str(p['reader_html']).strip()
+                'content': u''.join((p['reader_html'])).encode('utf-8').strip()
             })
         passage['verses'] = sorted(p_verses, key=lambda k: k['verse'])
         return passage
