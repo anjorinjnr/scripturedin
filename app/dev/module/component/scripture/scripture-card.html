@@ -2,9 +2,9 @@
     <md-progress-linear md-mode="indeterminate" ng-show="loading"></md-progress-linear>
     <div ng-show="!loading && scripture">
         <div class="card-header">
-            <h2 class="book">{{scripture.book}} ({{scripture.version}})</h2>
+            <h2 class="book">{{scripture.book}}</h2>
 
-            <ul class="actions">
+            <ul class="actions m-r-20">
                 <!--<li>-->
                 <!--<a href ng-click="readCtrl.askForComment($event)">-->
                 <!--<md-tooltip>Ask for comment</md-tooltip>-->
@@ -15,7 +15,8 @@
                 <!--</li>-->
                 <li class="dropdown" uib-dropdown>
                     <a href="" uib-dropdown-toggle>
-                        <i class="zmdi zmdi-translate"></i>
+                         {{scripture.version}}
+                        <i class="zmdi zmdi-caret-down"></i>
                         <md-tooltip>Change translation</md-tooltip>
                     </a>
 

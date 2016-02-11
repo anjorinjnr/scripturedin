@@ -23,7 +23,7 @@ var App = angular.module('scripturedIn', [
         return {
             sidebarToggle: false,
             searchToggle: false,
-            layout: 1,
+            layout: 0,
             ver: '1.0.5'
         };
     })

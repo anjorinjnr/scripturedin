@@ -1,35 +1,17 @@
-<section id="main">
+<div class="container">
+    <div class="card">
+        <div class="listview lv-bordered lv-lg">
+            <div class="lv-header-alt clearfix">
+                <h1 class="lvh-label f-20">Welcome <strong>{{authService.user.first_name}}</strong>, please take
+                    a moment to update
+                    your
+                    profile.</h1>
+            </div>
+            <div class="lv-body" style="padding: 20px;">
+                <div data-ng-include="'module/main/user-profile-settings.html'">
 
-    <section id="content">
-
-        <div class="container">
-
-
-            <div class="card">
-                <div class="listview lv-bordered lv-lg">
-                    <div class="lv-header-alt clearfix">
-                        <h1 class="lvh-label f-20">Welcome <strong>{{authService.user.first_name}}</strong>, please take
-                            a moment to update
-                            your
-                            profile.</h1>
-
-                        <!--<ul class="lv-actions actions">-->
-                        <!--<li>-->
-                        <!--<a href="" data-ng-click="mactrl.listviewSearchStat = true">-->
-                        <!--<i class="zmdi zmdi-search"></i>-->
-                        <!--</a>-->
-                        <!--</li>-->
-
-                        <!--</ul>-->
-                    </div>
-
-                    <div class="lv-body" style="padding: 20px;">
-                        <div data-ng-include="'module/main/user-profile-settings.html'">
-
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
-    </section>
-</section>
+    </div>
+</div>

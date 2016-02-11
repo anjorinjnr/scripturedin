@@ -7,7 +7,7 @@
         <ul class="list-group">
             <li class="list-group-item" style="cursor: hand" ng-click="modalCtrl.continueWithFacebook()">
 
-                <img class="lv-img m-r-10" src="{{modalCtrl.main.fbUser.picture.data.url}}"
+                <img class="lv-img m-r-10" ng-src="{{modalCtrl.main.fbUser.picture.data.url}}"
                      alt="Facebok profile photo">
                 {{modalCtrl.main.fbUser.first_name}} {{modalCtrl.main.fbUser.last_name}}
 

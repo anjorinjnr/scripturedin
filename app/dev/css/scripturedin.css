@@ -561,3 +561,9 @@ wysiwyg-edit.summary .tinyeditor .sizer {
     font-weight: bold;
     cursor: pointer;
 }
+
+@media (min-width: 1200px) {
+    body.sw-toggled #content {
+        padding-left: 300px;
+    }
+}

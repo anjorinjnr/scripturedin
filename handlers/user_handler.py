@@ -48,7 +48,7 @@ class UserHandler(base_handler.BaseHandler):
                         user.put()
                         # start new session
                         self.auth.set_session(self.auth.store.user_to_dict(user), remember=True)
-                        self.write_model(user)
+                        self.write_model(user, signup=True)
                     else:
                         self.write_response(resp[1])
             except Exception as e:

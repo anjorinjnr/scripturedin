@@ -124,11 +124,10 @@
      */
     MainCtrl.prototype.loginWithFacebook = function (signup) {
         var self = this;
-        self.authService.facebookLogin(function () {
-            if (signup) {
+        self.authService.facebookLogin(function (user) {
+            if (user.signup) {
                 self.state_.go('base.post-signup-profile');
             }
-
         }, function () {
             self.alertService.danger('Login with facebook failed. Please try again.')
         });

@@ -1,5 +1,5 @@
 application: scripturedin
-version: v1-0-9
+version: v1-1-1
 runtime: python27
 api_version: 1
 threadsafe: yes
@@ -18,24 +18,24 @@ handlers:
   secure: always
 
 #uncomment for local dev
-#- url: /
-#  static_files: app/dev/index.html
-#  upload: app
-#
-#- url: (.*)
-#  static_files: app/dev\1
-#  upload: app
-
-#uncomment for prod
 - url: /
-  static_files: app/prod/index.html
+  static_files: app/dev/index.html
   upload: app
-  secure: always
 
 - url: (.*)
-  static_files: app/prod\1
+  static_files: app/dev\1
   upload: app
-  secure: always
+
+#uncomment for prod
+#- url: /
+#  static_files: app/prod/index.html
+#  upload: app
+#  secure: always
+#
+#- url: (.*)
+#  static_files: app/prod\1
+#  upload: app
+#  secure: always
 
 
 libraries:
