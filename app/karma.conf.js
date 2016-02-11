@@ -26,6 +26,7 @@ module.exports = function (config) {
             'dev/vendors/bower_components/angular-ui-router/release/angular-ui-router.min.js',
             'dev/vendors/bower_components/moment/min/moment.min.js',
             'dev/vendors/bower_components/lodash/lodash.min.js',
+            'dev/vendors/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js',
             'tests/*.js',
             'tests/test_app.js',
             //'dev/module/**/*.js',

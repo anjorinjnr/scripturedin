@@ -3,10 +3,12 @@
  */
 describe('BibleService test', function () {
     var bibleService;
+
     beforeEach(module('scripturedIn'));
     beforeEach(inject(function (_bibleService_) {
         // console.log(_bibleService_);
         bibleService = _bibleService_;
+        console.log(bibleService);
     }));
 
     describe('BibleService', function () {
@@ -37,16 +39,15 @@ describe('BibleService test', function () {
             };
             expect(bibleService.parseScripture('John 3:16')).toEqual(res);
             expect(bibleService.parseScripture('John3:16')).toEqual(res);
-             var res = {
+            var res = {
                 book: 'John',
                 chapter: 3,
                 verses: ['1-5', '16']
             };
             expect(bibleService.parseScripture('John 3:1-5,16')).toEqual(res);
         });
-         it('failes to pass invalid book', function () {
-            var res = {
-            };
+        it('fails to pass invalid book', function () {
+            var res = {};
             expect(bibleService.parseScripture('Wrongbook 4:35')).toEqual(res);
 
         });
