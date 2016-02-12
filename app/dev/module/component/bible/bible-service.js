@@ -218,7 +218,7 @@
         return self.modal_.open({
             templateUrl: 'module/component/scripture/scripture-modal.html',
             size: 'lg',
-            controller: function ($scope) {
+            controller: function () {
                 this.scripture = scripture;
             },
             controllerAs: 'modalCtrl'

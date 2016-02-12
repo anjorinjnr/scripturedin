@@ -577,3 +577,7 @@ wysiwyg-edit.summary .tinyeditor .sizer {
   opacity: 0;
   padding: 0 10px;
 }
+#verses h4 {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}

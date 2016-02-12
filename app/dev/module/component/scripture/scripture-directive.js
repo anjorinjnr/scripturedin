@@ -1,17 +1,17 @@
 (function () {
     App.directive('chipShowModalOnClick', function (bibleService) {
-        return {
-            restrict: 'A',
-            link: function (scope, element) {
-                $(element).on('click', 'md-chip', function (e) {
-                    var scripture = angular.element(e.currentTarget).scope().$chip;
-                    bibleService.showScriptureModal(scripture);
-                });
+            return {
+                restrict: 'A',
+                link: function (scope, element) {
+                    $(element).on('click', 'md-chip', function (e) {
+                        var scripture = angular.element(e.currentTarget).scope().$chip;
+                        bibleService.showScriptureModal(scripture);
+                    });
 
+                }
             }
-        }
-    });
-    App.directive('showScriptureOnClick', function (bibleService) {
+        })
+        .directive('showScriptureOnClick', function (bibleService) {
             return {
                 restrict: 'A',
                 scope: {

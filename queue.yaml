@@ -1,5 +1,5 @@
 queue:
-# default task queue to run background jobs
+# default task queue to run background jobs.
 - name: default-tasks
   target: tasks
   rate: 5/s

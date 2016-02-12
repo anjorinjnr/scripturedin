@@ -1,22 +1,20 @@
 import unittest
 
-import datetime
 import mock
 from google.appengine.ext import testbed
-from models import  scripturedin as model
 import json
-from service import util
 from google.appengine.api import memcache
 
-from service import  bible_service
-class BibleServiceTestCase(unittest.TestCase):
+from service import bible_service
 
+
+class BibleServiceTestCase(unittest.TestCase):
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_memcache_stub()
         self.testbed.init_datastore_v3_stub()
-
+        self.maxDiff = None
 
     @mock.patch('google.appengine.api.urlfetch.fetch')
     def test_get_passage_mixed(self, mock_fetch):
@@ -24,23 +22,23 @@ class BibleServiceTestCase(unittest.TestCase):
         mock_resp = mock.Mock()
         mock_resp.status_code = 200
         mock_resp.content = json.dumps({
-          "reader_chapter": "3",
-          "reader_version": "KJV",
-          "reader_html": "There was a man of the Pharisees, named Nicodemus, a ruler of the Jews:",
-          "to_path": "/bible/1/jhn.3.1.kjv",
-          "reader_book": "John 3",
-          "human": "John 3:1"
+            "reader_chapter": "3",
+            "reader_version": "KJV",
+            "reader_html": "There was a man of the Pharisees, named Nicodemus, a ruler of the Jews:",
+            "to_path": "/bible/1/jhn.3.1.kjv",
+            "reader_book": "John 3",
+            "human": "John 3:1"
         })
         mock_resp_2 = mock.Mock()
         mock_resp_2.status_code = 200
         mock_resp_2.content = json.dumps({
-          "reader_chapter": "3",
-          "reader_version": "KJV",
-          "reader_html": "The same came to Jesus by night, and said unto him, Rabbi, we know that thou art a teacher "
-                         "come from God: for no man can do these miracles that thou doest, except God be with him.",
-          "to_path": "/bible/1/jhn.3.2.kjv",
-          "reader_book": "John 3",
-          "human": "John 3:2"
+            "reader_chapter": "3",
+            "reader_version": "KJV",
+            "reader_html": "The same came to Jesus by night, and said unto him, Rabbi, we know that thou art a teacher "
+                           "come from God: for no man can do these miracles that thou doest, except God be with him.",
+            "to_path": "/bible/1/jhn.3.2.kjv",
+            "reader_book": "John 3",
+            "human": "John 3:2"
         })
         mock_resp_3 = mock.Mock()
         mock_resp_3.status_code = 200
@@ -54,7 +52,6 @@ class BibleServiceTestCase(unittest.TestCase):
         })
         mock_fetch.side_effect = [mock_resp_3, mock_resp, mock_resp_2]
         resp = bible_service.get_passage('john', 3, ['1-2', 16])
-        #print resp
         calls = [mock.call('https://www.bible.com/bible/1/jhn.3.1.json'),
                  mock.call('https://www.bible.com/bible/1/jhn.3.2.json'),
                  mock.call('https://www.bible.com/bible/1/jhn.3.16.json')]
@@ -79,29 +76,28 @@ class BibleServiceTestCase(unittest.TestCase):
                            'version': 'KJV',
                            'title': 'John 3:1-2,16'}, resp)
 
-
     @mock.patch('google.appengine.api.urlfetch.fetch')
     def test_get_passage_range(self, mock_fetch):
         mock_resp = mock.Mock()
         mock_resp.status_code = 200
         mock_resp.content = json.dumps({
-          "reader_chapter": "3",
-          "reader_version": "KJV",
-          "reader_html": "There was a man of the Pharisees, named Nicodemus, a ruler of the Jews:",
-          "to_path": "/bible/1/jhn.3.1.kjv",
-          "reader_book": "John 3",
-          "human": "John 3:1"
+            "reader_chapter": "3",
+            "reader_version": "KJV",
+            "reader_html": "There was a man of the Pharisees, named Nicodemus, a ruler of the Jews:",
+            "to_path": "/bible/1/jhn.3.1.kjv",
+            "reader_book": "John 3",
+            "human": "John 3:1"
         })
         mock_resp_2 = mock.Mock()
         mock_resp_2.status_code = 200
         mock_resp_2.content = json.dumps({
-          "reader_chapter": "3",
-          "reader_version": "KJV",
-          "reader_html": "The same came to Jesus by night, and said unto him, Rabbi, we know that thou art a teacher "
-                         "come from God: for no man can do these miracles that thou doest, except God be with him.",
-          "to_path": "/bible/1/jhn.3.2.kjv",
-          "reader_book": "John 3",
-          "human": "John 3:2"
+            "reader_chapter": "3",
+            "reader_version": "KJV",
+            "reader_html": "The same came to Jesus by night, and said unto him, Rabbi, we know that thou art a teacher "
+                           "come from God: for no man can do these miracles that thou doest, except God be with him.",
+            "to_path": "/bible/1/jhn.3.2.kjv",
+            "reader_book": "John 3",
+            "human": "John 3:2"
         })
         mock_fetch.side_effect = [mock_resp, mock_resp_2]
         resp = bible_service.get_passage('john', 3, ['1-2'])
@@ -150,8 +146,6 @@ class BibleServiceTestCase(unittest.TestCase):
                            'version': 'KJV',
                            'title': 'John 3:16'}, resp)
 
-
-
     @mock.patch('google.appengine.api.urlfetch.fetch')
     def test_get_passage_full_chapter(self, mock_fetch):
         mock_resp = mock.Mock()
@@ -170,13 +164,29 @@ class BibleServiceTestCase(unittest.TestCase):
         mock_fetch.assert_called_once_with('https://www.bible.com/bible/1/psa.117.json')
         self.assertEquals({'chapter': 117,
                            'verses': [
-                               {'content': 'O praise the Lord, all ye nations: praise him, all ye people.', 'verse': 1},
-                               {'content': u'For his merciful kindness is great toward us: and the truth of the Lord endureth for ever. Praise ye the Lord.', 'verse': 2}],
+                               {
+                                   'content': 'O praise the Lord, all ye nations: praise him, all ye people.',
+                                   'verse': '1'
+                                },
+                               {
+                                   'content': 'For his merciful kindness is great toward us: and the truth of the Lord endureth for ever. Praise ye the Lord.',
+                                   'verse': '2'
+                               }
+                           ],
                            'book': 'Psalms',
                            'version': 'KJV',
-                           'title': 'Psalms 117'}, resp)
+                           'title': 'Psalms 117'},
+                          resp)
 
     def test_extract_verses(self):
+        with open('tests/niv.html', 'r') as f:
+            niv_html = f.read()
+            expected = bible_service.extract_verses_(niv_html)
+            # print json.dumps(expected)
+            with open('tests/niv.json', 'r') as f1:
+                actual = json.loads(f1.read())
+                self.assertEqual(expected, actual)
+
         html = """
         <div class="version vid1 iso6393eng" data-vid="1" data-iso6393="eng">
         <div class="book bkCOL">
@@ -191,8 +201,9 @@ class BibleServiceTestCase(unittest.TestCase):
                 </div>
                 <div class="p">
                     <span class="verse v1" data-usfm="COL.1.1">
-                        <span class="content"> </span></span><span
-                        class="verse v2" data-usfm="COL.1.2"><span class="label">2</span><span class="content">To the saints and faithful brethren in Christ which are at Colosse: Grace be unto you, and peace, from God our Father and the Lord Jesus Christ.</span></span>
+                        <span class="content"> </span>
+                    </span>
+                    <span class="verse v2" data-usfm="COL.1.2"><span class="label">2</span><span class="content">To the saints and faithful brethren in Christ which are at Colosse: Grace be unto you, and peace, from God our Father and the Lord Jesus Christ.</span></span>
                 </div>
                 <div class="p"><span class="verse v2" data-usfm="COL.1.2"><span class="content"> </span></span><span
                         class="verse v3" data-usfm="COL.1.3"><span class="label">3</span><span class="content">We give thanks to God and the Father of our Lord Jesus Christ, praying always for you,</span></span>
@@ -203,9 +214,11 @@ class BibleServiceTestCase(unittest.TestCase):
          """
         resp = bible_service.extract_verses_(html)
         self.assertEquals([
-            {'verse': 1, 'content': 'Paul, an apostle of Jesus Christ by the will of God, and Timothy our brother,'},
-            {'verse': 2, 'content': 'To the saints and faithful brethren in Christ which are at Colosse: Grace be unto you, and peace, from God our Father and the Lord Jesus Christ.'},
-            {'verse': 3, 'content': 'We give thanks to God and the Father of our Lord Jesus Christ, praying always for you,'}
+            {'verse': '1', 'content': 'Paul, an apostle of Jesus Christ by the will of God, and Timothy our brother,'},
+            {'verse': '2',
+             'content': 'To the saints and faithful brethren in Christ which are at Colosse: Grace be unto you, and peace, from God our Father and the Lord Jesus Christ.'},
+            {'verse': '3',
+             'content': 'We give thanks to God and the Father of our Lord Jesus Christ, praying always for you,'}
         ], resp)
 
         html = """
@@ -234,8 +247,9 @@ class BibleServiceTestCase(unittest.TestCase):
         """
         resp = bible_service.extract_verses_(html)
         self.assertEquals([
-            {'verse': 1, 'content': 'O praise the Lord, all ye nations: praise him, all ye people.'},
-            {'verse': 2, 'content': 'For his merciful kindness is great toward us: and the truth of the Lord endureth for ever. Praise ye the Lord.'}
+            {'verse': '1', 'content': 'O praise the Lord, all ye nations: praise him, all ye people.'},
+            {'verse': '2',
+             'content': 'For his merciful kindness is great toward us: and the truth of the Lord endureth for ever. Praise ye the Lord.'}
         ], resp)
 
     def test_bible_com_version_id_lookup(self):

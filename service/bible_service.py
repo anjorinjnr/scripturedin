@@ -1,14 +1,16 @@
-
 from google.appengine.api import memcache
 import json
 from google.appengine.api import urlfetch
 import logging
 import sys
+
 sys.path.insert(0, 'lib')
 from bs4 import BeautifulSoup
 
 BIBLE_COM_BASE_URL = 'https://www.bible.com/bible'
-#format: version/book.chapter.verse
+
+
+# format: version/book.chapter.verse
 def fetch_(version, book, chapter, verse=None):
     if verse:
         url = '{base}/{version}/{book}.{chapter}.{verse}.json'.format(base=BIBLE_COM_BASE_URL,
@@ -17,11 +19,11 @@ def fetch_(version, book, chapter, verse=None):
                                                                       chapter=chapter,
                                                                       verse=verse)
     else:
-         url = '{base}/{version}/{book}.{chapter}.json'.format(base=BIBLE_COM_BASE_URL,
-                                                               version=version,
-                                                               book=book,
-                                                               chapter=chapter,
-                                                               verse=verse)
+        url = '{base}/{version}/{book}.{chapter}.json'.format(base=BIBLE_COM_BASE_URL,
+                                                              version=version,
+                                                              book=book,
+                                                              chapter=chapter,
+                                                              verse=verse)
     data = memcache.get(url)
     if data is not None:
         logging.info('cache hit:  %s', url)
@@ -39,21 +41,39 @@ def fetch_(version, book, chapter, verse=None):
 
 
 def extract_verses_(chapter_html):
+    """Extract verses from the html response."""
     soup = BeautifulSoup(chapter_html, 'html.parser')
-    verses_p =  soup.find_all('div', 'p')
-    i = 1
+    chapter = soup.find('div', class_='chapter')
     verses = []
-    for v in verses_p:
-        verse_span =  v.find('span', 'verse v%s' % i)
-        content = []
-        for c in verse_span.find_all(class_='content'):
-            content.append(c.string)
-        verse = {
-            'verse': int(verse_span.find('span', 'label').string),
-            'content': ''.join(content)
-        }
-        verses.append(verse)
-        i += 1
+    for div in chapter.find_all('div'):
+        if div['class'][0] == 'p': # div contains verses
+            verses_span = div.find_all('span', class_='verse')
+            buffer_ = None
+            for verse in verses_span:
+                verse_label = verse.find('span', 'label')
+                if verse_label is None:
+                    content = verse.find('span', 'content')
+                    if content is not None:
+                        buffer_ = content.string
+                    continue
+                contents = [buffer_] if buffer_ else []
+                verse_contents = verse.find_all(class_='content')
+                for c in verse_contents:
+                    contents.append(c.string)
+
+                verses.append({
+                    'verse': verse_label.string,
+                    'content': ''.join(contents).strip()
+                })
+                buffer_ = None
+        elif div['class'][0] == 's': # div contains heading
+            heading = div.find('span', class_='heading')
+            note = div.find('span', class_='note')
+            verses.append({
+                'heading': heading.string,
+                'note': note.get_text() if note else ''
+            })
+
     return verses
 
 
@@ -73,12 +93,12 @@ def get_passage(book, chapter, verses, translation='kjv'):
             'version': passage['reader_version']
         }
     else:
-        #print verses
+        # print verses
         for verse in verses:
             if '-' in verse and len(verse) > 2:
                 v = verse.split('-')
                 start = int(v[0])
-                end =  int(v[1])
+                end = int(v[1])
                 while start <= end:
                     passages.append(fetch_(version, book, chapter, start))
                     start += 1
@@ -114,6 +134,7 @@ def bible_com_version_id_lookup(translation):
     if lower in index:
         return index[lower]['id']
 
+
 def bible_key_lookup_():
     key = 'bible.com.key.lookup'
     index = memcache.get(key)
@@ -123,17 +144,20 @@ def bible_key_lookup_():
             memcache.set(key, index)
     return index
 
+
 def bible_com_key_lookup(abbrv):
     index = bible_key_lookup_()
     lower = abbrv.lower()
     if lower in index:
         return index[lower]['key']
 
+
 def bible_com_name_lookup(abbrv):
     index = bible_key_lookup_()
     lower = abbrv.lower()
     if lower in index:
         return index[lower]['name']
+
 
 def abbreviation_lookup(book):
     key = 'bible.com.abbrv.lookup'
@@ -146,6 +170,7 @@ def abbreviation_lookup(book):
     lower = book.lower()
     if lower in index:
         return index[lower]
+
 
 def versions():
     key = 'bible.com.versions'

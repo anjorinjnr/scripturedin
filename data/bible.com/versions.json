@@ -55,18 +55,6 @@
   },
   {
     "lang": "English",
-    "id": 547,
-    "abbr": "KJVA",
-    "title": "King James Version, American Edition"
-  },
-  {
-    "lang": "English",
-    "id": 546,
-    "abbr": "KJVA",
-    "title": "King James Version with Apocrypha, American Edition"
-  },
-  {
-    "lang": "English",
     "id": 1171,
     "abbr": "MEV",
     "title": "Modern English Version"
@@ -130,11 +118,5 @@
     "id": 206,
     "abbr": "WEB",
     "title": "World English Bible"
-  },
-  {
-    "lang": "English",
-    "id": 1204,
-    "abbr": "WEBBE",
-    "title": "World English Bible British Edition"
   }
 ]

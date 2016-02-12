@@ -1,5 +1,5 @@
 application: scripturedin
-version: v1-1-2
+version: v1-1-3
 runtime: python27
 api_version: 1
 threadsafe: yes
@@ -36,7 +36,6 @@ handlers:
 #  static_files: app/prod\1
 #  upload: app
 #  secure: always
-
 
 libraries:
 - name: webapp2
