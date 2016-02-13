@@ -27,7 +27,7 @@
             $scope.$watch('readCtrl.filter', function (v) {
                 if (v) {
                     var match = _.filter(self.books, function (book) {
-                        return book.human.toLowerCase().indexOf(v) >= 0;
+                        return book.human.toLowerCase().indexOf(v.toLowerCase()) >= 0;
                     });
                     var chunkSize = Math.max(10, Math.ceil(match.length / 3));
                     self.filtered = _.chunk(match, chunkSize);

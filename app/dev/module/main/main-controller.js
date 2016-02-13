@@ -42,6 +42,22 @@
     };
 
     /**
+     * Starts the facebook login/signup process.
+     */
+    MainCtrl.prototype.loginWithFacebook = function (signup) {
+        var self = this;
+        self.authService.facebookLogin(function (user) {
+            if (user.signup) {
+                self.state_.go('base.post-signup-profile');
+            } else {
+                 self.state_.go('base.home');
+            }
+        }, function () {
+            self.alertService.danger('Login with facebook failed. Please try again.')
+        });
+    };
+
+    /**
      * Save changes to user profile.
      * If saveAndDone is true, redirect to home page after save.
      * @param saveAndDone
@@ -119,19 +135,6 @@
         });
     };
 
-    /**
-     * Starts the facebook login/signup process.
-     */
-    MainCtrl.prototype.loginWithFacebook = function (signup) {
-        var self = this;
-        self.authService.facebookLogin(function (user) {
-            if (user.signup) {
-                self.state_.go('base.post-signup-profile');
-            }
-        }, function () {
-            self.alertService.danger('Login with facebook failed. Please try again.')
-        });
-    };
 
     MainCtrl.prototype.showLogin = function () {
         var self = this;

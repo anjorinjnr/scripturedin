@@ -300,6 +300,12 @@ div:empty:before {
     .header-inner .logo {
         font-size: 28px;
     }
+    .bible-top-menu {
+        padding-top: 8px !important;
+    }
+    .line-wrap {
+        margin: 17px 18px !important;
+    }
 
     /*.intro-text-bg p {*/
     /*font-size: 45px;*/
@@ -584,7 +590,7 @@ wysiwyg-edit.summary .tinyeditor .sizer {
 }
 
 #bookactions {
-    height: 300px;
+    height: 325px;
     margin-bottom: 20px;
     overflow-y: scroll;
 }

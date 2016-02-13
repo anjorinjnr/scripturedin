@@ -18,7 +18,7 @@
         <li class="logo hidden-xs">
             <a href="/#/home">scripturedIn</a>
         </li>
-        <li class="pull-right">
+        <li class="pull-right" style="margin-right:40px">
             <ul class="top-menu">
 
                 <li id="toggle-width">
@@ -30,10 +30,15 @@
                     </div>
                 </li>
 
+                 <li style="padding-top: 8px">
+                    <a ui-sref="base.bible" class="bible-top-menu">
+                        <md-icon style="vertical-align: inherit" md-svg-src="/img/icons/bible_white.svg"></md-icon>
+                    </a>
+                </li>
                 <li id="top-search" style="padding-top: 8px">
                     <a href
                        data-ng-click="appCtrl.appService.searchToggle=true;">
-                        <i style="font-size: 35px" class="tm-icon zmdi zmdi-search"></i>
+                        <i class="tm-icon zmdi zmdi-search"></i>
                     </a>
                 </li>
             </ul>
