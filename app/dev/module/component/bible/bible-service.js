@@ -1,13 +1,14 @@
 (function () {
 
 
-    var BibleService = function ($http, util, $q, $uibModal) {
+    var BibleService = function ($http, util, $q, $uibModal, bibleBooks) {
         var BASE_URL = 'https://getbible.net/json?';
         var self = this;
         self.modal_ = $uibModal;
         self.http_ = $http;
         self.util = util;
         self.q_ = $q;
+        self.books = bibleBooks;
     };
 
     BibleService.prototype.validateBook_ = function (book) {
@@ -230,6 +231,17 @@
         return text.replace(re, function (match) {
             console.log(match);
             return '<span class="scripture-highlight" show-scripture-on-click="" scripture="\'' + match + '\'">' + match + '</span>';
+        });
+    };
+
+    /**
+     * Find book in the bible
+     * @param {String} str
+     */
+    BibleService.prototype.findBook = function (str) {
+        var self = this;
+        return _.find(self.books.ALL, function (book) {
+            return book.human.toLowerCase().indexOf(str.toLowerCase()) >= 0;
         });
     };
     App.service('bibleService', BibleService);

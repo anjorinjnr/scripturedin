@@ -1,7 +1,7 @@
 <div class="container">
 
     <div class="block-header">
-        <h2 ng-if="sermonCtrl.church">Church: <strong>{{sermonCtrl.church.name}}</strong>  </h2>
+        <h2 ng-if="sermonCtrl.church">Church: <strong>{{sermonCtrl.church.name}}</strong></h2>
     </div>
 
     <div class="card">
@@ -56,16 +56,14 @@
 
         <!--</div>-->
         <div class="card-body">
-            <div ng-if="sermonCtrl.sermons">
-                <div id="calendar" data-calendar
-                     ng-if="sermonCtrl.layout=='calendar'"
-                     data-cal-add-sermon
-                     data-events="sermonCtrl.sermons.sermons"
-                     data-action-links="sermonCtrl.actionMenu"
-                     data-event-click="sermonCtrl.onEventSelect"
-                     data-select="sermonCtrl.onSelect(start, end)">
-                </div>
 
+            <div id="calendar" data-calendar
+                 ng-if="sermonCtrl.layout=='calendar'"
+                 data-cal-add-sermon
+                 data-events="sermonCtrl.sermons.sermons"
+                 data-action-links="sermonCtrl.actionMenu"
+                 data-event-click="sermonCtrl.onEventSelect"
+                 data-select="sermonCtrl.onSelect(start, end)">
             </div>
             <div id="table" ng-if="sermonCtrl.layout=='table'">
                 <md-table-container>
@@ -91,7 +89,7 @@
                                 </a>
                             </td>
 
-                            <td  md-cell>
+                            <td md-cell>
                                 <name-tag class="c-black" user="sermon.pastor"></name-tag>
                             </td>
                             <td class="hidden-xs" md-cell>

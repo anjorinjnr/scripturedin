@@ -1,0 +1,21 @@
+<div class="container">
+    <div class="card p-10">
+        <div class="card-header chapter-header">
+            <h1><a ui-sref="base.bible">Bible</a> > {{::readCtrl.book.human}}</h1>
+        </div>
+        <div style="clear: both" class="card-body card-padding bible-book">
+            <div class="row">
+                <div class="col-sm-1 col-xs-2" ng-repeat="c in ::readCtrl.book.chapters">
+                    <a ui-sref="base.read({p: readCtrl.book.human + ' ' + c.human})">
+                        <div class="bs-item z-depth-1">
+                            {{::c.human}}
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+</div>

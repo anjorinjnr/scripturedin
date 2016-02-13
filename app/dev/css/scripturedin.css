@@ -569,15 +569,83 @@ wysiwyg-edit.summary .tinyeditor .sizer {
 }
 
 .animate-show.ng-hide-add, .animate-show.ng-hide-remove {
-  transition: all linear 0.5s;
+    transition: all linear 0.5s;
 }
 
 .animate-show.ng-hide {
-  line-height: 0;
-  opacity: 0;
-  padding: 0 10px;
+    line-height: 0;
+    opacity: 0;
+    padding: 0 10px;
 }
+
 #verses h4 {
     margin-top: 20px;
     margin-bottom: 20px;
+}
+
+#bookactions {
+    height: 300px;
+    margin-bottom: 20px;
+    overflow-y: scroll;
+}
+
+.book-action {
+    background-color: #7c7c7c !important;
+}
+
+.bible-toc a {
+    font-size: 16px;
+}
+
+.bible-toc a:hover {
+    padding: 5px;
+    background-color: #ddd;
+    border-radius: 3px;
+    color: black;
+}
+
+.bible-book a {
+    font-size: 15px;
+    color: #5e5e5e;
+}
+.bible-book a:hover {
+    font-size: 15px;
+    font-weight: bold;
+    color: #000;
+}
+
+.bible-book .bs-item {
+    background: #fff;
+    margin-bottom: 30px;
+    height: 25px;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 2px
+}
+
+.bible-book .bs-item:hover {
+    background-color: #ddd;
+}
+
+.bible-header h1 {
+    float: left;
+}
+.chapter-header {
+    padding-bottom: 25px;
+}
+
+.chapter-header a {
+    color: #7c7c7c;
+}
+.bible-header div {
+    padding-top: 15px;
+}
+
+.bible-header .filter-bible {
+    font-size: 16px;
+    padding: 3px;
+    width: 300px;
+    margin: 0 auto;
+    display: block;
+    height: 40px;
 }

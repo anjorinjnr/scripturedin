@@ -33,7 +33,7 @@
                 <li id="top-search" style="padding-top: 8px">
                     <a href
                        data-ng-click="appCtrl.appService.searchToggle=true;">
-                        <i   style="font-size: 35px" class="tm-icon zmdi zmdi-search"></i>
+                        <i style="font-size: 35px" class="tm-icon zmdi zmdi-search"></i>
                     </a>
                 </li>
             </ul>
@@ -41,7 +41,7 @@
     </ul>
     <!-- when mobile, reduce width and float right -->
     <div id="top-search-wrap" class="center-search">
-        <div class="tsw-inner hidden-xs" >
+        <div class="tsw-inner hidden-xs">
             <input focus type="text"
                    data-ng-keypress="headerCtrl.onSearchKeyPress($event)"
                    data-ng-model="headerCtrl.searchTerm"
@@ -49,7 +49,8 @@
                    style="padding: 0 10px 0 20px; font-size: 14px">
         </div>
         <div class="tsw-inner" ng-if="appCtrl.appService.searchToggle">
-            <i id="top-search-close" class="zmdi zmdi-arrow-left" data-ng-click="appCtrl.appService.searchToggle=false"></i>
+            <i id="top-search-close" class="zmdi zmdi-arrow-left"
+               data-ng-click="appCtrl.appService.searchToggle=false"></i>
             <input focus
                    type="text"
                    data-ng-keypress="headerCtrl.onSearchKeyPress($event)"
@@ -97,13 +98,22 @@
                 </md-tooltip>
                 <md-icon md-svg-src="/img/icons/note_add.svg"></md-icon>
             </md-button>
-            <!--<md-button class="md-fab  md-mini md-primary md-button md-ink-ripple" aria-label="Add Group">-->
-            <!--<md-icon icon="/img/icons/add.svg"></md-icon>-->
-            <!--</md-button>-->
-            <!--<md-button class="md-fab md-mini md-primary md-button md-ink-ripple" aria-label="Add Group">-->
-            <!--<md-icon icon="/img/icons/add.svg"></md-icon>-->
-            <!--</md-button>-->
         </md-fab-actions>
+        <div id="bookactions">
+            <md-fab-actions ng-hide="!appCtrl.fabMenu.isOpen" ng-repeat="book in appCtrl.books">
+                <md-button
+                        ui-sref="base.bible.book({book: book.abbreviation})"
+                        class="md-fab md-mini md-button md-ink-ripple book-action"
+                        aria-label="New Note">
+                    <md-tooltip md-direction="left">
+                        {{book.human}}
+                    </md-tooltip>
+                    {{book.usfm}}
+                </md-button>
+            </md-fab-actions>
+        </div>
+
+
     </md-fab-speed-dial>
 </div>
 

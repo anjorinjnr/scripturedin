@@ -184,10 +184,34 @@ App.config(function (localStorageServiceProvider) {
                 }
             })
             .state('base.read', {
-                url: '/read',
+                url: '/read?p',
                 views: {
                     'content': {
                         templateUrl: 'module/read/read.html',
+                        controller: 'readController as readCtrl'
+                    }
+                },
+                data: {
+                    role: USER_ROLES.user
+                }
+            })
+            .state('base.bible', {
+                url: '/bible',
+                views: {
+                    'content': {
+                        templateUrl: 'module/read/bible.html',
+                        controller: 'readController as readCtrl'
+                    }
+                },
+                data: {
+                    role: USER_ROLES.user
+                }
+            })
+             .state('base.bible.book', {
+                url: '/:book',
+                views: {
+                    'content@base': {
+                        templateUrl: 'module/read/chapter.html',
                         controller: 'readController as readCtrl'
                     }
                 },
@@ -226,7 +250,7 @@ App.config(function (localStorageServiceProvider) {
                         return {};
                     }
                 },
-                 data: {
+                data: {
                     role: USER_ROLES.user,
                     pageTitle: 'Ny Notes'
                 }
@@ -249,7 +273,7 @@ App.config(function (localStorageServiceProvider) {
 
                     }
                 },
-                  data: {
+                data: {
                     role: USER_ROLES.user,
                     pageTitle: 'Sermon Note'
                 }
