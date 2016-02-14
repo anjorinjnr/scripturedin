@@ -79,7 +79,7 @@
                     scripture.translation = m[1];
                 }
             }
-
+            var book = self.findBook(scripture.book);
             return scripture;
         }
         return {}
@@ -219,7 +219,10 @@
         return self.modal_.open({
             templateUrl: 'module/component/scripture/scripture-modal.html',
             size: 'lg',
-            controller: function () {
+            controller: function ($uibModalInstance) {
+                this.close = function () {
+                    $uibModalInstance.close();
+                };
                 this.scripture = scripture;
             },
             controllerAs: 'modalCtrl'
@@ -240,8 +243,9 @@
      */
     BibleService.prototype.findBook = function (str) {
         var self = this;
+        str = str.toLowerCase();
         return _.find(self.books.ALL, function (book) {
-            return book.human.toLowerCase().indexOf(str.toLowerCase()) >= 0;
+            return book.human.toLowerCase() == str || book.usfm.toLowerCase() == str;
         });
     };
     App.service('bibleService', BibleService);

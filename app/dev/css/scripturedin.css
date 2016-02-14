@@ -40,6 +40,15 @@ p.highlight {
     position: relative;
 }
 
+wysiwyg-edit {
+    overflow-x: hidden;
+}
+
+wysiwyg-edit .tinyeditor .tinyeditor-header .tinyeditor-buttons-group .tinyeditor-control .colors-grid {
+    width: 90px;
+    left: -30px;
+}
+
 wysiwyg-edit .tinyeditor .sizer {
     min-height: 100px;
     height: 100px;
@@ -300,9 +309,11 @@ div:empty:before {
     .header-inner .logo {
         font-size: 28px;
     }
+
     .bible-top-menu {
         padding-top: 8px !important;
     }
+
     .line-wrap {
         margin: 17px 18px !important;
     }
@@ -614,6 +625,7 @@ wysiwyg-edit.summary .tinyeditor .sizer {
     font-size: 15px;
     color: #5e5e5e;
 }
+
 .bible-book a:hover {
     font-size: 15px;
     font-weight: bold;
@@ -636,6 +648,7 @@ wysiwyg-edit.summary .tinyeditor .sizer {
 .bible-header h1 {
     float: left;
 }
+
 .chapter-header {
     padding-bottom: 25px;
 }
@@ -643,6 +656,7 @@ wysiwyg-edit.summary .tinyeditor .sizer {
 .chapter-header a {
     color: #7c7c7c;
 }
+
 .bible-header div {
     padding-top: 15px;
 }

@@ -54,7 +54,7 @@
      * @returns {HttpPromise}
      */
     UserService.prototype.saveNote = function (data) {
-        return this.http_.post('/api/user/note', data);
+        return this.http_.post('/api/user/note', data, {ignoreLoadingBar: true});
     };
 
     /**

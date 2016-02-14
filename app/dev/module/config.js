@@ -207,7 +207,7 @@ App.config(function (localStorageServiceProvider) {
                     role: USER_ROLES.user
                 }
             })
-             .state('base.bible.book', {
+            .state('base.bible.book', {
                 url: '/:book',
                 views: {
                     'content@base': {
@@ -270,12 +270,33 @@ App.config(function (localStorageServiceProvider) {
                             deferred.resolve(resp.data);
                         });
                         return deferred.promise;
-
                     }
                 },
                 data: {
                     role: USER_ROLES.user,
                     pageTitle: 'Sermon Note'
                 }
-            });
+            })
+            .state('base.note.edit', {
+                url: '/edit',
+                views: {
+                    'content@base': {
+                        templateUrl: 'module/notes/create.html',
+                        controller: 'notesController as notesCtrl'
+                    }
+                },
+                resolve: {
+                    note: function ($q, $stateParams, userService) {
+                        var deferred = $q.defer();
+                        userService.getNote($stateParams.id).then(function (resp) {
+                            deferred.resolve(resp.data);
+                        });
+                        return deferred.promise;
+                    }
+                },
+                data: {
+                    role: USER_ROLES.user,
+                    pageTitle: 'Edit Note'
+                }
+            })
     });

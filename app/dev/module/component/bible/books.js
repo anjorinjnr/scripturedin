@@ -1,7 +1,8 @@
 (function () {
 
     App.service('bibleBooks', function () {
-        var OT = [[{
+        var OT = [
+            [{
             "text": true,
             "canon": "ot",
             "chapters": [{"toc": true, "usfm": "GEN.1", "human": "1", "canonical": true}, {
@@ -2638,7 +2639,8 @@
             "audio": true,
             "human_long": "Malachi"
         }]];
-        var NT = [[{
+        var NT = [
+            [{
             "text": true,
             "canon": "nt",
             "chapters": [{"toc": true, "usfm": "MAT.1", "human": "1", "canonical": true}, {

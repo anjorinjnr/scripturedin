@@ -104,7 +104,7 @@
                 <md-icon md-svg-src="/img/icons/note_add.svg"></md-icon>
             </md-button>
         </md-fab-actions>
-        <div id="bookactions">
+        <div id="bookactions" ng-if="appCtrl.fabMenu.isOpen">
             <md-fab-actions ng-hide="!appCtrl.fabMenu.isOpen" ng-repeat="book in appCtrl.books">
                 <md-button
                         ui-sref="base.bible.book({book: book.abbreviation})"

@@ -49,9 +49,12 @@ class BaseModel(ndb.Model):
 
     def _post_put_hook(self, future):
         """Post-put operations. Store UTC timestamp(s) in milliseconds."""
-        o = future.get_result().get()
-        if o._has_index:
-            o.update_index()
+        try:
+            o = future.get_result().get()
+            if o._has_index:
+                o.update_index()
+        except Exception as e:
+            logging.error('Update index post hook failed: %s', e.message)
 
 
 class File(BaseModel):
@@ -176,11 +179,12 @@ class Church(BaseModel):
 
 class SermonNote(BaseModel):
     sermon_key = type_key(kind='Sermon')
-    notes = type_string()
+    notes = type_text()
     pastor = type_string()
     title = type_string()
     pastor_key = type_key(kind='User')
     church_key = type_key(kind='Church')
+    scriptures = type_string(repeated=True)
 
 
 class Comment(BaseModel):
@@ -391,13 +395,18 @@ def find_users(query, pastor_only=False):
         for doc in search_results:
             add = True
             user = User.get_by_id(int(doc.doc_id))
-            if pastor_only and user and user.is_pastor:
+            logging.info(user)
+            # if pastor only is true, filter out non pastors.
+            if pastor_only and user and not user.is_pastor:
                 add = False
 
             if add:
                 res = {'id': int(doc.doc_id)}
                 for field in doc.fields:
                     res[field.name] = field.value
+                if user and user.is_pastor:
+                    res['church'] = get_mini_church_info(user.church_key)
+                    logging.info(res)
                 results.append(res)
 
         return results
@@ -817,6 +826,7 @@ def like_post(post_id, user_key):
         post.put()
         return True
 
+
 def unlike_post(post_id, user_key):
     post = Post.get_by_id(int(post_id))
     if user_key in post.likers_key:
@@ -824,6 +834,7 @@ def unlike_post(post_id, user_key):
         post.like_count -= 1
         post.put()
         return True
+
 
 def like_sermon(sermon_id, user_id):
     """Action for a user to like a sermon.
@@ -1115,27 +1126,35 @@ def save_note(user_key, data):
         sermon_note = SermonNote.get_by_id(int(data['id'])) if 'id' in data else SermonNote(created_by=user_key)
         sermon_note.notes = data['notes']
         sermon_note.title = data['title']
-        if 'pastor_id' in data and data['pastor_id']:
+        # if new note, pastor key is not expected
+        # saved note will have a pastor key
+        if 'pastor_key' in data and data['pastor_key']:
+            sermon_note.pastor_key = ndb.Key('User', int(data['pastor_key']))
+        # a new note, may have pastor id, is the pastor is already on the platform
+        elif 'pastor_id' in data and data['pastor_id']:
             sermon_note.pastor_key = ndb.Key('User', int(data['pastor_id']))
+        # if note contains pastor as str, the we can assume the pastor isn't on the
+        # the system, and just same the name of the pastor
         elif 'pastor' in data:
             sermon_note.pastor = data['pastor']
-        # else:
-        #     raise Exception('pastor name or id is required')
 
         if 'church_id' in data and data['church_id']:
             sermon_note.church_key = ndb.Key('Church', int(data['church_id']))
         elif sermon_note.church_key is None:
-            if 'church' in data and isinstance(data['church'], str) and Church.query(
+            if 'church' in data and not isinstance(data['church'], dict) and Church.query(
                             Church.name == data['church']).get() is None:
                 ch = Church(name=data['church'])
                 ch.key = ch.put()
                 sermon_note.church_key = ch.key
+        if 'scriptures' in data:
+            sermon_note.scriptures = data['scriptures']
         sermon_note.id = sermon_note.put()
         return sermon_note
 
 
 def get_object_feed(object_key):
     return Feed.query(Feed.ref_key == object_key).get()
+
 
 def delete_post(post_id, key):
     post = Post.get_by_id(int(post_id))
