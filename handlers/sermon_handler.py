@@ -53,6 +53,7 @@ class SermonHandler(base_handler.BaseHandler):
             self.write_model(sermon)
             # self.write_model(sermon, pastor=model.get_user_by_id(sermon.pastor_key.id()))
         except Exception as e:
+            logging.error('error saving note :%s', e.message)
             self.error_response([e.message])
 
     @user_required
