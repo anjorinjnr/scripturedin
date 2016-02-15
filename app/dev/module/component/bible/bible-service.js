@@ -1,13 +1,14 @@
 (function () {
 
 
-    var BibleService = function ($http, util, $q, $uibModal, bibleBooks) {
+    var BibleService = function ($http, util, $q, $state, $uibModal, bibleBooks) {
         var BASE_URL = 'https://getbible.net/json?';
         var self = this;
         self.modal_ = $uibModal;
         self.http_ = $http;
         self.util = util;
         self.q_ = $q;
+        self.state_ = $state;
         self.books = bibleBooks;
     };
 
@@ -145,7 +146,19 @@
         //console.log(scripture);
         scripture.translation = scripture.translation ? scripture.translation : 'kjv';
         var param = self.util.toQueryString(scripture);
-        return this.http_.get('/api/bible?' + param);
+        return this.http_.get('/api/bible?' + param).then(function (resp) {
+            return resp;
+        }, function (error) {
+            swal({
+                title: "<strong>Something isn't right!</strong>",
+                text: "We are unable to find your bible reference, please ensure you typed the passage correctly.",
+                type: "info",
+                html: true,
+                confirmButtonText: 'Open the  bible!'
+            }, function () {
+                self.state_.go('base.bible');
+            });
+        });
     };
 
     /**
