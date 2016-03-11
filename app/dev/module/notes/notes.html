@@ -1,0 +1,78 @@
+<div class="container">
+
+    <div class="card">
+        <div class="card-header">
+            <h2>My Notes
+                <!--<small>With lease settings enabled.</small>-->
+            </h2>
+        </div>
+
+        <div class="card-body">
+            <p class="p-20" ng-if="notesCtrl.notes.total == 0">
+                You have not created any notes. Click <a ui-sref="base.new-note">here</a> to a create a new note.</p>
+            <md-table-container ng-if="notesCtrl.notes.total > 0">
+
+                <table md-table md-progress="notesCtrl.promise">
+                    <thead md-head>
+                    <tr md-row>
+                        <th md-column><span>Title</span></th>
+                        <th md-column><span>Date Created</span></th>
+                        <th class="hidden-xs" md-column>Preacher</th>
+                        <th class="hidden-xs" md-column>Church</th>
+                        <th md-column></th>
+                    </tr>
+                    </thead>
+                    <tbody md-body>
+                    <tr md-row ng-repeat="note in notesCtrl.notes.notes">
+                        <td md-cell>
+                            <span ng-if="!note.sermon">{{note.title}}</span>
+                            <a ui-sref="base.sermon-view({id: note.sermon.id})" ng-if="note.sermon">
+                                {{note.sermon.title}}
+                            </a>
+                        </td>
+                        <td md-cell="">
+                            {{note.created_at | formatDate}}
+                        </td>
+                        <td class="hidden-xs" md-cell>
+                            <span ng-if="!note.sermon && !note.pastor.id">{{note.pastor}}</span>
+                            <span ng-if="!note.sermon && note.pastor.id">
+                                <name-tag user="note.pastor"></name-tag>
+                            </span>
+                            <a href ng-if="note.sermon">
+                                <span>{{note.sermon.pastor.title}}</span>
+                                <span>{{note.sermon.pastor.first_name | sentencecase}}</span>
+                                <span>{{note.sermon.pastor.last_name | sentencecase}}</span>
+                            </a>
+                        </td>
+                        <td class="hidden-xs" md-cell>
+                            <span ng-if="!note.sermon">{{note.church.name}}</span>
+                            <a href ng-if="note.sermon">
+                                <span>{{note.sermon.church.name}}</span>
+                            </a>
+                        </td>
+                        <td md-cell>
+                            <a title="Edit Note" ui-sref="base.note.edit({id: note.id})"
+                               class="f-20 c-black"><i class="zmdi zmdi-edit zmdi-hc-fw"></i></a>
+                            <a ui-sref="base.note({id: note.id})" title="View Note"
+                               class="c-black f-20"><i class="zmdi zmdi-open-in-browser zmdi-hc-fw"></i></a>
+                            <a ng-click="notesCtrl.deleteNote(note)"
+                               title="View Note"
+                               class="c-black f-20"><i class="zmdi zmdi-open-in-browser zmdi-hc-fw"></i></a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </md-table-container>
+            <md-table-pagination md-limit="notesCtrl.notes.page_size"
+                                 ng-if="notesCtrl.notes.total > 0"
+                                 md-page="notesCtrl.notes.page"
+                                 md-total="{{notesCtrl.notes.total}}">
+
+            </md-table-pagination>
+
+        </div>
+    </div>
+
+</div>
+
+
