@@ -227,3 +227,11 @@ class UserHandler(base_handler.BaseHandler):
         except Exception as e:
             logging.info(e)
             self.error_response('failed to delete post')
+    @user_required
+    def delete_note(self, note_id):
+        try:
+            if model.delete_note(note_id, self.user.key):
+                self.success_response()
+        except Exception as e:
+            logging.info(e)
+            self.error_response('failed to delete post')

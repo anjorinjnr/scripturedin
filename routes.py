@@ -58,6 +58,10 @@ ROUTES = [
           handler=UserHandler,
           handler_method='get_note',
           methods=['GET']),
+    route(r'/api/note/<note_id:\d+>',
+          handler=UserHandler,
+          handler_method='delete_note',
+          methods=['DELETE']),
 
     route(r'/api/requests',
           handler=RequestHandler,

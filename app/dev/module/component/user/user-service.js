@@ -108,6 +108,9 @@
     UserService.prototype.deletePost = function (postId) {
         return this.http_.delete('/api/post/' + postId, {ignoreLoadingBar: true});
     };
+    UserService.prototype.deleteNote = function (noteId) {
+        return this.http_.delete('/api/note/' + noteId, {ignoreLoadingBar: true});
+    };
     UserService.prototype.likePost = function (user, post) {
         var self = this;
         var i = post.likers_key.indexOf(user.id);

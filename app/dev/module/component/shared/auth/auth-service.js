@@ -1,15 +1,23 @@
-var AuthService = function ($http, $state, $q, USER_ROLES, localStorageService, alertService) {
+var AuthService = function (dataService, $state, $q, USER_ROLES, localStorageService) {
     var self = this;
     self.user = {};
-    self.http_ = $http;
+    //self.http_ = $http;
+    self.dataService = dataService;
     self.state_ = $state;
     self.q_ = $q;
     self.USER_ROLES = USER_ROLES;
     self.localStorageService = localStorageService;
-    self.alertService = alertService;
 };
 
 
+AuthService.prototype.FB = function () {
+    //self.FB = typeof FB !== 'undefined' ? FB : facebookConnectPlugin;
+    if (typeof FB !== 'undefined') {
+        return FB;
+    } else {
+        return facebookConnectPlugin;
+    }
+};
 /**
  * Get current user saved on client
  * @returns {*}
@@ -28,7 +36,7 @@ AuthService.prototype.getUser = function () {
  */
 AuthService.prototype.loadCurrentUser = function () {
     var self = this;
-    return self.http_.get('/api/user').then(function (resp) {
+    return self.dataService.get('/user').then(function (resp) {
         if (resp.data.status === 'no active user session') {
             console.log('no session');
             self.localStorageService.clearAll();
@@ -86,7 +94,7 @@ AuthService.prototype.createSession = function (user) {
  */
 AuthService.prototype.logout = function () {
     var self = this;
-    self.http_.post('/api/logout').then(function (resp) {
+    self.dataService.post('/logout').then(function (resp) {
         if (resp.data.status == 'success') {
             self.localStorageService.remove('user');
             self.user = {};
@@ -103,14 +111,14 @@ AuthService.prototype.checkFbLoginStatus = function () {
     var self = this;
     var deferred = self.q_.defer();
     if (typeof FB !== 'undefined') {
-        FB.getLoginStatus(function (response) {
+        self.FB.getLoginStatus(function (response) {
             if (response.status == 'connected') {
 
-                FB.api('/me?fields=email,first_name,last_name,picture', function (user) {
+                self.FB.api('/me?fields=email,first_name,last_name,picture', function (user) {
                     user.access_token = response.authResponse.accessToken;
                     user.auth = 'facebook';
                     deferred.resolve(user);
-                })
+                });
             } else {
                 deferred.resolve({});
             }
@@ -131,9 +139,11 @@ AuthService.prototype.checkFbLoginStatus = function () {
  * @param {Function} errorCallback
  */
 AuthService.prototype.emailLogin = function (email, password, successCallback, errorCallback) {
+    var self = this;
     var data = {email: email, password: password, auth: 'email'};
     self.login(data, successCallback, errorCallback);
 };
+
 
 /**
  * Perform login/signup with facebook.
@@ -142,30 +152,36 @@ AuthService.prototype.emailLogin = function (email, password, successCallback, e
  */
 AuthService.prototype.facebookLogin = function (successCallback, errorCallback) {
     var self = this;
-    if (typeof FB !== 'undefined') {
-        FB.login(function (response) {
-            if (response.status == 'connected') {
-                //get user's basic info
-                FB.api('/me?fields=email,first_name,last_name,picture', function (user) {
-                    user.access_token = response.authResponse.accessToken;
-                    user.auth = 'facebook';
+    var FB = self.FB();
 
-                    //get user's large profile picture
-                    FB.api('/' + user.id + '/picture?type=large', function (picture) {
-                        user.profile_photo = picture.data.url;
-                        self.login(user, successCallback, errorCallback);
-                    });
-
+    var onFacebookLoginSuccess = function (response) {
+        if (response.status == 'connected') {
+            //get user's basic info
+            FB.api('/me?fields=email,first_name,last_name,picture', function (user) {
+                user.access_token = response.authResponse.accessToken;
+                user.auth = 'facebook';
+                //get user's large profile picture
+                FB.api('/' + user.id + '/picture?type=large', function (picture) {
+                    user.profile_photo = picture.data.url;
+                    self.login(user, successCallback, errorCallback);
                 });
-            } else {
-                if (_.isFunction(errorCallback)) {
-                    errorCallback()
-                }
+
+            });
+        } else {
+            if (_.isFunction(errorCallback)) {
+                errorCallback();
             }
-        }, {scope: 'public_profile,email'});
+        }
+    };
+    if (PLATFORM === 'mobile') {
+        FB.login(['email', 'public_profile'], onFacebookLoginSuccess, function (er) {
+            console.log(er);
+        });
     } else {
-        console.error('FB SDK missing..')
+        FB.login(onFacebookLoginSuccess, {scope: 'public_profile,email'});
     }
+
+
 };
 
 /**
@@ -175,18 +191,12 @@ AuthService.prototype.facebookLogin = function (successCallback, errorCallback) 
  */
 AuthService.prototype.signup = function (data, successCallback, errorCallback) {
     var self = this;
-    self.http_.post('/api/signup', data).then(function (resp) {
+    self.dataService.post('/signup', data).then(function (resp) {
         if (resp.data.id) {
             var user = resp.data;
             self.createSession(user);
             if (_.isFunction(successCallback)) {
                 successCallback(user);
-            } else {
-                if (!user.church_key) {
-                    self.state_.go('base.post-signup-profile');
-                } else {
-                    self.state_.go('base.home');
-                }
             }
         } else {
             if (_.isFunction(errorCallback)) {
@@ -204,20 +214,16 @@ AuthService.prototype.signup = function (data, successCallback, errorCallback) {
  */
 AuthService.prototype.login = function (data, successCallback, errorCallback) {
     var self = this;
-    self.http_.post('/api/login', data).then(function (resp) {
+    self.dataService.post('/login', data).then(function (resp) {
         if (resp.data.id) {
             var user = resp.data;
             self.createSession(user);
             if (_.isFunction(successCallback)) {
                 successCallback(user);
-            } else {
-                self.state_.go('base.home');
             }
         } else {
             if (_.isFunction(errorCallback)) {
                 errorCallback(resp.data.message);
-            } else {
-                self.alertService.danger('Unsuccessful login attempt. Please try again.')
             }
         }
     });
@@ -263,5 +269,5 @@ AuthService.prototype.isAuthorized = function (state) {
     }
 };
 
-App.service('authService', AuthService);
+angular.module(MODULE_NAME).service('authService', AuthService);
 

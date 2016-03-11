@@ -118,7 +118,7 @@ App.config(function (localStorageServiceProvider) {
                 }
             })
             .state('base.sermon-view', {
-                url: '/sermon/{id:int}/:option',
+                url: '/sermon/{id:int}',
                 views: {
                     'content': {
                         templateUrl: 'module/sermon/study.html',

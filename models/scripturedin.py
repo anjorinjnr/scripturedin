@@ -1162,3 +1162,11 @@ def delete_post(post_id, key):
         feed = get_object_feed(post.key)
         ndb.delete_multi([feed.key, post.key])
         return True
+
+
+def delete_note(note_id, key):
+    note = SermonNote.get_by_id(int(note_id))
+    if note.created_by == key:
+        feed = get_object_feed(note.key)
+        ndb.delete_multi([feed.key, note.key])
+        return True

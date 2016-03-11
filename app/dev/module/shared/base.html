@@ -18,9 +18,13 @@
         <li class="logo hidden-xs">
             <a href="/#/home">scripturedIn</a>
         </li>
-        <li class="pull-right" style="margin-right:40px">
+        <li class="pull-right">
             <ul class="top-menu">
 
+                 <li id="new-note" style="margin-right: 20px">
+                   <button ng-click="$state.go('base.new-note')" class="btn btn-default btn-icon-text waves-effect">
+                       <md-icon md-svg-src="/img/icons/note_add_black.svg"></md-icon> New Note</button>
+                </li>
                 <li id="toggle-width">
                     <div class="toggle-switch">
                         <input id="tw-switch" type="checkbox" hidden="hidden"

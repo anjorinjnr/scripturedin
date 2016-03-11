@@ -318,10 +318,9 @@ div:empty:before {
         margin: 17px 18px !important;
     }
 
-    /*.intro-text-bg p {*/
-    /*font-size: 45px;*/
-    /*text-align: center;*/
-    /*}*/
+    #new-note {
+        padding-top: 12px;
+    }
 }
 
 .info {
