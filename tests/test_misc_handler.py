@@ -11,7 +11,6 @@ from handlers.user_handler import UserHandler
 from models import scripturedin as model
 from service import util
 
-
 class MiscHandlerTestCase(unittest.TestCase):
     def setUp(self):
         self.testbed = testbed.Testbed()

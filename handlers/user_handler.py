@@ -8,6 +8,7 @@ from service.validator import Validator
 
 
 class UserHandler(base_handler.BaseHandler):
+
     def login(self):
         """Login user into the app.
 
@@ -44,7 +45,9 @@ class UserHandler(base_handler.BaseHandler):
                     resp = self._facebook_signup(data)
                     if resp and resp[0]:
                         user = resp[1]
-                        user.profile_photo = data['profile_photo'] if 'profile_photo' in data else None
+                        user.profile_photo = 'https://graph.facebook.com/' + data['id'] + '/picture?type=large';
+                        # if 'profile_photo' in data and data['profile_photo']:
+                        #     user.profile_photo = data['profile_photo']
                         user.put()
                         # start new session
                         self.auth.set_session(self.auth.store.user_to_dict(user), remember=True)
@@ -227,6 +230,7 @@ class UserHandler(base_handler.BaseHandler):
         except Exception as e:
             logging.info(e)
             self.error_response('failed to delete post')
+
     @user_required
     def delete_note(self, note_id):
         try:

@@ -8,6 +8,7 @@ from google.appengine.ext import ndb
 from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 import datetime
+# from models import scripturedin as model
 
 from service.validator import Validator
 
@@ -95,9 +96,16 @@ def model_to_dict(o, **kwargs):
     Returns:
       dict object
     """
+    avatar = False
+    if o.key.kind() == 'User' and hasattr(o, 'avatar') and o.avatar:
+      o.avatar = None
+      avatar = True
+
 
     obj = _convert_dict(_secure_user_data(o.to_dict()))
     obj['id'] = o.key.id()
+    if avatar:
+        obj['avatar'] = True
 
     # convert and add the additional(extra) attributes
     extra = _convert_dict(kwargs)

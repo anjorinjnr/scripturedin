@@ -7,7 +7,6 @@ from google.appengine.api import memcache
 
 from service import bible_service
 
-
 class BibleServiceTestCase(unittest.TestCase):
     def setUp(self):
         self.testbed = testbed.Testbed()

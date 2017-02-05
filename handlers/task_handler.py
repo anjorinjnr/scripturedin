@@ -99,27 +99,31 @@ class TaskHandler(base_handler.BaseHandler):
         logging.info('update church index')
 
     def task_load_churches(self):
-        churches = []
-        with open('data/churches.csv') as f:
-            lines = f.readlines()
-            for line in lines:
-                items = line.split(',')
-                website = items[0]
-                name = items[1]
-                city = items[4]
-                state = items[5]
-                denom = items[7]
-                churches.append(model.Church(
-                    name=name,
-                    website=website,
-                    country='US',
-                    state=state,
-                    city=city,
-                    denom=denom
-                ))
-        logging.info('loading %s churches' % len(churches))
-        ndb.put_multi(churches)
-        logging.info('completed loading churches')
+        logging.info('task: loading churches')
+        try:
+            churches = []
+            with open('data/churches.csv') as f:
+                lines = f.readlines()
+                for line in lines:
+                    items = line.split(',')
+                    website = items[0]
+                    name = items[1]
+                    city = items[4]
+                    state = items[5]
+                    denom = items[7]
+                    churches.append(model.Church(
+                        name=name,
+                        website=website,
+                        country='US',
+                        state=state,
+                        city=city,
+                        denom=denom
+                    ))
+            logging.info('loading %s churches' % len(churches))
+            ndb.put_multi(churches)
+            logging.info('completed loading churches')
+        except Exception as e:
+            logging.error(e.message)
 
     def queue_task(self):
         name = self.request.get('name')
@@ -129,8 +133,9 @@ class TaskHandler(base_handler.BaseHandler):
         elif name == 'index_churches':
             url = '/_tasks/index_churches'
 
-        taskqueue.add(queue_name='default-tasks',
-                      url=url)
+        t = taskqueue.add(queue_name='default-tasks',
+                          url=url)
+        print t
         logging.info('Added %s task to queue' % name)
         self.success_response()
 

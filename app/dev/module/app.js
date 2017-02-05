@@ -30,10 +30,11 @@ var App = angular.module('scripturedIn', [
     .config(function ($uiViewScrollProvider) {
         $uiViewScrollProvider.useAnchorScroll();
     })
-    .run(function ($rootScope, alertService, util, authService, userService, $state, $mdToast, appService) {
+    .run(function ($rootScope, alertService, util, $sce, authService, userService, $state, $mdToast, appService) {
 
             $rootScope.authService = authService;
             $rootScope.$state = $state;
+            $rootScope.trustAsHtml = $sce.trustAsHtml;
 
             /**
              * Return profile picture for user,

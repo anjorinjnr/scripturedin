@@ -11,7 +11,7 @@
       "dev/vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css",
       "dev/vendors/bower_components/angular-loading-bar/src/loading-bar.css",
       "dev/vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css",
-      "dev/vendors/bower_components/ngWYSIWYG/css/editor.css",
+      "dev/vendors/bower_components/ngWYSIWYG/dist/editor.min.css",
       "dev/vendors/bower_components/sweetalert/dist/sweetalert.css"
     ]
   },
@@ -37,7 +37,7 @@
       "dev/vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js",
       "dev/vendors/bower_components/Waves/dist/waves.min.js",
       "dev/vendors/bower_components/lodash/lodash.min.js",
-      "dev/vendors/bower_components/ngWYSIWYG/js/wysiwyg.js",
+      "dev/vendors/bower_components/ngWYSIWYG/dist/wysiwyg.min.js",
       "dev/vendors/bower_components/moment/min/moment.min.js",
       "dev/vendors/bower_components/autosize/dist/autosize.min.js",
       "dev/vendors/bower_components/sweetalert/dist/sweetalert.min.js"

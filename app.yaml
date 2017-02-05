@@ -1,5 +1,5 @@
 application: scripturedin
-version: v1-1-7
+version: v1-1-10
 runtime: python27
 api_version: 1
 threadsafe: yes
@@ -26,7 +26,7 @@ handlers:
 #  static_files: app/dev\1
 #  upload: app
 
-#uncomment for prod
+###uncomment for prod
 - url: /
   static_files: app/prod/index.html
   upload: app

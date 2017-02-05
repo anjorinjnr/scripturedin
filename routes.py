@@ -8,6 +8,7 @@ from handlers.request_handler import RequestHandler
 from handlers.sermon_handler import SermonHandler
 from handlers.task_handler import TaskHandler
 from handlers.user_handler import UserHandler
+from handlers import upload_handler
 
 route = webapp2.Route
 ROUTES = [
@@ -179,6 +180,8 @@ ROUTES = [
           methods=['GET']),
 
 ]
+
+ROUTES += upload_handler.ROUTES
 
 TASK_ROUTES = [
     webapp2.Route(r'/_tasks/load_churches',

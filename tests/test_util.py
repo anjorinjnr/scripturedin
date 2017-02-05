@@ -7,7 +7,6 @@ from models import  scripturedin as model
 
 from service import util
 
-
 class UtilTestCase(unittest.TestCase):
 
     def setUp(self):

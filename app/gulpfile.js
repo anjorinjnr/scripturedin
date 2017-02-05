@@ -46,9 +46,9 @@ gulp.task('vendor-js', function () {
 
 gulp.task('copy-assets', function () {
     var assets = ['dev/img/**', 'dev/fonts/**', 'dev/media/**',
-        'dev/data/**', 'dev/vendors/bower_components/material-design-iconic-font/dist/fonts'].concat(vendor.lazy);
+        'dev/data/**', 'dev/vendors/bower_components/material-design-iconic-font/dist/fonts/**'].concat(vendor.lazy);
 
-    gulp.src('dev/vendors/bower_components/ngWYSIWYG/images/*')
+    gulp.src('dev/vendors/bower_components/ngWYSIWYG/dist/images/*')
         .pipe(gulp.dest('prod/images'));
 
     return gulp.src(assets, {base: 'dev'})
@@ -70,7 +70,7 @@ gulp.task('concat-js', ['templates'], function () {
 gulp.task('scripts', ['concat-js'], function () {
     return gulp.src(['prod/app.js', 'prod/templates.js'])
         .pipe(concat('app.js'))
-        .pipe(gulp.dest('prod'))
+        // .pipe(gulp.dest('prod'))
         .pipe(uglify())
         .pipe(rename({extname: '.min.js'}))
         .pipe(gulp.dest('prod'));

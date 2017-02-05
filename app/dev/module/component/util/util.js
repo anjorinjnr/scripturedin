@@ -33,7 +33,11 @@ App.service('util', function () {
         console.log(JSON.stringify(obj, null, 2));
     };
     self.imagePath = function (user) {
-        if (user.profile_photo) {
+        // console.log('user', user);
+        //return 'http://graph.facebook.com/10153322402007749/picture?type=large';
+        if (user.avatar) {
+            return '/api/' + user.id + '/avatar';
+        } else if (user.profile_photo) {
             return user.profile_photo;
         } else if (user.gender == 'f') {
             return 'img/female_avatar.svg';

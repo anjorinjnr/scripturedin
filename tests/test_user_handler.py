@@ -5,18 +5,22 @@ import mock
 import json
 import os
 from google.appengine.ext import testbed
-
+from google.appengine.api import search
 from handlers.user_handler import UserHandler
 from models import scripturedin as model
 from service import util
 
 
 class UserHandlerTestCase(unittest.TestCase):
+
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_memcache_stub()
         self.testbed.init_datastore_v3_stub()
+        self.testbed.init_search_stub()
+        index = search.Index(name='test')
+        index.put(search.Document())
         config = {}
         config['webapp2_extras.sessions'] = {
             'secret_key': str(util.Config.configs('secret_key')),
@@ -83,6 +87,7 @@ class UserHandlerTestCase(unittest.TestCase):
                   "last_name": "Anjorin Jnr",
                   "id": "12345",
                   "access_token": "random_token",
+                  "profile_photo": "https://graph.facebook.com/12345/picture?type=large",
                   "auth": "facebook"}
         mock_val_fb_token.return_value = True
 
@@ -91,7 +96,11 @@ class UserHandlerTestCase(unittest.TestCase):
         self.assertEqual(response.status_int, 200)
         self.assertTrue('Set-Cookie' in response.headers)
         user = json.loads(response.normal_body)
-        self.assertEqual(1, user['id'])
+        self.assertEqual(user['email'], params['email'])
+        self.assertEqual(user['first_name'], params['first_name'])
+        self.assertEqual(user['last_name'], params['last_name'])
+        self.assertEqual(user['id'], 1)
+        self.assertEqual(user['profile_photo'], params['profile_photo'])
         mock_val_fb_token.assert_called_once_with(params['access_token'])
 
     @mock.patch('handlers.base_handler.BaseHandler.user_model')

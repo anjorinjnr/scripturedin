@@ -668,3 +668,7 @@ wysiwyg-edit.summary .tinyeditor .sizer {
     display: block;
     height: 40px;
 }
+
+.lv-img {
+    width: 42px;
+}

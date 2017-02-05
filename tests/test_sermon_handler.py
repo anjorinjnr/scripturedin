@@ -12,7 +12,6 @@ from handlers.user_handler import UserHandler
 from models import scripturedin as model
 from service import util
 
-
 class SermonHandlerTestCase(unittest.TestCase):
     def setUp(self):
         self.testbed = testbed.Testbed()

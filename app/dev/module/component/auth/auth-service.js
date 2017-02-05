@@ -107,6 +107,7 @@ AuthService.prototype.checkFbLoginStatus = function () {
             if (response.status == 'connected') {
 
                 FB.api('/me?fields=email,first_name,last_name,picture', function (user) {
+                    console.log(user);
                     user.access_token = response.authResponse.accessToken;
                     user.auth = 'facebook';
                     deferred.resolve(user);
@@ -131,6 +132,7 @@ AuthService.prototype.checkFbLoginStatus = function () {
  * @param {Function} errorCallback
  */
 AuthService.prototype.emailLogin = function (email, password, successCallback, errorCallback) {
+    var self  = this;
     var data = {email: email, password: password, auth: 'email'};
     self.login(data, successCallback, errorCallback);
 };
@@ -149,12 +151,9 @@ AuthService.prototype.facebookLogin = function (successCallback, errorCallback) 
                 FB.api('/me?fields=email,first_name,last_name,picture', function (user) {
                     user.access_token = response.authResponse.accessToken;
                     user.auth = 'facebook';
-
-                    //get user's large profile picture
-                    FB.api('/' + user.id + '/picture?type=large', function (picture) {
-                        user.profile_photo = picture.data.url;
-                        self.login(user, successCallback, errorCallback);
-                    });
+                    user.profile_photo = 'https://graph.facebook.com/' + user.id + '/picture?type=large';
+                    console.log('login with user', user);
+                    self.login(user, successCallback, errorCallback);
 
                 });
             } else {

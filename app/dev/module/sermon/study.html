@@ -128,6 +128,7 @@
 
 
                                 <md-list-item
+                                        ng-if="sermonCtrl.sermon.notes.length > 1"
                                         class="md-2-line md-long-text p-l-0 p-r-0"
 
                                         ng-repeat="note in ::sermonCtrl.sermon.notes">
@@ -145,9 +146,13 @@
                                     </div>
                                 </md-list-item>
 
+                                <div class="p-20" ng-if="sermonCtrl.sermon.note" ng-bind-html="trustAsHtml(sermonCtrl.sermon.note)">
+
+                                </div>
+
                             </md-content>
                         </md-tab>
-                        <md-tab label="Sermon Questions">
+                        <md-tab label="Sermon Questions" ng-if="sermonCtrl.sermon.questions.length > 0 ">
                             <md-content class="md-padding p-l-0 p-r-0">
                                 <!--<md-subheader class="md-no-sticky">3 line item, long paragraph (see on mobile)-->
                                 <!--</md-subheader>-->

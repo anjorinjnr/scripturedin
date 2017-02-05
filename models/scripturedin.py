@@ -21,6 +21,7 @@ type_struct = ndb.StructuredProperty
 type_bool = ndb.BooleanProperty
 type_date = ndb.DateProperty
 type_datetime = ndb.DateTimeProperty
+type_blob = ndb.BlobProperty
 
 PRIVACY_PUBLIC = 'public'
 PRIVACY_MEMBER = 'members'
@@ -75,6 +76,7 @@ class User(AuthUser):
     is_pastor = type_bool()
     fav_sermon_keys = type_key(kind='Sermon', repeated=True)
     profile_photo = type_string()
+    avatar = type_blob()
 
     _has_index = True
 
@@ -804,8 +806,10 @@ def get_comments(type, id, cursor=None, page_size=20):
         comment = util.model_to_dict(c)
         comment['ref_kind'] = c.ref_key.kind()
         comment['replies'] = get_comment_replies(c.key.id())
-        comment['user'] = User.query(User.key == c.created_by).get(
-            projection=[User.first_name, User.last_name, User.profile_photo, User.title])
+        # user = User.query(User.key == c.created_by).get()
+        comment['user'] = get_mini_user_info(c.created_by)
+        # comment['user'] = User.query(User.key == c.created_by).get(
+        #     projection=[User.first_name, User.last_name, User.profile_photo, User.title, User.avatar])
         data.append(comment)
 
     return {
@@ -945,7 +949,7 @@ def get_feed(user_id, cursor=None, last_time=None, page_size=15):
     A feed is generated when events such as publishing a new sermon is created.
     When such events happens, we create a feed entry that get's displayed on
     the appropriate user's wall. To get feeds for a user we query all
-    available feeds an apply a filter to determine what's applicable to the
+    available feeds and apply a filter to determine what's applicable to the
     user.
 
     Args:
@@ -999,7 +1003,8 @@ def get_mini_user_info(user_key):
             'title': user.title,
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'profile_photo': user.profile_photo
+            'profile_photo': user.profile_photo,
+            'avatar': True if user.avatar else None
             }
 
 

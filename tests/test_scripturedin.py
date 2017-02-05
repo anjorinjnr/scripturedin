@@ -8,7 +8,6 @@ from google.appengine.ext import ndb
 from service import util
 from models import scripturedin as model
 
-
 class ScripturedinTestCase(unittest.TestCase):
     def setUp(self):
         self.testbed = testbed.Testbed()

@@ -16,7 +16,7 @@
         var self = this;
         self.userService.getFeed().then(function (resp) {
             self.feedData = resp.data;
-            //console.log(self.feedData);
+            console.log(self.feedData);
         });
     };
     HomeController.prototype.newPost = function () {

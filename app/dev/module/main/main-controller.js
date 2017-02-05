@@ -2,34 +2,60 @@
 
     var MainCtrl = function ($timeout, $state, $scope, userService,
                              authService, $uibModal, $stateParams,
-                             bibleService, alertService) {
+                             bibleService, alertService, $location, Upload) {
         var self = this;
         self.scope_ = $scope;
         self.state_ = $state;
         self.modal_ = $uibModal;
         self.user = authService.getUser();
         //console.log(self.user.gender);
+        self.name = 'main';
         self.newChurch = {};
         self.userService = userService;
         self.authService = authService;
         self.alertService = alertService;
         self.bibleService = bibleService;
+        self.uploader = Upload;
 
+        console.log($location.url());
+
+
+        self.upload = upload;
 
         if ($state.$current.name == 'main') {
+            // check if there is an active user session
+            if (!self.authService.hasSession()) {
+                // no active user session, check if user is logged in to facebook
+                //  and connected to the app
+                self.authService.checkFbLoginStatus().then(function (resp) {
+                    if (!_.isEmpty(resp)) {
+                        //user is logged in to facebook, prompt user to login to app
+                        self.fbUser = resp;
+                        self.showLogin();
+                    } else if ($stateParams.a == 'login') {
+                        self.showLogin();
+                    } else if ($stateParams.a == 'signup') {
+                        self.showSignup();
+                    }
+                });
+            }
+        }
 
-            self.authService.checkFbLoginStatus().then(function (resp) {
-                if (!_.isEmpty(resp)) {
-                    self.fbUser = resp;
-                    self.showLogin();
-                }
+        function upload(file) {
+            var uploadUrl = '/api/upload?type=profile&id=' + self.user.id;
+            console.log(uploadUrl);
+            self.uploader.upload({
+                url: uploadUrl,
+                data: {file: file}
+            }).then(function (resp) {
+                console.log('Success ' + resp.config.data.file.name + 'uploaded. Response: ' + resp.data);
+            }, function (resp) {
+                console.log('Error status: ' + resp.status);
+            }, function (evt) {
+                var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
+                console.log('progress: ' + progressPercentage + '% ' + evt.config.data.file.name);
             });
 
-            if ($stateParams.a == 'login') {
-                self.showLogin();
-            } else if ($stateParams.a == 'signup') {
-                self.showSignup();
-            }
         }
 
 
@@ -50,7 +76,7 @@
             if (user.signup) {
                 self.state_.go('base.post-signup-profile');
             } else {
-                 self.state_.go('base.home');
+                self.state_.go('base.home');
             }
         }, function () {
             self.alertService.danger('Login with facebook failed. Please try again.')
@@ -137,6 +163,7 @@
 
 
     MainCtrl.prototype.showLogin = function () {
+        console.log('login modal');
         var self = this;
 
         function modalInstances(ctrl) {
@@ -150,6 +177,7 @@
                     //facebook user conneced but not logged,
                     //login user in.
                     self.continueWithFacebook = function () {
+                        console.log('close modal..')
                         modalInstance.close();
                         self.main.loginFacebookUser();
                     };
