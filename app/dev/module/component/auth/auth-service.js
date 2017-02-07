@@ -52,7 +52,8 @@ AuthService.prototype.resolveAuth = function () {
     var self = this;
     var deferred = self.q_.defer();
     var user = self.getUser();
-    if (!_.isEmpty(user)) {
+    if (!_.isEmpty(user)) { //there is user in local storage
+
         self.loadCurrentUser().then(function () {
             user = self.getUser();
             if (user) {
