@@ -1,0 +1,68 @@
+<aside id="sidebar" data-ng-class="{ 'toggled': $ctrl.navbar.open }">
+
+    <div class="sidebar-inner c-overflow">
+        <div class="profile-menu">
+            <a href="" toggle-submenu>
+                <div class="profile-pic">
+                    <img ng-src="{{imagePath(authService.user)}}" alt="">
+                </div>
+
+                <div class="profile-info">
+                    {{authService.user.first_name + ' ' + authService.user.last_name }}
+
+                    <i class="zmdi zmdi-caret-down"></i>
+                </div>
+            </a>
+
+            <ul class="main-menu">
+                <!--<li>-->
+                <!--<a data-ui-sref="pages.profile.profile-about" data-ng-click="mactrl.sidebarStat($event)"><i-->
+                <!--class="zmdi zmdi-account"></i> View Profile</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                <!--<a href=""><i class="zmdi zmdi-input-antenna"></i> Privacy Settings</a>-->
+                <!--</li>-->
+                <li>
+                    <a ui-sref="base.settings"><i class="zmdi zmdi-settings"></i> Settings</a>
+                </li>
+                <li>
+                    <a href="#/logout"><i class="zmdi zmdi-time-restore"></i> Logout</a>
+                </li>
+            </ul>
+        </div>
+
+        <ul class="main-menu">
+
+            <li data-ui-sref-active="active">
+                <a data-ui-sref="base.home"><i class="zmdi zmdi-home"></i>
+                Home</a>
+            </li>
+            <li class="sub-menu" data-ng-class="{ 'active toggled': mactrl.$state.includes('headers') }">
+                <a href="" toggle-submenu>
+                    <i>
+                    <md-icon md-svg-src="/img/icons/event_note_black.svg"></md-icon>
+                </i>Notes
+                </a>
+
+                <ul>
+                    <li><a data-ui-sref-active="active" data-ui-sref="base.new-note">
+                    New Note</a></li>
+                    <li><a data-ui-sref-active="active" data-ui-sref="base.notes">My Notes</a>
+                    </li>
+                </ul>
+            </li>
+            <li data-ui-sref-active="active">
+                <a data-ui-sref="base.sermon-browse">
+                    <i>
+                    <md-icon md-svg-src="/img/icons/speaker_notes_black.svg"></md-icon>
+                </i> Sermons</a>
+            </li>
+            <li data-ui-sref-active="active">
+                <a data-ui-sref="base.bible">
+                    <i>
+                    <md-icon md-svg-src="/img/icons/bible.svg"></md-icon>
+                </i> Bible</a>
+            </li>
+        </ul>
+    </div>
+</aside>

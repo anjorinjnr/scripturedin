@@ -1,0 +1,54 @@
+<div ng-hide="$ctrl.header.hide" id="header" ng-class="{'search-toggled': appCtrl.appService.searchToggle}" data-current-skin="blue">
+
+    <ul class="header-inner clearfix">
+        <li id="menu-trigger" ng-click="$ctrl.toggleNavBar()" data-ng-class="{ 'open': $ctrl.navbar.open }">
+            <div class="line-wrap">
+                <div class="line top"></div>
+                <div class="line center"></div>
+                <div class="line bottom"></div>
+            </div>
+        </li>
+
+        <li class="logo hidden-xs">
+            <a href="/#/home">scripturedIn</a>
+        </li>
+        <li class="pull-right">
+            <ul class="top-menu">
+
+                <li id="new-note" style="margin-right: 20px">
+                    <button ng-click="$state.go('base.new-note')" class="btn btn-default btn-icon-text waves-effect">
+                       <md-icon md-svg-src="/img/icons/note_add_black.svg"></md-icon> New Note</button>
+                </li>
+                <li id="toggle-width">
+                    <div class="toggle-switch">
+                        <input id="tw-switch" type="checkbox" hidden="hidden" ng-checked="appCtrl.appService.layout == 1" ng-click="appCtrl.switchLayout()">
+                        <label for="tw-switch" class="ts-helper"></label>
+                    </div>
+                </li>
+
+                <li style="padding-top: 8px">
+                    <a ui-sref="base.bible" class="bible-top-menu">
+                        <md-icon style="vertical-align: inherit" md-svg-src="/img/icons/bible_white.svg"></md-icon>
+                    </a>
+                </li>
+                <li id="top-search" style="padding-top: 8px">
+                    <a href data-ng-click="appCtrl.appService.searchToggle=true;">
+                        <i class="tm-icon zmdi zmdi-search"></i>
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <!-- when mobile, reduce width and float right -->
+    <div id="top-search-wrap" class="center-search">
+        <div class="tsw-inner hidden-xs">
+            <input focus type="text" data-ng-keypress="headerCtrl.onSearchKeyPress($event)" data-ng-model="headerCtrl.searchTerm" placeholder="Search for bible verse e.g prob 31, john 3:16, mark 5:1-6" style="padding: 0 10px 0 20px; font-size: 14px">
+        </div>
+        <div class="tsw-inner" ng-if="appCtrl.appService.searchToggle">
+            <i id="top-search-close" class="zmdi zmdi-arrow-left" data-ng-click="appCtrl.appService.searchToggle=false"></i>
+            <input focus type="text" data-ng-keypress="headerCtrl.onSearchKeyPress($event)" data-ng-model="headerCtrl.searchTerm" placeholder="Look up bible verse e.g john 3:16">
+        </div>
+    </div>
+
+    <!--<div ng-include="'module/shared/header.html'"></div>-->
+</div>
