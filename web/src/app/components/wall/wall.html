@@ -3,40 +3,12 @@
 
         <div class="col-md-10">
             <div class="card wall-posting">
-                <div class="card-body card-padding">
-                    <textarea class="wp-text" ng-model="homeCtrl.post.content" data-auto-size placeholder="Write Something..."></textarea>
+                <new-post></new-post>
 
-                    <!--<div class="wp-media" data-ng-if="mactrl.wallImage">-->
-                    <!--Images - Coming soon...-->
-                    <!--</div>-->
-
-                    <!--<div class="wp-media" data-ng-if="mactrl.wallVideo">-->
-                    <!--Video Links - Coming soon...-->
-                    <!--</div>-->
-
-                    <!--<div class="wp-media" data-ng-if="mactrl.wallLink">-->
-                    <!--Links - Coming soon...-->
-                    <!--</div>-->
+                <div id="feeds" ng-if="homeCtrl.feedData">
+                    <posts ng-repeat="feed in homeCtrl.feedData.feeds" feed="feed">
+                    </posts>
                 </div>
-
-                <ul class="list-unstyled clearfix wpb-actions">
-                    <!--<li class="wpba-attrs">-->
-                    <!--<ul class="list-unstyled list-inline m-l-0 m-t-5">-->
-                    <!--<li><a data-wpba="image" href="" data-ng-class="{ 'active': mactrl.wallImage }" data-ng-click="mactrl.wallImage = true; mactrl.wallVideo = false; mactrl.wallLink = false"><i class="zmdi zmdi-image"></i></a></li>-->
-                    <!--<li><a data-wpba="video" href="" data-ng-class="{ 'active': mactrl.wallVideo }" data-ng-click="mactrl.wallVideo= true; mactrl.wallImage = false; mactrl.wallLink = false"><i class="zmdi zmdi-play-circle"></i></a></li>-->
-                    <!--<li><a data-wpba="link" href="" data-ng-class="{ 'active': mactrl.wallLink }" data-ng-click="mactrl.wallLink = true; mactrl.wallImage = false; mactrl.wallVideo = false"><i class="zmdi zmdi-link"></i></a></li>-->
-                    <!--</ul>-->
-                    <!--</li>-->
-
-                    <li class="pull-right">
-                        <button ng-click="homeCtrl.newPost()" class="btn btn-primary btn-sm">Post</button>
-                    </li>
-                </ul>
-            </div>
-
-            <div id="feeds" ng-if="homeCtrl.feedData">
-                <feed ng-repeat="feed in homeCtrl.feedData.feeds" feed="feed"></feed>
             </div>
         </div>
     </div>
-</div>

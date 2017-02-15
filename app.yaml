@@ -14,7 +14,7 @@ handlers:
   login: admin
 
 - url: /api/.*
-  script: main.app
+  script: server/main.app
   secure: always
 
 - url: /

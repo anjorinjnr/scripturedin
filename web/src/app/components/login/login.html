@@ -2,7 +2,7 @@
     <div ng-if="$ctrl.facebookUser">
         <p class="f-16 c-black">WELCOME BACK, CONTINUE AS</p>
         <ul class="list-group">
-            <li class="list-group-item" style="cursor: hand" ng-click="$ctrl.continueWithFacebook()">
+            <li class="list-group-item" style="cursor: pointer" ng-click="$ctrl.loginWithFacebook()">
 
                 <img class="lv-img m-r-10" ng-src="{{$ctrl.facebookUser.picture.data.url}}" alt="Facebok profile photo"> {{$ctrl.facebookUser.first_name}} {{$ctrl.facebookUser.last_name}}
 

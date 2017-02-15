@@ -21,22 +21,27 @@ var config = {
     },
     module: {
         loaders: [
-            {test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader')},
-            {test: /\.less$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader!less-loader')},
-            {test: /jquery\.js$/, loader: 'expose?jQuery'},
-            {test: /\.js$/, loader: 'ng-annotate!babel', exclude: /node_modules/},
-            {test: /.ts$/, loader: 'awesome-typescript-loader'},
-            {test: /\.html$/, loader: 'raw', exclude: /node_modules/},
-            {test: /\.png$/, loader: "url?limit=100000"},
-            {test: /\.jpg$/, loader: "file"},
-            {test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'url?limit=10000&mimetype=application/font-woff'},
-            {test: /\.(ttf|eot|otf|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'file'}
+            { test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader') },
+            { test: /\.less$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader!less-loader') },
+            { test: /jquery\.js$/, loader: 'expose?jQuery' },
+            { test: /\.js$/, loader: 'ng-annotate!babel', exclude: /node_modules/ },
+            { test: /.ts$/, loader: 'awesome-typescript-loader' },
+            { test: /\.html$/, loader: 'raw', exclude: /node_modules/ },
+            { test: /\.png$/, loader: "url?limit=100000" },
+            { test: /\.jpg$/, loader: "file" },
+            { test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'url?limit=10000&mimetype=application/font-woff' },
+            { test: /\.(ttf|eot|otf|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'file' }
         ]
+    },
+    devServer: {
+        proxy: {
+            '**': 'http://localhost:13000'
+        }
     }
 };
 
 if (process.env.NODE_ENV == 'production') {
-    config.plugins.push(new webpack.optimize.UglifyJsPlugin({compress: {warnings: false}}));
+    config.plugins.push(new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false } }));
 }
 
 module.exports = config;

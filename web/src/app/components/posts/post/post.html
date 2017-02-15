@@ -1,0 +1,115 @@
+<div class="card animate-show" ng-hide="feed.remove">
+    <div class="card-header">
+        <div class="media">
+            <div class="pull-left">
+                <img class="lv-img" ng-src="{{util.imagePath(feed.user)}}" alt="">
+            </div>
+
+            <div class="media-body m-t-5">
+                <!--<a href class="pull-right"><i class="zmdi zmdi-thumb-up"></i></a>-->
+                <ul class="actions" ng-if="showActionMenu()">
+                    <li class="dropdown" uib-dropdown>
+                        <a href="" uib-dropdown-toggle>
+                            <i class="zmdi zmdi-more-vert"></i>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-right">
+                            <li>
+                                <a href ng-click="edit()">Edit</a>
+                            </li>
+                            <li>
+                                <a ng-click="delete()" href="">Delete</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <h2 class="f-20">
+                    <a class="c-black">
+                        <!--{{::feed.title}}-->
+                        <name-tag user="feed.user"></name-tag>
+                    </a>
+                    <small>Posted on {{::feed.created_at |
+                        formatDate:'Do MMM YYYY [at] h:mm a'}}
+                    </small>
+
+                </h2>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="card-body card-padding">
+        <!--<textarea  ng-if="editing" ng-model="editContent" class="f-e-c wcci-text c-black" data-auto-size>-->
+
+        <!--</textarea>-->
+        <div ng-show="editing">
+            <div contenteditable class="f-edit"></div>
+            <div class="m-t-15">
+                <button ng-click="saveChanges()" class="btn btn-sm btn-primary">Save Changes
+                </button>
+                <button class="btn btn-sm btn-link" data-ng-click="editing=false">Cancel
+                </button>
+            </div>
+        </div>
+
+        <p ng-hide="editing" class="f-c" class="m-b-15" bind-html-compile="feed.displayText"></p>
+
+        <ul ng-hide="editing" class="wall-attrs clearfix list-inline list-unstyled">
+            <li class="wa-stats">
+                <span>
+                    <a href data-ng-click="feed.commenting = true" class="c-gray">
+                        <i class="zmdi zmdi-comments"></i>
+                        <span ng-if="feed.comment_count > 0">{{feed.comment_count}}</span>
+                </a>
+                </span>
+                <span>
+                <a ng-click="like()" href ng-class="{'c-gray': !liked(), 'c-lightblue': liked() }">
+                    <i class="zmdi zmdi-thumb-up"></i>
+                    <span ng-if="feed.like_count > 0">{{feed.like_count}}</span>
+                </a>
+                </span>
+
+            </li>
+            <!--<li class="wa-users">-->
+            <!--<a href=""><img src="img/profile-pics/1.jpg" alt=""></a>-->
+            <!--<a href=""><img src="img/profile-pics/2.jpg" alt=""></a>-->
+            <!--<a href=""><img src="img/profile-pics/3.jpg" alt=""></a>-->
+            <!--<a href=""><img src="img/profile-pics/5.jpg" alt=""></a>-->
+            <!--</li>-->
+        </ul>
+    </div>
+
+
+    <div class="wall-comment-list p-t-5 p-b-5">
+
+        <div class="wcl-form m-t-5">
+            <div class="wc-comment" data-ng-if="!feed.commenting" data-ng-click="feed.commenting = true">
+                <div class="wcc-inner">
+                    Write Something...
+                </div>
+            </div>
+
+            <div class="wc-comment" data-ng-if="feed.commenting">
+                <div class="wcc-inner">
+                    <textarea class="wcci-text c-black" data-auto-size ng-model="feed.newComment_" focus-cursor placeholder="Write Something...">
+                    </textarea>
+                </div>
+
+                <div class="m-t-15">
+                    <button ng-click="postComment(feed.newComment_)" class="btn btn-sm btn-primary">Post
+                    </button>
+                    <button class="btn btn-sm btn-link" data-ng-click="feed.commenting = false">Cancel
+                    </button>
+                </div>
+            </div>
+
+        </div>
+        <p ng-if="feed.comments.comments.length > 5" ng-hide="feed.showComments" class="m-t-10 m-b-0"><a href ng-click="feed.showComments = true">View
+            comments</a></p>
+        <p ng-if="feed.comments.comments.length > 5" ng-show="feed.showComments" class="m-t-10 m-b-0"><a href ng-click="feed.showComments = false">Collapse
+            comments</a></p>
+    </div>
+
+    <comments ng-if="feed.showComments" data="feed.comments"></comments>
+</div>

@@ -18,7 +18,7 @@ export const RECEIVE_USER = 'RECEIVE_USER';
 // Actions
 //----------------------------------------------
 
-export const UserActions = ($http, $q, localStorageService) => {
+export const UserActions = ($http, localStorageService) => {
     'ngInject';
     const extract = result => result.data;
     const getFacebookUser = () => {
@@ -31,16 +31,15 @@ export const UserActions = ($http, $q, localStorageService) => {
             if (isEmpty(user)) {
                 dispatch({ type: GET_USER });
                 return Promise.resolve();
-            } else if (isEmpty(userState)) {
+            } else if (isEmpty(userState.data)) {
                 dispatch({ type: REQUEST_USER });
                 return $http.get('/api/user')
                     .then(extract)
                     .then(data => {
-                        if (data.status !== 'no active user session') {
-                            dispatch({ type: RECEIVE_USER, data: undefined });
+                        if (data.status === 'no active user session') {
+                            dispatch({ type: RECEIVE_USER, user: undefined });
                         } else {
-
-                            dispatch({ type: RECEIVE_USER, data });
+                            dispatch({ type: RECEIVE_USER, user: data });
                         }
                     });
             } else {
@@ -56,13 +55,16 @@ export const UserActions = ($http, $q, localStorageService) => {
 
     const login = (user) => {
         return (dispatch) => {
+
             dispatch({ type: REQUEST_USER });
-            return $http.get('/api/login', user)
+
+            return $http.post('/api/login', user)
                 .then(extract)
                 .then(user => {
                     if (user.id) {
                         localStorageService.set('user', user);
-                        dispatch({ type: RECEIVE_USER, data });
+                        console.log('action..', { type: RECEIVE_USER, user });
+                        dispatch({ type: RECEIVE_USER, user });
                     } else {
                         Promise.resolve('Unsuccessful login attempt. Please try again.');
                     }
@@ -105,7 +107,7 @@ export const user = (state = initialUser, action) => {
             return Object.assign({}, state, {
                 isFetching: false,
                 didInvalidate: false,
-                data: action.data
+                data: action.user
             });
         default:
             return state;

@@ -21,6 +21,8 @@ import { user } from './app.state';
 
 import { facebookUser } from './components/login/login.state';
 
+import { authHookRun, authLandingPageRun } from './transition.hooks';
+
 // import { pageNav } from './common/page-nav/page-nav.state';
 
 import thunk from 'redux-thunk';
@@ -34,11 +36,17 @@ const rootReducer = combineReducers({
     facebookUser
 });
 
-const config = $ngReduxProvider => {
+const reduxConfig = $ngReduxProvider => {
     'ngInject';
     $ngReduxProvider.createStoreWith(rootReducer, [thunk]);
 };
 
+const localStorageConfig = localStorageServiceProvider => {
+    'ngInject';
+    localStorageServiceProvider
+        .setPrefix('scripturedin')
+        .setStorageCookieDomain(window.location.hostname);
+};
 
 export const AppModule = angular
     .module('app', [
@@ -51,7 +59,10 @@ export const AppModule = angular
         // ngAnimate
         ngRedux
     ])
-    .config(config)
+    .config(reduxConfig)
+    .config(localStorageConfig)
     .factory('UserActions', UserActions)
     .component('app', AppComponent)
+    .run(authHookRun)
+    .run(authLandingPageRun)
     .name;

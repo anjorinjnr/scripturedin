@@ -3,7 +3,7 @@ import uiRouter from 'angular-ui-router';
 
 import { LandingPageComponent } from './landing-page.component';
 import { SideBarModule } from './side-bar/side-bar.module';
-import { initFacebookSDK } from './../../common/helper';
+import { initFacebookSDK, USER_ROLES } from './../../common/helper';
 
 export const LandingPageModule = angular
     .module('app.landing', [
@@ -19,6 +19,9 @@ export const LandingPageModule = angular
                 component: 'landingPage',
                 resolve: {
                     facebookSDK: initFacebookSDK
+                },
+                data: {
+                    role: USER_ROLES.guest
                 }
             });
         $urlRouterProvider.otherwise('/');

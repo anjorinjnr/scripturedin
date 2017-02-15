@@ -1,9 +1,10 @@
 import template from './login.html';
 
 class LoginController {
-    constructor($ngRedux, LoginActions, authService) {
+    constructor($ngRedux, LoginActions, authService, $state) {
         'ngInject';
         this.store = $ngRedux;
+        this.router = $state;
         this.authService = authService;
         this.LoginActions = LoginActions;
     }
@@ -16,8 +17,16 @@ class LoginController {
 
     loginWithFacebook() {
         const user = Object.assign({}, this.facebookUser, { auth: 'facebook' });
-        this.authService.login(user).then();
-
+        this.authService.login(user).then(() => {
+            this.close();
+            if (this.authService.user.signup) {
+                this.router.go('post-signup-profile');
+            } else {
+                this.router.go('wall');
+            }
+        }, error => {
+            console.log('login failed', error);
+        });
     }
     mapStateToThis(state) {
         return {
@@ -31,5 +40,8 @@ class LoginController {
 
 export const LoginComponent = {
     template,
+    bindings: {
+        close: '&'
+    },
     controller: LoginController
 };

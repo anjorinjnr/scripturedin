@@ -9,9 +9,20 @@ export class AuthService {
     }
 
     currentUser() {
-        return this.user;
-
+        return this.user.data;
     }
+
+    checkUserLogin() {
+        let deferred = this.$q.defer();
+        this.getUser().then(() => {
+            if (this.user.data) {
+                deferred.resolve('user is logged in');
+            } else {
+                deferred.reject('no logged in user');
+            }
+        });
+        return deferred.promise;
+    };
 
     checkFacebookLogin() {
         const deferred = this.$q.defer();

@@ -44,8 +44,8 @@
         "source-map-loader": "^0.1.6",
         "style-loader": "^0.13.1",
         "url-loader": "^0.5.7",
-        "webpack": "^1.13.0",
-        "webpack-dev-server": "^1.14.1",
+        "webpack": "^1.14.0",
+        "webpack-dev-server": "^1.16.3",
         "webpack-stream": "^3.1.0"
     },
     "dependencies": {
@@ -58,14 +58,16 @@
         "angular-sanitize": "^1.6.1",
         "angular-ui-bootstrap": "^2.0.0",
         "angular-ui-router": "^1.0.0-rc.1",
-        "angular-local-storage": "^1.6.1",
+        "angular-local-storage": "^0.5.2",
         "material-shadows": "^2.0.1",
         "ng-redux": "^3.4.0-beta.1",
+        "normalizr": "^3.1.0",
         "redux": "^3.6.0",
         "redux-thunk": "^2.2.0",
         "typescript": "^2.1.5",
         "lodash": "^4.14.1",
         "moment": "^2.14.1",
-        "ng-table": "^1.0.0"
+        "ng-table": "^1.0.0",
+        "bootstrap": "^3.3.7"
     }
 }
