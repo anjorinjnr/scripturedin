@@ -7,3 +7,8 @@ app/dev/vendors/
 app/dev/angular/
 .DS_STORE
 app/prod/
+server/emails/sent/
+server/lib/
+*.pyc
+web/npm-debug.log
+.vscode/settings.json

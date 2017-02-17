@@ -5,6 +5,7 @@ from service import util
 import logging
 from webapp2_extras.auth import InvalidAuthIdError, InvalidPasswordError
 from service.validator import Validator
+from  service import email_service
 
 
 class UserHandler(base_handler.BaseHandler):
@@ -49,6 +50,8 @@ class UserHandler(base_handler.BaseHandler):
                         # if 'profile_photo' in data and data['profile_photo']:
                         #     user.profile_photo = data['profile_photo']
                         user.put()
+                        #send welcome email 
+                        email_service.send_welcome_email(user) 
                         # start new session
                         self.auth.set_session(self.auth.store.user_to_dict(user), remember=True)
                         self.write_model(user, signup=True)
@@ -130,6 +133,8 @@ class UserHandler(base_handler.BaseHandler):
             resp = self._email_signup(data)
             if resp and resp[0]:
                 user = resp[1]
+                #send welcome email 
+                email_service.send_welcome_email(user) 
                 # start new session
                 self.auth.set_session(self.auth.store.user_to_dict(user), remember=True)
                 self.write_model(user)
