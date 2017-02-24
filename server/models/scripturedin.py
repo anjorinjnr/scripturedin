@@ -1,6 +1,7 @@
 import time
 import logging
 import datetime
+import uuid
 from google.appengine.api import users
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
@@ -278,6 +279,12 @@ class Post(BaseModel):
             Post.get_index().put(doc)
         except (search.Error, UnicodeEncodeError) as e:
             logging.error('Error updating index %s ', e)
+
+
+
+class PasswordReset(BaseModel):
+    email = type_string()
+    token = type_string() 
 
 
 def create_feed(obj):
@@ -1175,3 +1182,18 @@ def delete_note(note_id, key):
         feed = get_object_feed(note.key)
         ndb.delete_multi([feed.key, note.key])
         return True
+
+def create_password_reset_token(email): 
+    currentToken = PasswordReset.query(PasswordReset.email == email).get()
+    if currentToken: 
+        currentToken.key.delete()
+        
+    passwordReset = PasswordReset()
+    passwordReset.token = uuid.uuid4().hex
+    passwordReset.email = email
+    passwordReset.key = passwordReset.put()
+    return passwordReset
+
+def get_token_info(token):
+    return PasswordReset.query(PasswordReset.token == token).get()
+    

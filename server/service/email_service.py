@@ -5,6 +5,7 @@ from util import Config
 # [END sendgrid-imp]
 import webapp2
 
+import uuid
 import logging  
 import main
 from handlers import base_handler
@@ -17,7 +18,7 @@ SENDGRID_SENDER = Config.configs('sendgrid_sender')
 GENERIC_TEMPLATE = "3796bfc2-fa3c-46a0-b993-5bb1689b831d"
 CONTENT_PLAIN = "text/plain"
 CONTENT_HTML = "text/html"
-DEFAULT_CTA = "Visit SCRIPTUREDIN"
+DEFAULT_CTA = "Go To SCRIPTUREDIN"
 DEFAULT_CTA_LINK = "https://scripturedin.appspot.com/#/"
 # [END sendgrid-config]
 
@@ -40,9 +41,15 @@ def _send(subject, body, email_to,
         message.personalizations[0].add_substitution(Substitution("-CTA_LINK-", CTA_LINK))
         message.set_template_id(template)
 
-        response = sg.client.mail.send.post(request_body=message.get())
+        if main._IsDevEnv() or main._IsLocalEnv():
+            f = open('emails/sent/'+uuid.uuid4().hex+'.html', 'w+')
+            f.write(body)  
+            f.close()
+            return True 
+        else: 
+            response = sg.client.mail.send.post(request_body=message.get())
+            return response
 
-        return response
     # [END sendgrid-send]
     except Exception as e:
             logging.error(e.message)
@@ -54,16 +61,33 @@ def send_welcome_email(user):
         body =  file.read()
         body = body.replace("-first_name-", user.first_name)
 
-        if main._IsDevEnv() or main._IsLocalEnv():
-            f = open('emails/sent/signup_email_to'+user.email, 'w+')
-            f.write(body)  
-            f.close()
-            return True
-
         return _send("Welcome to SCRIPTUREDIN", body, user.email)
     except Exception as e:
             logging.error(e)
 
+            
+
+def send_password_reset_email(user):
+    try:
+        file = open('emails/password_reminder.html', 'r')
+        body =  file.read()
+        body = body.replace("-first_name-", user.first_name)
+
+        return _send("Reset Password", body, user.email,'hello@scripturedin.com', CONTENT_HTML,
+        "", "", "Reset Password", "/passwordreset/"+user.token)
+    except Exception as e:
+            logging.error(e)
+
+
+def send_password_reset_success(user):
+    try:
+        file = open('emails/password_reset_success.html', 'r')
+        body =  file.read()
+        body = body.replace("-first_name-", user.first_name)
+
+        return _send("Password Reset Successful", body, user.email,'hello@scripturedin.com')
+    except Exception as e:
+            logging.error(e)
 
 
 

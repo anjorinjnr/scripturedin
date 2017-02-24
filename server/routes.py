@@ -82,6 +82,11 @@ ROUTES = [
           handler_method='signup',
           methods=['POST']),
 
+      route(r'/api/passwordreset',
+          handler=UserHandler,
+          handler_method='passwordreset',
+          methods=['POST']), 
+
     # /church routes
     route(r'/api/churches',
           handler=MiscHandler,

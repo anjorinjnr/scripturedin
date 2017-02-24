@@ -4,8 +4,11 @@ from handlers.base_handler import user_required
 from service import util
 import logging
 from webapp2_extras.auth import InvalidAuthIdError, InvalidPasswordError
+from webapp2_extras import security
 from service.validator import Validator
 from  service import email_service
+import uuid
+import time
 
 
 class UserHandler(base_handler.BaseHandler):
@@ -244,3 +247,72 @@ class UserHandler(base_handler.BaseHandler):
         except Exception as e:
             logging.info(e)
             self.error_response('failed to delete post')
+
+
+    def passwordreset(self):
+        """Sends password reminder email """
+        try:
+            data = self.request_data()
+            logging.info(data)
+            if "token" in data: 
+                return self._do_password_reset()
+
+            validator = Validator({'email': 'required|email'},data,{'email': 'email is required'})
+        
+            if validator.is_valid():
+                user = model.get_user_by_email(data['email'])
+                if not user: 
+                    self.error_response("We can't find a user with that e-mail address")
+                else: 
+                    passwordReset = model.create_password_reset_token(data['email'])
+                    if passwordReset:
+                        user.token = passwordReset.token
+                        email_service.send_password_reset_email(user)
+                        self.success_response();         
+            else:
+                self.error_response(validator.errors)
+           
+        except Exception as e:
+            logging.error(e)
+            self.error_response('Unable to complete password reset.')
+
+    
+    def _do_password_reset(self):
+        try:
+            data = self.request_data()
+            logging.info(data)
+
+            validator = Validator({'email': 'required|email',
+                                'password': 'required',
+                                'token' : 'required'
+                                },
+                                data,
+                                {'email': 'email is required',
+                                'password': 'password is required',
+                                'token' : 'token is required'})
+
+            if validator.is_valid():
+                user = model.get_user_by_email(data['email'])
+                if not user: 
+                    self.error_response("We can't find a user with that e-mail address")
+                    return False
+
+            tokenInfo = model.get_token_info(data['token'])
+            if not tokenInfo: 
+                self.error_response("Unknown Token")
+                return False
+                
+            now = int(time.time() * 1000)
+            if (now - tokenInfo.created_at) > 7200000: # if greater than 2 hours 
+                self.error_response('Token expired')
+                return False
+
+            user.password = security.generate_password_hash(data['password'], length=12)
+            user.put()
+            tokenInfo.key.delete()
+
+            email_service.send_password_reset_success(user)
+            self.success_response()
+        except Exception as e:
+            logging.error(e)
+            self.error_response('Unable to complete password reset.')
