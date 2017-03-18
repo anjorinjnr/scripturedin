@@ -1,39 +1,44 @@
+// libraries
 import angular from 'angular';
 // import ngMaterial from 'angular-material';
-// import ngAnimate from 'angular-animate';
+import ngAnimate from 'angular-animate';
 import ngLocalStorage from 'angular-local-storage';
 import uiRouter from 'angular-ui-router';
 import uiBootstrap from 'angular-ui-bootstrap';
-
-import { AppComponent } from './app.component';
-import { ComponentsModule } from './components/components.module';
-
-import { CommonModule } from './common/common.module';
-import './app.less';
-
-import { UserActions } from './app.state';
-
-import { sidebar } from './components/landing-page/side-bar/side-bar.state';
-
-import { navbar } from './common/nav-bar/nav-bar.state';
-
-import { user } from './app.state';
-
-import { facebookUser } from './components/login/login.state';
-
-import { authHookRun, authLandingPageRun } from './transition.hooks';
-
-// import { pageNav } from './common/page-nav/page-nav.state';
-
 import thunk from 'redux-thunk';
 import { combineReducers } from 'redux';
 import ngRedux from 'ng-redux';
+require('../../node_modules/dynamic-bind-html/dist/dynamic-bind-html');
+
+//let dynamicBindHtml = require('dynamic-bind-html');
+//console.log('bb', dynamicBindHtml)
+// var dynamicBindHtml = require("exports?dynamicBindHtml!../../.js")
+//styles
+import './app.less';
+
+// components, modules
+import { AppComponent } from './app.component';
+import { ComponentsModule } from './components/components.module';
+import { CommonModule } from './common/common.module';
+
+//states, actions
+import { UserActions } from './app.state';
+import { sidebar } from './components/landing-page/side-bar/side-bar.state';
+import { navbar } from './common/nav-bar/nav-bar.state';
+import { user } from './app.state';
+import { facebookUser } from './components/login/login.state';
+import { posts } from './components/posts/posts.state';
+// import { pageNav } from './common/page-nav/page-nav.state';
+
+//others
+import { authHookRun, authLandingPageRun } from './transition.hooks';
 
 const rootReducer = combineReducers({
     sidebar,
     user,
     navbar,
-    facebookUser
+    facebookUser,
+    posts
 });
 
 const reduxConfig = $ngReduxProvider => {
@@ -48,6 +53,7 @@ const localStorageConfig = localStorageServiceProvider => {
         .setStorageCookieDomain(window.location.hostname);
 };
 
+
 export const AppModule = angular
     .module('app', [
         ComponentsModule,
@@ -56,8 +62,10 @@ export const AppModule = angular
         uiBootstrap,
         ngLocalStorage,
         // ngMaterial
-        // ngAnimate
-        ngRedux
+        ngAnimate,
+        ngRedux,
+        'dynamicBindHtml' //'dynamic-bind-html'
+        //dynamicBindHtml
     ])
     .config(reduxConfig)
     .config(localStorageConfig)

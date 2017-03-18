@@ -1,3 +1,4 @@
-<div id="feeds" ng-if="homeCtrl.feedData">
-    <post ng-repeat="feed in homeCtrl.feedData.feeds" feed="feed"></post>
+<div id="feeds">
+    {{$ctrl.posts[0]}}
+    <post ng-repeat="post in $ctrl.posts.feeds" post="post"></post>
 </div>

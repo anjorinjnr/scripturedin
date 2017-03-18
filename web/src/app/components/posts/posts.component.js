@@ -1,18 +1,26 @@
 import template from './posts.html';
 
 class PostsController {
-    constructor($ngRedux) {
+    constructor($ngRedux, PostsActions) {
         'ngInject';
         this.store = $ngRedux;
+        this.PostsActions = PostsActions;
     }
-    onInit() {
-        this.unsubscribe = this.store.connect(this.mapStateToThis, {})(this);
+
+    $onInit() {
+        this.unsubscribe = this.store.connect(this.mapStateToThis, this.PostsActions)(this);
+        console.log('here..');
+        this.getPosts();
     }
-    onDestroy() {
+
+    $onDestroy() {
         this.unsubscribe();
     }
+
     mapStateToThis(state) {
-        return {};
+        return {
+            posts: state.posts
+        };
     }
 }
 

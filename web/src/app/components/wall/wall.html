@@ -1,14 +1,11 @@
 <div class="container c-alt">
     <div class="row">
-
         <div class="col-md-10">
             <div class="card wall-posting">
                 <new-post></new-post>
-
-                <div id="feeds" ng-if="homeCtrl.feedData">
-                    <posts ng-repeat="feed in homeCtrl.feedData.feeds" feed="feed">
-                    </posts>
-                </div>
             </div>
+            <posts>
+            </posts>
         </div>
     </div>
+</div>

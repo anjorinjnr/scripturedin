@@ -18,7 +18,7 @@ export const RECEIVE_USER = 'RECEIVE_USER';
 // Actions
 //----------------------------------------------
 
-export const UserActions = ($http, localStorageService) => {
+export const UserActions = ($http, localStorageService, $q) => {
     'ngInject';
     const extract = result => result.data;
     const getFacebookUser = () => {

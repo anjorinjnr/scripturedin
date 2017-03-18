@@ -1,8 +1,8 @@
-<div class="card animate-show" ng-hide="feed.remove">
+<div class="card animate-show" ng-hide="$ctrl.post.remove">
     <div class="card-header">
         <div class="media">
             <div class="pull-left">
-                <img class="lv-img" ng-src="{{util.imagePath(feed.user)}}" alt="">
+                <img class="lv-img" ng-src="{{util.imagePath($ctrl.post.user)}}" alt="">
             </div>
 
             <div class="media-body m-t-5">
@@ -25,10 +25,10 @@
                 </ul>
                 <h2 class="f-20">
                     <a class="c-black">
-                        <!--{{::feed.title}}-->
-                        <name-tag user="feed.user"></name-tag>
+
+                        <name-tag user="$ctrl.post.user"></name-tag>
                     </a>
-                    <small>Posted on {{::feed.created_at |
+                    <small>Posted on {{::$ctrl.post.created_at |
                         formatDate:'Do MMM YYYY [at] h:mm a'}}
                     </small>
 
@@ -53,20 +53,20 @@
             </div>
         </div>
 
-        <p ng-hide="editing" class="f-c" class="m-b-15" bind-html-compile="feed.displayText"></p>
+        <p ng-hide="editing" class="f-c" class="m-b-15" dynamic-bind-html="{{$ctrl.post.displayText}}"></p>
 
         <ul ng-hide="editing" class="wall-attrs clearfix list-inline list-unstyled">
             <li class="wa-stats">
                 <span>
-                    <a href data-ng-click="feed.commenting = true" class="c-gray">
+                    <a href data-ng-click="$ctrl.post.commenting = true" class="c-gray">
                         <i class="zmdi zmdi-comments"></i>
-                        <span ng-if="feed.comment_count > 0">{{feed.comment_count}}</span>
+                        <span ng-if="$ctrl.post.comment_count > 0">{{$ctrl.post.comment_count}}</span>
                 </a>
                 </span>
                 <span>
                 <a ng-click="like()" href ng-class="{'c-gray': !liked(), 'c-lightblue': liked() }">
                     <i class="zmdi zmdi-thumb-up"></i>
-                    <span ng-if="feed.like_count > 0">{{feed.like_count}}</span>
+                    <span ng-if="$ctrl.post.like_count > 0">{{$ctrl.post.like_count}}</span>
                 </a>
                 </span>
 
@@ -84,32 +84,32 @@
     <div class="wall-comment-list p-t-5 p-b-5">
 
         <div class="wcl-form m-t-5">
-            <div class="wc-comment" data-ng-if="!feed.commenting" data-ng-click="feed.commenting = true">
+            <div class="wc-comment" data-ng-if="!$ctrl.post.commenting" data-ng-click="$ctrl.post.commenting = true">
                 <div class="wcc-inner">
                     Write Something...
                 </div>
             </div>
 
-            <div class="wc-comment" data-ng-if="feed.commenting">
+            <div class="wc-comment" data-ng-if="$ctrl.post.commenting">
                 <div class="wcc-inner">
-                    <textarea class="wcci-text c-black" data-auto-size ng-model="feed.newComment_" focus-cursor placeholder="Write Something...">
+                    <textarea class="wcci-text c-black" data-auto-size ng-model="$ctrl.post.newComment_" focus-cursor placeholder="Write Something...">
                     </textarea>
                 </div>
 
                 <div class="m-t-15">
-                    <button ng-click="postComment(feed.newComment_)" class="btn btn-sm btn-primary">Post
+                    <button ng-click="$ctrl.postComment($ctrl.post.newComment_)" class="btn btn-sm btn-primary">$ctrl.post
                     </button>
-                    <button class="btn btn-sm btn-link" data-ng-click="feed.commenting = false">Cancel
+                    <button class="btn btn-sm btn-link" data-ng-click="$ctrl.post.commenting = false">Cancel
                     </button>
                 </div>
             </div>
 
         </div>
-        <p ng-if="feed.comments.comments.length > 5" ng-hide="feed.showComments" class="m-t-10 m-b-0"><a href ng-click="feed.showComments = true">View
+        <p ng-if="$ctrl.post.comments.comments.length > 5" ng-hide="$ctrl.post.showComments" class="m-t-10 m-b-0"><a href ng-click="$ctrl.post.showComments = true">View
             comments</a></p>
-        <p ng-if="feed.comments.comments.length > 5" ng-show="feed.showComments" class="m-t-10 m-b-0"><a href ng-click="feed.showComments = false">Collapse
+        <p ng-if="$ctrl.post.comments.comments.length > 5" ng-show="$ctrl.post.showComments" class="m-t-10 m-b-0"><a href ng-click="$ctrl.post.showComments = false">Collapse
             comments</a></p>
     </div>
 
-    <comments ng-if="feed.showComments" data="feed.comments"></comments>
+    <comments ng-if="$ctrl.post.showComments" data="$ctrl.post.comments"></comments>
 </div>

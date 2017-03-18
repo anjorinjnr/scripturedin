@@ -5,6 +5,7 @@ import { LoginModule } from './login/login.module';
 import { WallModule } from './wall/wall.module';
 import { CommentsModule } from './comments/comments.module';
 import { PostsModule } from './posts/posts.module';
+import { NameTagModule } from './name-tag/name-tag.component';
 
 export const ComponentsModule = angular
     .module('app.components', [
@@ -12,6 +13,7 @@ export const ComponentsModule = angular
         LoginModule,
         WallModule,
         CommentsModule,
-        PostsModule
+        PostsModule,
+        NameTagModule
     ])
     .name;

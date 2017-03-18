@@ -20,6 +20,7 @@
         "babel-preset-stage-2": "^6.5.0",
         "babelify": "^5.0.3",
         "css-loader": "^0.23.1",
+        "exports-loader": "^0.6.3",
         "expose-loader": "^0.7.1",
         "extract-text-webpack-plugin": "^1.0.1",
         "file-loader": "^0.8.5",
@@ -67,7 +68,10 @@
         "typescript": "^2.1.5",
         "lodash": "^4.14.1",
         "moment": "^2.14.1",
+        "material-design-iconic-font": "2",
         "ng-table": "^1.0.0",
-        "bootstrap": "^3.3.7"
+        "bootstrap": "^3.3.7",
+        "dynamic-bind-html": "^1.0.1"
+
     }
 }
