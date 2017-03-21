@@ -146,11 +146,6 @@ class Feed(BaseModel):
     privacy = type_string(choices=PRIVACY_OPTIONS, repeated=True)
 
 
-class Notification(ndb.Model):
-    type = type_string()
-    ref_key = type_key
-
-
 class Church(BaseModel):
     name = type_string()
     address = type_string()
@@ -287,6 +282,23 @@ class PasswordReset(BaseModel):
     token = type_string() 
 
 
+class Notification(BaseModel):
+    user_id = type_int()
+    message = type_string() 
+    action = type_string()
+    notication_type = type_string()
+    actor_id = type_int() 
+    post_id = type_int()
+    sermon_id = type_int() 
+    read = type_int()
+
+
+class NotificationSetting(BaseModel):
+    user_id = type_int()
+    notification_type = type_string() 
+    value = type_int()
+
+
 def create_feed(obj):
     feed = Feed.query(Feed.ref_key == obj.key).get()
     if feed is None:
@@ -325,6 +337,9 @@ def get_user_by_id(id):
 
 def get_sermon(id):
     return get_object('Sermon', int(id))
+
+def get_post(id):
+    return get_object('Post', int(id))
 
 
 def create_user(first_name, last_name, email):
@@ -1196,4 +1211,44 @@ def create_password_reset_token(email):
 
 def get_token_info(token):
     return PasswordReset.query(PasswordReset.token == token).get()
+
+
+def save_notification(user_id, notification_type, action_url, message, data):
+    notification = Notification()
+    notification.user_id = user_id
+    notification.action_url = action_url
+    notification.message = message 
+    notification.read = 0
+
+    if "actor_id" in data: 
+          notification.actor_id = data["actor_id"]
+    if "sermon_id" in data: 
+          notification.sermon_id = data["sermon_id"]
+    if "post_id" in data: 
+          notification.post_id = data["post_id"]
     
+    notification.key = notification.put()
+    return notification    
+
+
+def get_user_notification_settings(user_id): 
+    return  NotificationSetting.query(NotificationSetting.user_id == user_id).get()
+    
+
+def get_user_notifications(user_key):
+    """Return notifications unread by this user."""
+
+   # data = Notification.query(Notification.user_id == user_key and Notification.read = 0)
+   #                     .order(-Notification.created_at).get()
+
+    return data
+
+
+def get_notification(id):
+    return get_object('Notification', int(id))
+
+
+def mark_notification_as_read(id):
+    notification = get_notification(id)
+    notification.read = 1 
+    notification.put()

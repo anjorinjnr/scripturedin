@@ -6,7 +6,7 @@ import logging
 from webapp2_extras.auth import InvalidAuthIdError, InvalidPasswordError
 from webapp2_extras import security
 from service.validator import Validator
-from  service import email_service
+from service import email_service
 import uuid
 import time
 
@@ -253,7 +253,6 @@ class UserHandler(base_handler.BaseHandler):
         """Sends password reminder email """
         try:
             data = self.request_data()
-            logging.info(data)
             if "token" in data: 
                 return self._do_password_reset()
 
@@ -316,3 +315,18 @@ class UserHandler(base_handler.BaseHandler):
         except Exception as e:
             logging.error(e)
             self.error_response('Unable to complete password reset.')
+
+
+    @user_required
+    def get_notifications(self):
+        notifications = model.get_user_notifications(self.user.key)
+        self.write_model(notifications)
+
+    @user_required
+    def update_notification_setting(self):
+        # "POST_REPLY", "NEW_POST", "POST_LIKE", "MENTION", "NEW_SERMON", "GENERAL"'
+
+        data = []
+        # if("notification_post_reply" in data)
+        return data
+            

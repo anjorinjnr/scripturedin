@@ -90,4 +90,17 @@ def send_password_reset_success(user):
             logging.error(e)
 
 
+def send_notification(user, message, action_url): 
+    try:
+        file = open('emails/notification.html', 'r')
+        body =  file.read()
+        body = body.replace("-first_name-", user.first_name)
+        body = body.replace("-notification-", message)
+
+        return _send(message, body, user.email,'hello@scripturedin.com', CONTENT_HTML, 
+        "", "", "Visit ScripturedIN", action_url)
+    except Exception as e:
+        logging.error(e)
+
+
 

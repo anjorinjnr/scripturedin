@@ -8,6 +8,7 @@ from handlers.request_handler import RequestHandler
 from handlers.sermon_handler import SermonHandler
 from handlers.task_handler import TaskHandler
 from handlers.user_handler import UserHandler
+from handlers.notification_handler import NotificationHandler
 from handlers import upload_handler
 
 route = webapp2.Route
@@ -85,6 +86,27 @@ ROUTES = [
       route(r'/api/passwordreset',
           handler=UserHandler,
           handler_method='passwordreset',
+          methods=['POST']), 
+
+       route(r'/api/notify',
+          handler=NotificationHandler,
+          handler_method='notify',
+          methods=['POST']), 
+
+      route(r'/api/user/notification',
+          handler=UserHandler,
+          handler_method='get_notifications',
+          methods=['GET']), 
+
+
+      route(r'/api/notification/read',
+          handler=NotificationHandler,
+          handler_method='mark_notification_as_read',
+          methods=['GET']), 
+
+      route(r'/api/user/notification_setting',
+          handler=UserHandler,
+          handler_method='update_notification_setting',
           methods=['POST']), 
 
     # /church routes
