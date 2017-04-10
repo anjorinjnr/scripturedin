@@ -1,5 +1,5 @@
 application: scripturedin
-version: v1-1-10
+version: v1-1-12
 runtime: python27
 api_version: 1
 threadsafe: yes
@@ -48,3 +48,4 @@ skip_files:
 - ^(app/node_modules/.*)
 - ^(app/*.js)
 - ^(app/*.json)
+- ^(web/.*)

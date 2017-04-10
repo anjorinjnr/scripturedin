@@ -179,7 +179,7 @@
         var self = this;
         self.submitted = true;
         if (self.validateSermon()) {
-            self.self.bibleService.saveSermon(self.sermon).then(function (resp) {
+            self.bibleService.saveSermon(self.sermon).then(function (resp) {
                 resp = resp.data;
                 if (resp.id) {
                     self.alertService.info('Sermon saved');

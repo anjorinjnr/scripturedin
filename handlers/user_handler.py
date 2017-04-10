@@ -56,7 +56,7 @@ class UserHandler(base_handler.BaseHandler):
                         self.write_response(resp[1])
             except Exception as e:
                 logging.info('Login with facebok failed for user %s because of %s',
-                             data['email'] if 'email' in data else '', type(e))
+                             data['email'] if 'email' in data else '', e.message)
                 self.error_response('Unable to complete facebook login, please try again')
 
     def logout(self):

@@ -180,23 +180,26 @@ def _get_facebook_app_token():
                                                                                  Config.configs('facebook_secret'))
         result = urlfetch.fetch(url)
         if result.status_code == 200:
-            token = result.content.split('=')[1]
-            memcache.set('fb_app_token', token, 3600)
-            return token
+            resp = json.loads(result.content)
+            memcache.set('fb_app_token', resp['access_token'], 3600)
+            return resp['access_token']
+        else:
+            # shouldn't happen unless facebook is down or something
+            logging.info('unable to reach facebook to get access token')
 
 
 def _validate_facebook_token(token):
-    logging.info('validating fb acces token %s' % token)
+    logging.info('validating fb access token')
     app_token = _get_facebook_app_token()
+    logging.info('get app token')
     url = 'https://graph.facebook.com/debug_token?input_token=%s&access_token=%s' % (token, app_token)
-    # print url
     try:
         result = urlfetch.fetch(url)
         if result.status_code == 200:
             resp = json.loads(result.content)
             return resp['data']['is_valid']
     except Exception as e:
-        logging.error(e.message)
+        logging.error('error validating access token: %s', e.message)
         return False
 
 

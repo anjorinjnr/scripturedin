@@ -672,3 +672,10 @@ wysiwyg-edit.summary .tinyeditor .sizer {
 .lv-img {
     width: 42px;
 }
+
+input.line-input {
+    border-top: none;
+    border-right: none;
+    border-left: none;
+
+}

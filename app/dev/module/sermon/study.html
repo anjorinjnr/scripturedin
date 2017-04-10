@@ -128,17 +128,19 @@
 
 
                                 <md-list-item
-                                        ng-if="sermonCtrl.sermon.notes.length > 1"
+                                        ng-if="sermonCtrl.sermon.notes.length > 0"
                                         class="md-2-line md-long-text p-l-0 p-r-0"
-
-                                        ng-repeat="note in ::sermonCtrl.sermon.notes">
+                                        ng-repeat="note in sermonCtrl.sermon.notes">
                                     <!--<img ng-src="{{todos[0].face}}?25" class="md-avatar" alt="{{todos[0].who}}"/>-->
-                                    <div class="md-list-item-text ">
+                                    <div class="md-list-item-text">
                                         <div class="row">
-                                            <div class="col-sm-1 text-center">{{$index +
-                                                1}}
+                                            <div class="col-sm-1 text-center">{{$index + 1}}
                                             </div>
                                             <div class="col-sm-10">
+                                                <!--<p class="ng-binding">-->
+                                                    <!--<span>&nbsp;Satan always attacks the church's-->
+                                                        <!--<input class="line-input" type="text">-->
+                                                        <!--He doesn't need to attack its <input class="line-input" type="text">!</span></p>-->
                                                 <p ng-bind-html="note.content"></p>
                                             </div>
                                         </div>
