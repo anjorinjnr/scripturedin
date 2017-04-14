@@ -35,7 +35,7 @@ var config = {
     },
     devServer: {
         proxy: {
-            '**': 'http://localhost:13000'
+            '**': 'http://localhost:8010'
         }
     }
 };

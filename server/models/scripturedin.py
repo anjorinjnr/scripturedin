@@ -132,6 +132,12 @@ class User(AuthUser):
         """
         self.password = security.generate_password_hash(raw_password, length=12)
 
+    def get_full_name(self):
+        if self.title:
+            full_name = '%s %s %s' % (self.title, self.first_name, self.last_name)
+        else:
+            full_name = '%s %s' % (self.first_name, self.last_name)
+        return full_name
 
 class Scripture(ndb.Model):
     book = type_string()
@@ -283,7 +289,7 @@ class PasswordReset(BaseModel):
 
 
 class Notification(BaseModel):
-    user_id = type_int()
+    user_key = type_key(kind='User')
     message = type_string() 
     action = type_string()
     notication_type = type_string()
@@ -292,10 +298,15 @@ class Notification(BaseModel):
     sermon_id = type_int() 
     read = type_int()
 
+    #@classmethod
+    # def __getitem__(self, key):
+    #   return getattr(self, key)
+
 
 class NotificationSetting(BaseModel):
     user_id = type_int()
     notification_type = type_string() 
+    notification_setting = type_json()
     value = type_int()
 
 
@@ -1232,16 +1243,46 @@ def save_notification(user_id, notification_type, action_url, message, data):
 
 
 def get_user_notification_settings(user_id): 
-    return  NotificationSetting.query(NotificationSetting.user_id == user_id).get()
+    notification_settings =  NotificationSetting.query(NotificationSetting.user_id == user_id).get()
+    if not notification_settings:
+        notification_settings = []
+        notification_types = ["POST_REPLY", "NEW_POST", "POST_LIKE", "MENTION", "NEW_SERMON", "GENERAL"] 
+        for notification_type in notification_types: 
+            notification_setting = {"notification_type": notification_type, "value": 1}
+            notification_settings.append(notification_setting) 
+
+    return notification_settings
+
+def save_user_notification_settings(user_id, notification_settings):
+    notification_settings =  NotificationSetting.query(NotificationSetting.user_id == user_id).get()
+    #if not notification_settings:
+    #    
+    #else:
+    #    notification_setting = NotificationSetting()
+    #    notification_setting.user_id = user_id
+    #    notification_setting.settings = notification_settings
     
+    notification_setting.key = notification_setting.put()
+    return notification_setting  
 
 def get_user_notifications(user_key):
     """Return notifications unread by this user."""
 
-   # data = Notification.query(Notification.user_id == user_key and Notification.read = 0)
-   #                     .order(-Notification.created_at).get()
+    notifications = Notification.query(Notification.user_key == user_key and Notification.read == 0).order(
+            -Notification.created_at).fetch()
+    
+    for notification in notifications: 
+        if not notification.user_key is None: 
+            notification.user = get_user_by_id(notification.user_key)
+        if not notification.actor_id is None: 
+            notification.actor = get_user_by_id(notification.actor_id)
+        if not notification.post_id is None: 
+            notification.post = get_post(notification.post_id)
+        if not notification.sermon_id is None: 
+            notification.sermon = get_sermon(notification.sermon_id)
 
-    return data
+    
+    return notifications
 
 
 def get_notification(id):
@@ -1252,3 +1293,10 @@ def mark_notification_as_read(id):
     notification = get_notification(id)
     notification.read = 1 
     notification.put()
+
+def get_church_members(church_key):
+    return User.query(
+        User.church_key == church_key).fetch()
+
+def get_users():
+    return User.query().fetch()

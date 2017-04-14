@@ -93,11 +93,10 @@ ROUTES = [
           handler_method='notify',
           methods=['POST']), 
 
-      route(r'/api/user/notification',
+      route(r'/api/user/notifications',
           handler=UserHandler,
           handler_method='get_notifications',
           methods=['GET']), 
-
 
       route(r'/api/notification/read',
           handler=NotificationHandler,
@@ -108,6 +107,11 @@ ROUTES = [
           handler=UserHandler,
           handler_method='update_notification_setting',
           methods=['POST']), 
+
+      route(r'/api/user/notification_setting',
+          handler=UserHandler,
+          handler_method='get_notification_setting',
+          methods=['GET']), 
 
     # /church routes
     route(r'/api/churches',

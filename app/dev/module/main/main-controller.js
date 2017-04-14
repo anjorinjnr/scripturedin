@@ -254,6 +254,30 @@
     };
 
 
+
+    /**
+     * Display the password reset modal.
+     */
+    MainCtrl.prototype.showPasswordReset = function () {
+        var self = this;
+
+        function modal(ctrl) {
+            var modalInstance = self.modal_.open({
+                templateUrl: 'module/main/password-reset-modal.html',
+                controller: function () {
+                    this.showPasswordResetModal = function () {
+                        modalInstance.close();
+                        ctrl.showPasswordReset();
+                    };
+                },
+                controllerAs: 'modalCtrl',
+                size: 'signup'
+            });
+        };
+        modal(self)
+    };
+
+
     MainCtrl.prototype.churchLabel = function (c) {
         if (!_.isObject(c)) return;
         if (_.isEmpty(c.city)) {

@@ -7,6 +7,7 @@ from webapp2_extras.auth import InvalidAuthIdError, InvalidPasswordError
 from webapp2_extras import security
 from service.validator import Validator
 from service import email_service
+from service import notification_service
 import uuid
 import time
 
@@ -125,6 +126,10 @@ class UserHandler(base_handler.BaseHandler):
             else:
                 feed = model.create_feed(post)
                 self.write_model(model.process_feed(feed, self.user, ref_object=post))
+            
+            notifier = notification_service.notify({'user_id':self.user.key.id(), 'post_id':post.key.id(), 'type':'NEW_POST'})
+            if not notifier:
+                logging.error(notifier[1])
         except Exception as e:
             logging.error(e)
             self.error_response(e.message)
@@ -325,8 +330,21 @@ class UserHandler(base_handler.BaseHandler):
     @user_required
     def update_notification_setting(self):
         # "POST_REPLY", "NEW_POST", "POST_LIKE", "MENTION", "NEW_SERMON", "GENERAL"'
+        
+        notification_settings = []
 
-        data = []
-        # if("notification_post_reply" in data)
+        data = self.request_data()
+        if "notification_post_reply" in data:
+            notification_setting["notification_type"] = "POST_REPLY"
+            notification_setting["value"] = data["notification_post_reply"]
+            notification_settings.push(notification_setting)
+            
+
         return data
+
+
+    @user_required
+    def get_notification_setting(self):
+        notification_settings = model.get_user_notification_settings(self.user.key)
+        self.write_model(notification_settings)
             

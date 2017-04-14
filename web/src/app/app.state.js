@@ -43,8 +43,8 @@ export const UserActions = ($http, localStorageService) => {
                         }
                     });
             } else {
-                return $q.when(userState)
-                    .then(() => dispatch({ type: GET_USER }));
+              /*  return $q.when(userState)
+                    .then(() => dispatch({ type: GET_USER })); */
             }
         };
     };

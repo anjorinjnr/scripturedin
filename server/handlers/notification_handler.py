@@ -43,20 +43,61 @@ class NotificationHandler(BaseHandler):
                 self.error_response(typeValidator.errors)
                 return False
 
-            if data['type'] == "GENERAL" and not data["message"]:
+            if data['type'] == "GENERAL" and not "message" in data:
                 self.error_response("Message is required for notification type GENERAL")
                 return False
-            else: 
-                message = self._construct_notification_message(data["type"], data)
             
             action_url = ""
             if "action_url" in data:
                 action_url = data["action_url"]
+            
+            post = None
+            if "post_id" in data: 
+                post = model.get_post(data["post_id"])
+                if not post: 
+                    self.error_response("Post not found")
+                    return False
 
-            model.save_notification(data["user_id"], data['type'], action_url, message, data)
+            user = None
+            if "user_id" in data: 
+                user = model.get_user_by_id(data["user_id"])
+                if not user: 
+                    self.error_response("User not found")
+                    return False
+
+            actor = None
+            if "actor_id" in data: 
+                actor = model.get_user_by_id(data["actor_id"])
+                if not actor: 
+                    self.error_response("Actor not found")
+                    return False
+
+            sermon = None
+            if "sermon_id" in data:
+                sermon = model.get_sermon(data["sermon_id"])
+                if not sermon: 
+                    self.error_response("Sermon not found")
+                    return False
+
+            if not data['type'] == "GENERAL":
+                message = self._construct_notification_message(data["type"], post, user, actor, sermon)
+            else:
+                message = data["message"]
+            
+
+            if data['type'] == "NEW_POST":
+                church_members = model.get_church_members(user.church_key)
+                for church_member in church_members: 
+                    model.save_notification(church_member.key, data['type'], action_url, message, data)
+            elif data['type'] == "GENERAL":
+                users = model.get_users()
+                for user in users: 
+                    model.save_notification(user.key, data['type'], action_url, message, data)
           
             if send_email:
                 self._send_notification_email(data["user_id"], message, action_url, data)
+
+            self.success_response()
            
         except Exception as e:
             logging.error(e)
@@ -99,35 +140,23 @@ class NotificationHandler(BaseHandler):
       return validator
 
        
-  def _construct_notification_message(self, notification_type, data): 
-      if "post_id" in data: 
-          post = model.get_post(data["post_id"])
-        
-      if "user_id" in data: 
-          user = model.get_user_by_id(data["user_id"])
-
-      if "actor_id" in data: 
-          actor = model.get_user_by_id(data["actor_id"])
-
+  def _construct_notification_message(self, notification_type, post, user, actor, sermon):
       message = ""
 
-      if "sermon_id" in data:
-          sermon = model.get_sermon(data["sermon_id"])
-
       if notification_type == "POST_REPLY": 
-          message = "[] just replied to your post"
+          message = user.get_full_name() + " just replied to your post"
 
       if notification_type == "NEW_POST": 
-          message = "[] just created a new post"
+          message = user.get_full_name() + " just created a new post"
 
       if notification_type == "POST_LIKE":
-          message = "[] liked your post"
+          message = user.get_full_name() + " liked your post"
 
       if notification_type == "MENTION":
-          message = "[] mentioned you"
+          message = user.get_full_name() + " mentioned you"
 
       if notification_type == "NEW_SERMON":
-          message = "[] posted a new sermon"
+          message = user.get_full_name() + " posted a new sermon"
 
       return message
 
@@ -142,9 +171,9 @@ class NotificationHandler(BaseHandler):
   def _get_user_notification_settings(self, user_id):
       result = model.get_user_notification_settings(user_id)
       settings = []
-      if result: 
-        for row in result: 
-            setting[row.notification_type] = row.value
+     # if result: 
+     #   for row in result: 
+     #       settings[row.notification_type] = 1; #row.value
       return settings
 
 

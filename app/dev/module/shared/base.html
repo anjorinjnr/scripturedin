@@ -25,6 +25,50 @@
                    <button ng-click="$state.go('base.new-note')" class="btn btn-default btn-icon-text waves-effect">
                        <md-icon md-svg-src="/img/icons/note_add_black.svg"></md-icon> New Note</button>
                 </li>
+                
+                  <li class="dropdown" uib-dropdown>
+                <a uib-dropdown-toggle>
+                    <i class="tmn-counts">{{headerCtrl.notifications.length}}</i>
+                    <i class="tm-icon zmdi zmdi-notifications"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-lg pull-right">
+                    <div class="listview" id="notifications">
+                        <div class="lv-header">
+                            Notification
+
+                            <ul class="actions">
+                                <li class="dropdown">
+                                    <a href="" data-clear="notification">
+                                        <i class="zmdi zmdi-check-all"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="lv-body">
+
+                            <a class="lv-item" href="" ng-repeat="notification in headerCtrl.notifications">
+                                <div class="media">
+                                    <div class="pull-left">
+                                        <img class="lv-img-sm" src="img/profile-pics/1.jpg" alt="">
+                                    </div>
+                                    <div class="media-body">
+                                        <div class="lv-title">David Belle</div>
+                                        <small class="lv-small">{{notification.message}}</small>
+                                    </div>
+                                </div>
+                            </a>
+                           
+                           <div class="alert alert-danger">
+                                No new notifications at this time.
+                           </div>
+                        </div>
+
+                        <a class="lv-footer" href="">View All</a>
+                    </div>
+
+                </div>
+            </li>
+            
                 <li id="toggle-width">
                     <div class="toggle-switch">
                         <input id="tw-switch" type="checkbox" hidden="hidden"
