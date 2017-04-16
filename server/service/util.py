@@ -180,9 +180,9 @@ def _get_facebook_app_token():
                                                                                  Config.configs('facebook_secret'))
         result = urlfetch.fetch(url)
         if result.status_code == 200:
-            token = result.content.split('=')[1]
-            memcache.set('fb_app_token', token, 3600)
-            return token
+            resp = json.loads(result.content)
+            memcache.set('fb_app_token', resp['access_token'], 3600)
+            return resp['access_token']
 
 
 def _validate_facebook_token(token):

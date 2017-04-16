@@ -1,7 +1,7 @@
 App.service('alertService', function ($mdToast) {
     var self = this;
     var _config = {
-        delay: 4000,
+        delay: 400000,
         type: 'info'
     };
     self.info = function (message, config) {

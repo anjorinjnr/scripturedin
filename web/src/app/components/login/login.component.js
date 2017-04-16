@@ -1,12 +1,13 @@
 import template from './login.html';
 
 class LoginController {
-    constructor($ngRedux, LoginActions, authService, $state) {
+    constructor($ngRedux, LoginActions, authService, $state, alert) {
         'ngInject';
         this.store = $ngRedux;
         this.router = $state;
         this.authService = authService;
         this.LoginActions = LoginActions;
+        this.alert = alert;
     }
     $onInit() {
         this.unsubscribe = this.store.connect(this.mapStateToThis, this.LoginActions)(this);
@@ -25,6 +26,7 @@ class LoginController {
                 this.router.go('wall');
             }
         }, error => {
+            this.alert.error(error);
             console.log('login failed', error);
         });
     }

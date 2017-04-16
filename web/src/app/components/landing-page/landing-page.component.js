@@ -7,7 +7,7 @@ import socialImg from '../../../assets/img/social.png';
 
 
 class LandingPageController {
-    constructor(SideBarActions, LoginActions, authService, $uibModal, $ngRedux, $state) {
+    constructor(SideBarActions, LoginActions, authService, $uibModal, $ngRedux, $state, alert) {
         'ngInject';
         this.store = $ngRedux;
         this.modal = $uibModal;
@@ -15,7 +15,7 @@ class LandingPageController {
         this.LoginActions = LoginActions;
         this.authService = authService;
         this.router = $state;
-
+        this.alert = alert;
     }
 
     $onInit() {

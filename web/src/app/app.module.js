@@ -1,4 +1,5 @@
 // libraries
+import "jquery";
 import angular from 'angular';
 // import ngMaterial from 'angular-material';
 import ngAnimate from 'angular-animate';

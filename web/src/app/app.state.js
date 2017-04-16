@@ -66,7 +66,7 @@ export const UserActions = ($http, localStorageService, $q) => {
                         console.log('action..', { type: RECEIVE_USER, user });
                         dispatch({ type: RECEIVE_USER, user });
                     } else {
-                        Promise.resolve('Unsuccessful login attempt. Please try again.');
+                        return Promise.reject('Unsuccessful login attempt. Please try again.');
                     }
                 });
         };

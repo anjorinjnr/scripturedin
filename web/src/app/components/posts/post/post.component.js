@@ -53,7 +53,7 @@ class PostController {
                 this.post.displayText = this._formatContent(this.post.content);
                 this.post.fullText = this.post.content;
         }
-        console.log('ppp', this.post);
+        //console.log('ppp', this.post);
     }
 
 

@@ -10,6 +10,11 @@ var config = {
         filename: 'bundle.js'
     },
     plugins: [
+        new webpack.ProvidePlugin({
+            jQuery: 'jquery',
+            $: 'jquery',
+            jquery: 'jquery'
+        }),
         new ExtractTextPlugin('app.css'),
         new HtmlWebpackPlugin({
             template: 'src/index.html'
@@ -23,12 +28,17 @@ var config = {
         loaders: [
             { test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader') },
             { test: /\.less$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader!less-loader') },
-            { test: /jquery\.js$/, loader: 'expose?jQuery' },
-            { test: /\.js$/, loader: 'ng-annotate!babel', exclude: /node_modules/ },
+            { test: /jquery\.js$/, loader: 'expose?jquery' },
+            {
+                test: /\.js$/,
+                loader: 'ng-annotate!babel',
+                exclude: /node_modules/
+            },
             { test: /.ts$/, loader: 'awesome-typescript-loader' },
             { test: /\.html$/, loader: 'raw', exclude: /node_modules/ },
             { test: /\.png$/, loader: "url?limit=100000" },
             { test: /\.jpg$/, loader: "file" },
+            // {test: /\.svg/, loader: "svg-url-loader"},
             { test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'url?limit=10000&mimetype=application/font-woff' },
             { test: /\.(ttf|eot|otf|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'file' }
         ]

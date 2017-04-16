@@ -4,6 +4,7 @@ import { HeaderModule } from './header/header.module';
 import { NavBarModule } from './nav-bar/nav-bar.module';
 import { ContentModule } from './content/content.module';
 import { AuthService } from './auth.service';
+import { AlertService } from './alert.service';
 import { FiltersModule } from './filters.module';
 
 import { isEmpty } from 'lodash';
@@ -16,6 +17,7 @@ export const CommonModule = angular
         FiltersModule
     ])
     .service('authService', AuthService)
+    .service('alert', AlertService)
     .config(($stateProvider, $urlRouterProvider) => {
         'ngInject';
         const baseState = {

@@ -552,10 +552,14 @@ wysiwyg-edit.summary .tinyeditor .sizer {
     height: 25%;
 }
 
-.alert-info {
-    background-color: #323232;
-    color: #fff;
+// ensure alert is displayed above other elements
+.alert {
+    z-index: 2000 !important;
 }
+// .alert-info {
+//     background-color: #323232;
+//     color: #fff;
+// }
 
 .alert-info button,
 .alert-danger .close {
