@@ -221,6 +221,10 @@ class UserHandler(base_handler.BaseHandler):
     def like_post(self, post_id):
         try:
             if model.like_post(post_id, self.user.key):
+                notifier = notification_service.notify({'actor_id':self.user.key.id(), 'user_id':self.user.key.id(), 'post_id':post_id, 'type':'POST_LIKE'})
+                if not notifier:
+                    logging.error(notifier[1])
+                logging.info(notifier)
                 self.success_response()
         except Exception as e:
             logging.info(e)
@@ -304,6 +308,10 @@ class UserHandler(base_handler.BaseHandler):
             tokenInfo = model.get_token_info(data['token'])
             if not tokenInfo: 
                 self.error_response("Unknown Token")
+                return False
+
+            if tokenInfo.email != data['email']:
+                self.error_response("Unknown Token - ")
                 return False
                 
             now = int(time.time() * 1000)

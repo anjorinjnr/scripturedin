@@ -73,9 +73,13 @@ def notify(data):
             
 
         if data['type'] == "NEW_POST":
+            action_url = "/home/#/"+data["post_id"]
             church_members = model.get_church_members(user.church_key)
             for church_member in church_members: 
                 model.save_notification(church_member.key, data['type'], action_url, message, data)
+        elif data['type'] == "POST_LIKE":
+            action_url = "/home/#/"+data["post_id"]
+            model.save_notification(post.created_by, data['type'], action_url, message, data)
         elif data['type'] == "GENERAL":
             users = model.get_users()
             for user in users: 

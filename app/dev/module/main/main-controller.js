@@ -17,8 +17,13 @@
         self.bibleService = bibleService;
         self.uploader = Upload;
 
-        console.log($location.url());
-
+        
+        var password_reset_token = $location.search().reset_token; 
+        if(password_reset_token){
+            self.showPasswordChange(password_reset_token);
+        }
+        
+        
 
         self.upload = upload;
 
@@ -191,6 +196,11 @@
                         ctrl.showSignup();
                     };
 
+                    self.showPasswordResetModal = function () {
+                        modalInstance.close();
+                        ctrl.showPasswordReset();
+                    };
+
                     //attempt to log user in with email
                     self.loginWithEmail = function (form) {
                         if (form.$valid && !_.isEmpty(self.email) && !_.isEmpty(self.password)) {
@@ -245,6 +255,8 @@
                         modalInstance.close();
                         ctrl.showEmailSignup();
                     };
+
+                    
                 },
                 controllerAs: 'modalCtrl',
                 size: 'signup'
@@ -265,13 +277,87 @@
             var modalInstance = self.modal_.open({
                 templateUrl: 'module/main/password-reset-modal.html',
                 controller: function () {
-                    this.showPasswordResetModal = function () {
+                    var self = this;
+
+                    this.showLoginModal = function () {
                         modalInstance.close();
-                        ctrl.showPasswordReset();
+                        ctrl.showLogin();
+                    };
+
+                     //attempt to log user in with email
+                    this.sendPasswordResetEmail = function (form) {
+                        
+                        if (form.$valid && !_.isEmpty(self.email)) {
+                            
+                            ctrl.authService.sendPasswordResetEmail(self.email,
+                                function (resp) {
+                                    console.log(resp);
+                                    if (resp.data.status == 'success') {
+                                        self.error = "";
+                                        //self.success = "We sent a password reset email to your inbox.";
+                                        ctrl.alertService.info('We sent a password reset email to your inbox.');
+                                        modalInstance.close();
+                                    }else{
+                                        self.error = resp.data.message;
+                                    }
+                                    
+                                }, function (error) {
+                                    self.error = error;
+                                });
+                        } 
                     };
                 },
                 controllerAs: 'modalCtrl',
-                size: 'signup'
+                size: 'password-reset'
+            });
+        };
+        modal(self)
+    };
+
+
+     /**
+     * Display the password change modal.
+     */
+    MainCtrl.prototype.showPasswordChange = function (token) {
+        var self = this;
+        self.token = token;
+        
+        function modal(ctrl) {
+            var modalInstance = self.modal_.open({
+                templateUrl: 'module/main/password-change-modal.html',
+                controller: function () {
+                    
+                    var self = this;
+                    this.showLoginModal = function () {
+                        modalInstance.close();
+                        ctrl.showLogin();
+                    };
+
+                     //attempt to log user in with email
+                    this.changePassword = function (form) {
+                        
+                        if (form.$valid && !_.isEmpty(self.email) && !_.isEmpty(self.password) ) {
+                            
+                            ctrl.authService.changePassword(self.email, self.password, token, 
+                                function (resp) {
+                                    
+                                    if (resp.data.status == 'success') {
+                                        self.error = "";
+                                        //self.success = "Password change successful.";
+                                        ctrl.alertService.info('Password Change Successful.');
+                                        self.showLoginModal();
+                                    }else{
+                                        self.error = resp.data.message;
+                                    }
+                                    
+                                }, function (error) {
+                                    self.error = error;
+                                });
+                        } 
+                    };
+                },
+                controllerAs: 'modalCtrl',
+                size: 'password-change'
             });
         };
         modal(self)

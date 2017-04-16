@@ -138,6 +138,37 @@ AuthService.prototype.emailLogin = function (email, password, successCallback, e
     self.login(data, successCallback, errorCallback);
 };
 
+
+AuthService.prototype.sendPasswordResetEmail = function(email, successCallback, errorCallback){
+    var self = this;
+    var data = {email : email};
+    self.http_.post('/api/passwordreset', data).then(function (resp) {
+         if (_.isFunction(successCallback)) {
+                successCallback(resp);
+        }else{
+            if (_.isFunction(errorCallback)) {
+                errorCallback(resp);
+            }
+        }
+    });
+}
+
+
+AuthService.prototype.changePassword = function(email, password, token, successCallback, errorCallback){
+    
+    var self = this;
+    var data = {email : email, password : password, token : token};
+    self.http_.post('/api/passwordreset', data).then(function (resp) {
+         if (_.isFunction(successCallback)) {
+                successCallback(resp);
+        }else{
+            if (_.isFunction(errorCallback)) {
+                errorCallback(resp);
+            }
+        }
+    });
+}
+
 /**
  * Perform login/signup with facebook.
  * Send user to fb to authenticate then login/signup using data from facebook.

@@ -1,6 +1,6 @@
 (function () {
 
-    var HomeController = function ($scope, alertService, userService, bibleService) {
+    var HomeController = function ($scope, alertService, userService, bibleService, $location) {
         var self = this;
         self.scope_ = $scope;
         self.bibleService = bibleService;

@@ -41,7 +41,7 @@ def _send(subject, body, email_to,
         message.personalizations[0].add_substitution(Substitution("-CTA_LINK-", CTA_LINK))
         message.set_template_id(template)
 
-        if main._IsDevEnv() or main._IsLocalEnv():
+        if False: #main._IsDevEnv() or main._IsLocalEnv():
             f = open('emails/sent/'+uuid.uuid4().hex+'.html', 'w+')
             f.write(body)  
             f.close()

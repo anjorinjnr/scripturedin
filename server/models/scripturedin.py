@@ -292,7 +292,8 @@ class Notification(BaseModel):
     user_key = type_key(kind='User')
     message = type_string() 
     action = type_string()
-    notication_type = type_string()
+    action_url = type_string()
+    notification_type = type_string()
     actor_id = type_int() 
     post_id = type_int()
     sermon_id = type_int() 
@@ -1226,10 +1227,11 @@ def get_token_info(token):
 
 def save_notification(user_id, notification_type, action_url, message, data):
     notification = Notification()
-    notification.user_id = user_id
+    notification.user_id = user_id  
     notification.action_url = action_url
     notification.message = message 
     notification.read = 0
+    notification.notification_type = notification_type
 
     if "actor_id" in data: 
           notification.actor_id = data["actor_id"]
@@ -1268,6 +1270,7 @@ def save_user_notification_settings(user_id, notification_settings):
 def get_user_notifications(user_key):
     """Return notifications unread by this user."""
 
+    result = [] 
     notifications = Notification.query(Notification.user_key == user_key and Notification.read == 0).order(
             -Notification.created_at).fetch()
     
@@ -1277,11 +1280,14 @@ def get_user_notifications(user_key):
         if not notification.actor_id is None: 
             notification.actor = get_user_by_id(notification.actor_id)
         if not notification.post_id is None: 
-            notification.post = get_post(notification.post_id)
+            post = get_post(notification.post_id)
+            setattr(notification, "post", post)
+            #logging.info(notification.post)
         if not notification.sermon_id is None: 
             notification.sermon = get_sermon(notification.sermon_id)
-
-    
+        
+        result.append(notification)
+        
     return notifications
 
 
