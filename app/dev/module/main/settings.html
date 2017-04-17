@@ -24,27 +24,21 @@
         </div>
 
         <div class="pm-body clearfix">
-            <ul class="tab-nav tn-justified">
-                <li class="btn-wave" data-ui-sref-active="active">
-                    <a data-ui-sref="base.settings.profile">Profile</a>
-                </li>
 
-                <li class="btn-wave" data-ui-sref-active="active">
-                    <a data-ui-sref="base.notifications.notifiction">Notification</a>
-                </li>
-            </ul>
-
-            <data>
-                <div class="pmb-block">
-                    <div class="pmbb-body p-l-30" data-ng-include="'module/main/user-profile-settings.html'">
-                    </div>
-                </div>
-
-                 <div class="pmb-block">
-                    <div class="pmbb-body p-l-30" data-ng-include="'module/main/user-notification-settings.html'">
-                    </div>
-                </div>
-            </data>
+            <div class="col-sm-12">
+                            <md-tabs md-dynamic-height md-border-bottom md-selected="sermonCtrl.selectedTab">
+                                <md-tab label="Profile">
+                                    <md-content class="md-padding" data-ng-include="'module/main/user-profile-settings.html'">
+                                        
+                                    </md-content>
+                                </md-tab>
+                                <md-tab label="Notification">
+                                    <md-content class="md-padding" data-ng-include="'module/main/user-notification-settings.html'">
+                                    </md-content>
+                                </md-tab>
+                                
+                            </md-tabs>
+                        </div>
 
         </div>
     </div>

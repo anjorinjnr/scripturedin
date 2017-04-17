@@ -337,22 +337,14 @@ class UserHandler(base_handler.BaseHandler):
 
     @user_required
     def update_notification_setting(self):
-        # "POST_REPLY", "NEW_POST", "POST_LIKE", "MENTION", "NEW_SERMON", "GENERAL"'
-        
-        notification_settings = []
-
         data = self.request_data()
-        if "notification_post_reply" in data:
-            notification_setting["notification_type"] = "POST_REPLY"
-            notification_setting["value"] = data["notification_post_reply"]
-            notification_settings.push(notification_setting)
-            
-
-        return data
+    
+        model.save_user_notification_setting(self.user.key, data["notification_type"], data["value"])
+        self.success_response()
 
 
     @user_required
-    def get_notification_setting(self):
+    def get_notification_settings(self):
         notification_settings = model.get_user_notification_settings(self.user.key)
         self.write_model(notification_settings)
             

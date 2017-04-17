@@ -111,6 +111,15 @@
     UserService.prototype.deleteNote = function (noteId) {
         return this.http_.delete('/api/note/' + noteId, {ignoreLoadingBar: true});
     };
+
+    UserService.prototype.saveNotificationSetting = function(notification_type, value){
+        return this.http_.post('/api/user/notification_setting', {"notification_type":notification_type, "value":value});
+    };
+
+    UserService.prototype.getNotificationSettings = function(){
+        return this.http_.get('/api/user/notification_settings');
+    };
+
     UserService.prototype.likePost = function (user, post) {
         var self = this;
         var i = post.likers_key.indexOf(user.id);

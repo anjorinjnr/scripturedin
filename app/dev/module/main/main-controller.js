@@ -17,7 +17,7 @@
         self.bibleService = bibleService;
         self.uploader = Upload;
 
-        
+        self.getUserNotificationSettings();
         var password_reset_token = $location.search().reset_token; 
         if(password_reset_token){
             self.showPasswordChange(password_reset_token);
@@ -62,6 +62,7 @@
             });
 
         }
+
 
 
     };
@@ -391,6 +392,52 @@
                 }
             });
         }
+    };
+
+
+    MainCtrl.prototype.updateNotificationSetting = function (notification_type, value) {
+        var self = this;
+        value = (value) ? 1 : 0;
+        self.userService.saveNotificationSetting(notification_type, value).then(function (resp) {
+                self.alertService.info('Notification setting successfully updated.');
+        });
+    };
+
+    MainCtrl.prototype.getUserNotificationSettings = function(){
+        var self = this;
+        self.emailNotification = {
+            "mention" : false,
+            "post_reply" : false,
+            "new_post" : false, 
+            "post_like" : false, 
+            "new_sermon" : false
+        }
+
+       
+        self.userService.getNotificationSettings().then(function (resp) {
+            checked_notifications = resp.data; 
+            
+            if( checked_notifications.indexOf("MENTION") > -1 ){
+                self.emailNotification.mention = true;
+            }
+
+            if( checked_notifications.indexOf("POST_REPLY") > -1 ){
+                self.emailNotification.post_reply = true;
+            } 
+
+            if( checked_notifications.indexOf("POST_LIKE") > -1 ){
+                self.emailNotification.post_like = true;
+            } 
+
+            if( checked_notifications.indexOf("NEW_SERMON") > -1 ){
+                self.emailNotification.new_sermon  = true;
+            } 
+
+            if( checked_notifications.indexOf("NEW_POST") > -1 ){
+                self.emailNotification.new_post = true;
+            } 
+        });    
+          
     };
 
     App.controller('mainController', MainCtrl);

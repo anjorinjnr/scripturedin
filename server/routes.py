@@ -108,9 +108,9 @@ ROUTES = [
           handler_method='update_notification_setting',
           methods=['POST']), 
 
-      route(r'/api/user/notification_setting',
+      route(r'/api/user/notification_settings',
           handler=UserHandler,
-          handler_method='get_notification_setting',
+          handler_method='get_notification_settings',
           methods=['GET']), 
 
     # /church routes

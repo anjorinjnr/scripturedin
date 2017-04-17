@@ -307,7 +307,6 @@ class Notification(BaseModel):
 class NotificationSetting(BaseModel):
     user_id = type_int()
     notification_type = type_string() 
-    notification_setting = type_json()
     value = type_int()
 
 
@@ -1245,27 +1244,29 @@ def save_notification(user_id, notification_type, action_url, message, data):
 
 
 def get_user_notification_settings(user_id): 
-    notification_settings =  NotificationSetting.query(NotificationSetting.user_id == user_id).get()
-    if not notification_settings:
-        notification_settings = []
-        notification_types = ["POST_REPLY", "NEW_POST", "POST_LIKE", "MENTION", "NEW_SERMON", "GENERAL"] 
-        for notification_type in notification_types: 
-            notification_setting = {"notification_type": notification_type, "value": 1}
-            notification_settings.append(notification_setting) 
-
-    return notification_settings
-
-def save_user_notification_settings(user_id, notification_settings):
-    notification_settings =  NotificationSetting.query(NotificationSetting.user_id == user_id).get()
-    #if not notification_settings:
-    #    
-    #else:
-    #    notification_setting = NotificationSetting()
-    #    notification_setting.user_id = user_id
-    #    notification_setting.settings = notification_settings
+    notification_settings =  NotificationSetting.query(NotificationSetting.user_id == user_id.id()).fetch()
+    result = []
     
-    notification_setting.key = notification_setting.put()
-    return notification_setting  
+    for notification_setting in notification_settings: 
+        result.append(notification_setting.notification_type) 
+
+    return result
+
+def save_user_notification_setting(user_id, notification_type, value):
+    
+    notification_setting =  NotificationSetting.query(NotificationSetting.user_id == user_id.id(),NotificationSetting.notification_type == notification_type).get()
+    if notification_setting:
+        if int(value) == 0:
+            notification_setting.key.delete()  
+    else:
+        if int(value) == 1:  
+            notification_setting = NotificationSetting()
+            notification_setting.user_id = user_id.id()
+            notification_setting.notification_type = notification_type
+            notification_setting.value = 1
+            notification_setting.key = notification_setting.put()
+
+    return True  
 
 def get_user_notifications(user_key):
     """Return notifications unread by this user."""
