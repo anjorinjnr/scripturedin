@@ -7,7 +7,7 @@
     };
 
     NotificationService.prototype.getNotifications = function () {
-        return this.http_.get('/api/user/notifications');
+        return this.http_.get('/api/user/notifications', {}, {ignoreLoadingBar: true});
     };
    
     App.service('notificationService', NotificationService);

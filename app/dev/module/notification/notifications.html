@@ -1,0 +1,45 @@
+
+<div class="container c-alt">
+    <div class="row">
+
+        <div class="col-md-10">
+        
+               <div class="card" ng-controller="notificationController as notificationCtrl">
+                        <div class="card-header ch-alt m-b-20">
+                            <h2>Notifications</h2>
+                        </div>
+                        
+                        <div class="card-body" ng-show="notificationCtrl.notifications.length > 0">
+                            <div class="listview">
+
+                                <a class="lv-item" href="" ng-repeat="notification in notificationCtrl.notifications">
+                                    <div class="media">
+                                        <div class="pull-left">
+                                            <img class="lv-img-sm" ng-src="{{imagePath(notification.actor)}}" alt="">
+                                        </div>
+                                        <div class="media-body">
+                                            <div class="lv-title">{{notification.actor.title + " " + notification.actor.first_name + " " + notification.actor.last_name}}</div>
+                                            <small class="lv-small">{{notification.message}}</small>
+                                        </div>
+                                    </div>
+                                </a>
+
+                                <div class="clearfix"></div>
+
+                            </div>
+
+                           
+                           
+                        </div>
+
+                         <div class="alert alert-danger" ng-show="notificationCtrl.notifications.length == 0">
+                                No new notifications at this time.
+                           </div>
+
+
+                    </div>
+
+
+        </div>
+    </div>
+</div>

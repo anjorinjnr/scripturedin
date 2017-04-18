@@ -188,7 +188,7 @@
         </div>
         <div class="form-group m-t-20">
            
-            <a href="" ng-if="$state.current.name != 'base.post-signup-profile'">Click here to change password</a>
+            <a ng-click="mainCtrl.showProfilePasswordChange()" ng-if="$state.current.name != 'base.post-signup-profile'">Click here to change password</a>
             <div class="row">
                 <div class="col-sm-12">
                     <md-button

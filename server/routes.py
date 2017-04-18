@@ -88,6 +88,11 @@ ROUTES = [
           handler_method='passwordreset',
           methods=['POST']), 
 
+      route(r'/api/changepassword',
+          handler=UserHandler,
+          handler_method='changepassword',
+          methods=['POST']), 
+
        route(r'/api/notify',
           handler=NotificationHandler,
           handler_method='notify',

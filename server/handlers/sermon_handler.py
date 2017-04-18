@@ -5,6 +5,7 @@ from models import scripturedin as model
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
 from service import util
+from service import notification_service
 import logging
 
 
@@ -108,7 +109,8 @@ class SermonHandler(base_handler.BaseHandler):
         try:
             sermon = model.publish_sermon(self.user.key.id(), data)
             model.create_feed(sermon)
+
+            notifier = notification_service.notify({'user_id':self.user.key.id(), 'sermon_id':sermon.key.id(), 'type':'NEW_SERMON'})  
             self.write_model(sermon)
-            # self.write_model(sermon, pastor=model.get_user_by_id(sermon.pastor_key.id()))
         except Exception as e:
             self.error_response([e.message])

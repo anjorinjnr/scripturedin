@@ -297,7 +297,13 @@ class Notification(BaseModel):
     actor_id = type_int() 
     post_id = type_int()
     sermon_id = type_int() 
+    user_id = type_int()
     read = type_int()
+    post = ndb.JsonProperty()
+    user = ndb.JsonProperty()
+    actor = ndb.JsonProperty()
+    sermon = ndb.JsonProperty()
+    
 
     #@classmethod
     # def __getitem__(self, key):
@@ -321,7 +327,7 @@ def create_feed(obj):
 
 
 def save_post(user_key, data):
-    logging.info(data)
+    
     if not isinstance(user_key, ndb.Key):  # todo may want to actually validate the key
         raise Exception('a valid user is required')
     if 'content' not in data or len(u''.join((data['content'])).encode('utf-8').strip()) == 0:
@@ -1225,6 +1231,7 @@ def get_token_info(token):
 
 
 def save_notification(user_id, notification_type, action_url, message, data):
+    
     notification = Notification()
     notification.user_id = user_id  
     notification.action_url = action_url
@@ -1233,18 +1240,18 @@ def save_notification(user_id, notification_type, action_url, message, data):
     notification.notification_type = notification_type
 
     if "actor_id" in data: 
-          notification.actor_id = data["actor_id"]
+          notification.actor_id = int(data["actor_id"])
     if "sermon_id" in data: 
-          notification.sermon_id = data["sermon_id"]
+          notification.sermon_id = int(data["sermon_id"])
     if "post_id" in data: 
-          notification.post_id = data["post_id"]
+          notification.post_id = int(data["post_id"])
     
     notification.key = notification.put()
     return notification    
 
 
 def get_user_notification_settings(user_id): 
-    notification_settings =  NotificationSetting.query(NotificationSetting.user_id == user_id.id()).fetch()
+    notification_settings =  NotificationSetting.query(NotificationSetting.user_id == user_id).fetch()
     result = []
     
     for notification_setting in notification_settings: 
@@ -1272,7 +1279,7 @@ def get_user_notifications(user_key):
     """Return notifications unread by this user."""
 
     result = [] 
-    notifications = Notification.query(Notification.user_key == user_key and Notification.read == 0).order(
+    notifications = Notification.query(Notification.user_id == user_key,  Notification.read == 0).order(
             -Notification.created_at).fetch()
     
     for notification in notifications: 
@@ -1281,9 +1288,7 @@ def get_user_notifications(user_key):
         if not notification.actor_id is None: 
             notification.actor = get_user_by_id(notification.actor_id)
         if not notification.post_id is None: 
-            post = get_post(notification.post_id)
-            setattr(notification, "post", post)
-            #logging.info(notification.post)
+            notification.post = get_post(notification.post_id)
         if not notification.sermon_id is None: 
             notification.sermon = get_sermon(notification.sermon_id)
         

@@ -12,7 +12,7 @@
         var getNotifications = function(){
             self.getNotifications();
         }
-        $interval(getNotifications, 300000);
+        $interval(getNotifications, 15000);
 
     };
     HeaderController.prototype.onSearchKeyPress = function (e) {
@@ -39,7 +39,7 @@
         self.promise = self.notificationService.getNotifications();
         self.promise.then(function (resp) {
             self.notifications = resp.data;
-            console.log("Got notifications of size " + self.notifications.length);
+            //console.log("Got notifications of size " + self.notifications.length);
         })
     };
 

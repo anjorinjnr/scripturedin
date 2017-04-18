@@ -5,6 +5,7 @@ from models import scripturedin as model
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
 from service import util
+from service import notification_service
 import logging
 
 
@@ -38,11 +39,16 @@ class CommentHandler(base_handler.BaseHandler):
 
     @user_required
     def post(self, ref_key):
+        
         data = self.request_data()
         try:
             data['user_key'] = self.user.key
             data['ref_key'] = ndb.Key(self.request.get('k').strip(), int(ref_key))
             comment = model.save_comment(data)
+
+            if self.request.get('k').strip() == 'Post':
+                notifier = notification_service.notify({'actor_id':self.user.key.id(), 'post_id':ref_key, 'type':'POST_REPLY'})     
+                
             self.write_model(comment, user=model.get_user_by_id(comment.created_by.id()))
         except Exception as e:
             self.error_response([e.message])

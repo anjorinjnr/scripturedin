@@ -35,6 +35,20 @@ indexes:
   - name: created_at
     direction: desc
 
+- kind: Notification
+  properties:
+  - name: read
+  - name: user_id
+  - name: created_at
+    direction: desc
+
+- kind: Notification
+  properties:
+  - name: read
+  - name: user_key
+  - name: created_at
+    direction: desc
+
 - kind: Sermon
   properties:
   - name: church_key

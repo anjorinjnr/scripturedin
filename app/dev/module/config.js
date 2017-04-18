@@ -195,6 +195,18 @@ App.config(function (localStorageServiceProvider) {
                     role: USER_ROLES.user
                 }
             })
+            .state('base.notification', {
+                url: '/notification',
+                views: {
+                    'content': {
+                        templateUrl: 'module/notification/notifications.html',
+                        controller: 'notificationController as notificationCtrl'
+                    }
+                },
+                data: {
+                    role: USER_ROLES.user
+                }
+            })
             .state('base.bible', {
                 url: '/bible',
                 views: {

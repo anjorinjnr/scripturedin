@@ -126,10 +126,8 @@ class UserHandler(base_handler.BaseHandler):
             else:
                 feed = model.create_feed(post)
                 self.write_model(model.process_feed(feed, self.user, ref_object=post))
-            
+
             notifier = notification_service.notify({'user_id':self.user.key.id(), 'post_id':post.key.id(), 'type':'NEW_POST'})
-            if not notifier:
-                logging.error(notifier[1])
         except Exception as e:
             logging.error(e)
             self.error_response(e.message)
@@ -221,10 +219,7 @@ class UserHandler(base_handler.BaseHandler):
     def like_post(self, post_id):
         try:
             if model.like_post(post_id, self.user.key):
-                notifier = notification_service.notify({'actor_id':self.user.key.id(), 'user_id':self.user.key.id(), 'post_id':post_id, 'type':'POST_LIKE'})
-                if not notifier:
-                    logging.error(notifier[1])
-                logging.info(notifier)
+                notifier = notification_service.notify({'actor_id':self.user.key.id(), 'post_id':post_id, 'type':'POST_LIKE'})     
                 self.success_response()
         except Exception as e:
             logging.info(e)
@@ -285,6 +280,47 @@ class UserHandler(base_handler.BaseHandler):
             self.error_response('Unable to complete password reset.')
 
     
+    @user_required
+    def changepassword(self):
+        """ Change user password """
+        try:
+            logging.info(self.user)
+            data = self.request_data()
+
+            validator = Validator({'currentpassword': 'required',
+                                   'password' : 'required',
+                                   'confirmpassword' : 'required' },data,
+                                   {'currentpassword': 'Password is required',
+                                   'password' : 'New password is required',
+                                   'confirmpassword' : 'Confirm password is required'}
+                                )
+        
+            if validator.is_valid():
+                
+                if data["password"] != data["confirmpassword"]:
+                    self.error_response("Passwords do not match")
+                    return False 
+                
+                user = model.get_user_by_email(self.user.email)
+                password_hash = security.generate_password_hash(data['currentpassword'], length=12)
+                logging.info(password_hash)
+                logging.info(data['currentpassword'])
+
+                if not user.password == password_hash: 
+                    self.error_response("Incorrect Password")
+                    return False
+                else: 
+                    user.password = password_hash
+                    user.put()
+                    self.success_response();         
+            else:
+                self.error_response(validator.errors)
+           
+        except Exception as e:
+            logging.error(e)
+            self.error_response('Unable to complete password reset.')
+
+    
     def _do_password_reset(self):
         try:
             data = self.request_data()
@@ -332,7 +368,7 @@ class UserHandler(base_handler.BaseHandler):
 
     @user_required
     def get_notifications(self):
-        notifications = model.get_user_notifications(self.user.key)
+        notifications = model.get_user_notifications(self.user.key.id())
         self.write_model(notifications)
 
     @user_required
@@ -345,6 +381,6 @@ class UserHandler(base_handler.BaseHandler):
 
     @user_required
     def get_notification_settings(self):
-        notification_settings = model.get_user_notification_settings(self.user.key)
+        notification_settings = model.get_user_notification_settings(self.user.key.id())
         self.write_model(notification_settings)
             

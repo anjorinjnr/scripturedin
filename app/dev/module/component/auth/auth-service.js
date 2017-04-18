@@ -169,6 +169,20 @@ AuthService.prototype.changePassword = function(email, password, token, successC
     });
 }
 
+AuthService.prototype.changeProfilePassword = function(currentPassword, password, confirmPassword, successCallback, errorCallback){
+    var self = this;
+    var data = {currentpassword : currentPassword, password : password, confirmpassword : confirmPassword};
+    self.http_.post('/api/changepassword', data).then(function (resp) {
+         if (_.isFunction(successCallback)) {
+                successCallback(resp);
+        }else{
+            if (_.isFunction(errorCallback)) {
+                errorCallback(resp);
+            }
+        }
+    });
+}
+
 /**
  * Perform login/signup with facebook.
  * Send user to fb to authenticate then login/signup using data from facebook.

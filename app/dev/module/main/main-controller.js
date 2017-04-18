@@ -269,7 +269,54 @@
 
 
     /**
-     * Display the password reset modal.
+     * Display the profile password change modal.
+     */
+    MainCtrl.prototype.showProfilePasswordChange = function () {
+        var self = this;
+
+        function modal(ctrl) {
+            var modalInstance = self.modal_.open({
+                templateUrl: 'module/main/profile-password-change-modal.html',
+                controller: function () {
+                    var self = this;
+
+                    this.showLoginModal = function () {
+                        modalInstance.close();
+                        ctrl.showLogin();
+                    };
+
+                      this.changePassword = function (form) {
+                        
+                        if (form.$valid && !_.isEmpty(self.currentPassword) && !_.isEmpty(self.newPassword)
+                            && !_.isEmpty(self.confirmPassword) ) {
+                            
+                            ctrl.authService.changeProfilePassword(self.currentPassword, self.newPassword, self.confirmPassword, 
+                                function (resp) {
+                                    
+                                    if (resp.data.status == 'success') {
+                                        self.error = "";
+                                        ctrl.alertService.info('Password Change Successful.');
+                                    }else{
+                                        self.error = resp.data.message;
+                                    }
+                                    
+                                }, function (error) {
+                                    self.error = error;
+                                });
+                        } 
+                    };
+                },
+                controllerAs: 'modalCtrl',
+                size: 'profile-password-change'
+            });
+        };
+        modal(self)
+    };
+
+
+
+    /**
+     * Display the change password modal.
      */
     MainCtrl.prototype.showPasswordReset = function () {
         var self = this;
@@ -334,7 +381,6 @@
                         ctrl.showLogin();
                     };
 
-                     //attempt to log user in with email
                     this.changePassword = function (form) {
                         
                         if (form.$valid && !_.isEmpty(self.email) && !_.isEmpty(self.password) ) {

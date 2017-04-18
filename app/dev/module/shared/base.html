@@ -44,26 +44,28 @@
                                 </li>
                             </ul>
                         </div>
-                        <div class="lv-body">
+                        <div class="lv-body" ng-show="headerCtrl.notifications.length > 0">
 
                             <a class="lv-item" href="" ng-repeat="notification in headerCtrl.notifications">
                                 <div class="media">
                                     <div class="pull-left">
-                                        <img class="lv-img-sm" src="img/profile-pics/1.jpg" alt="">
+                                        <img class="lv-img-sm" ng-src="{{imagePath(notification.actor)}}"alt="">
                                     </div>
                                     <div class="media-body">
-                                        <div class="lv-title">David Belle</div>
+                                        <div class="lv-title">{{notification.actor.title + " " + notification.actor.first_name + " " + notification.actor.last_name}}</div>
                                         <small class="lv-small">{{notification.message}}</small>
                                     </div>
                                 </div>
                             </a>
                            
-                           <div class="alert alert-danger">
-                                No new notifications at this time.
-                           </div>
+                           
                         </div>
 
-                        <a class="lv-footer" href="">View All</a>
+                        <div class="alert alert-danger" ng-show="headerCtrl.notifications.length == 0">
+                                No new notifications at this time.
+                           </div>
+
+                        <a class="lv-footer" ui-sref="base.notification">View All</a>
                     </div>
 
                 </div>

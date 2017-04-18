@@ -13,16 +13,10 @@ import traceback
 def notify(data):
     """Stores notification to be displayed to users """
     try:
-        validator = Validator({'user_id': 'required', 
-                                  'type': 'required',
-                                  },data,{'user_id': 'User ID is required', 'type' : 'Notification Type is required'})
+        validator = Validator({'type': 'required',
+                                  },data,{'type' : 'Notification Type is required'})
                                   
-        send_email = False
-        if validator.is_valid():
-            notification_settings = _get_user_notification_settings(data['user_id'])
-            if data['type'] in notification_settings and notification_settings[data['type']] == 1:
-                    send_email = True       
-        else:
+        if not validator.is_valid():
             return False, validator.errors
 
           
@@ -54,6 +48,7 @@ def notify(data):
             if not user: 
                 return False, "User not found"
 
+
         actor = None
         if "actor_id" in data: 
             actor = model.get_user_by_id(data["actor_id"])
@@ -71,29 +66,39 @@ def notify(data):
         else:
             message = data["message"]
             
-
         if data['type'] == "NEW_POST":
-            action_url = "/home/#/"+data["post_id"]
+            action_url = "/home/#/"+str(data["post_id"])
             church_members = model.get_church_members(user.church_key)
+            
+            data['actor_id'] = user.key.id()
             for church_member in church_members: 
-                model.save_notification(church_member.key, data['type'], action_url, message, data)
+                if church_member.key.id() != post.created_by.id():
+                    _save_notification(church_member.key.id(), data['type'], action_url, message, data)
+        elif data['type'] == "NEW_SERMON":
+            action_url = "/sermon"+"/"+str(data["sermon_id"])
+            church_members = model.get_church_members(user.church_key)
+            
+            data['actor_id'] = user.key.id()
+            for church_member in church_members: 
+                if church_member.key.id() != sermon.created_by.id():
+                    _save_notification(church_member.key.id(), data['type'], action_url, message, data)
         elif data['type'] == "POST_LIKE":
-            action_url = "/home/#/"+data["post_id"]
-            model.save_notification(post.created_by, data['type'], action_url, message, data)
+            action_url = "/home/#/"+str(data["post_id"])
+            _save_notification(post.created_by.id(), data['type'], action_url, message, data)
+        elif data['type'] == "POST_REPLY":
+            action_url = "/home/#/"+str(data["post_id"])
+            _save_notification(post.created_by.id(), data['type'], action_url, message, data)
         elif data['type'] == "GENERAL":
             users = model.get_users()
             for user in users: 
-                model.save_notification(user.key, data['type'], action_url, message, data)
-          
-        if send_email:
-            _send_notification_email(data["user_id"], message, action_url, data)
-
+                _save_notification(user.key, data['type'], action_url, message, data)
+        
         return True
            
     except Exception as e:
         logging.error(e)
-        return False, 'Unable to save notification.'
         traceback.print_exc()
+        return False, 'Unable to save notification.'
 
 
     
@@ -130,16 +135,16 @@ def _construct_notification_message(notification_type, post, user, actor, sermon
     message = ""
 
     if notification_type == "POST_REPLY": 
-        message = user.get_full_name() + " just replied to your post"
+        message = actor.get_full_name() + " just replied to your post"
 
     if notification_type == "NEW_POST": 
         message = user.get_full_name() + " just created a new post"
 
     if notification_type == "POST_LIKE":
-        message = user.get_full_name() + " liked your post"
+        message = actor.get_full_name() + " liked your post"
 
     if notification_type == "MENTION":
-        message = user.get_full_name() + " mentioned you"
+        message = actor.get_full_name() + " mentioned you"
 
     if notification_type == "NEW_SERMON":
         message = user.get_full_name() + " posted a new sermon"
@@ -155,11 +160,21 @@ def _send_notification_email(user_id, message, action_url, data):
 
       
 def _get_user_notification_settings(user_id):
-    result = model.get_user_notification_settings(user_id)
-    settings = []
-     # if result: 
-     #   for row in result: 
-     #       settings[row.notification_type] = 1; #row.value
-    return settings
+    return  model.get_user_notification_settings(user_id)
+
+
+def _save_notification(user_id, notification_type, action_url, message, data):
+     
+    send_email = False
+     
+    notification_settings = _get_user_notification_settings(user_id)
+    if notification_type in notification_settings:
+        send_email = True 
+
+    model.save_notification(user_id, notification_type, action_url, message, data)
+    if send_email:
+         _send_notification_email(user_id, message, action_url, data)
+      
+        
 
 
