@@ -1,9 +1,5 @@
 .idea/*
-template/
-app/node_modules/
-node_modules/
-app/dev/views/
-app/dev/vendors/
-app/dev/angular/
-.DS_STORE
-app/prod/
+web/node_modules/
+web/bower_components/
+app/*
+server/lib/
