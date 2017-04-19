@@ -4,38 +4,4 @@
     </section>
 </section>
 
-<div class="fab-menu">
-    <md-fab-speed-dial md-direction="up" class="md-fling">
-        <md-fab-trigger>
-            <md-button class="md-fab md-warn md-button md-ink-ripple" type="button" aria-label="Add...">
-                <md-icon md-svg-src="{{$ctrl.addImg}}"></md-icon>
-            </md-button>
-        </md-fab-trigger>
-        <md-fab-actions ng-hide="!appCtrl.fabMenu.isOpen">
-            <md-button ng-if="authService.user.is_pastor" ui-sref="base.sermon-create" class="md-fab md-mini md-button md-ink-ripple" aria-label="New Sermon">
-                <md-tooltip md-direction="left">
-                    New Sermon
-                </md-tooltip>
-                <md-icon md-svg-src="/img/icons/create.svg"></md-icon>
-            </md-button>
-            <md-button ui-sref="base.new-note" class="bgm-blue md-fab md-mini md-button md-ink-ripple" aria-label="New Note">
-                <md-tooltip md-direction="left">
-                    New Note
-                </md-tooltip>
-                <md-icon md-svg-src="/img/icons/note_add.svg"></md-icon>
-            </md-button>
-        </md-fab-actions>
-        <div id="bookactions" ng-if="appCtrl.fabMenu.isOpen">
-            <md-fab-actions ng-hide="!appCtrl.fabMenu.isOpen" ng-repeat="book in appCtrl.books">
-                <md-button ui-sref="base.bible.book({book: book.abbreviation})" class="md-fab md-mini md-button md-ink-ripple book-action" aria-label="New Note">
-                    <md-tooltip md-direction="left">
-                        {{book.human}}
-                    </md-tooltip>
-                    {{book.usfm}}
-                </md-button>
-            </md-fab-actions>
-        </div>
-
-
-    </md-fab-speed-dial>
-</div>
+<fab-menu></fab-menu>

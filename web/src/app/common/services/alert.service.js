@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import '../../../bower_components/remarkable-bootstrap-notify/bootstrap-notify';
+import '../../../../bower_components/remarkable-bootstrap-notify/bootstrap-notify';
 
 export class AlertService {
 

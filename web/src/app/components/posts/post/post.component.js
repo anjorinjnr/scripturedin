@@ -62,7 +62,7 @@ class PostController {
     }
 
     $onDestroy() {
-        this.unsubscribe();
+        //  this.unSubscribe();
     }
     mapStateToThis(state) {
         return {};

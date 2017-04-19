@@ -1,7 +1,7 @@
 // libraries
 import "jquery";
 import angular from 'angular';
-// import ngMaterial from 'angular-material';
+import ngMaterial from 'angular-material';
 import ngAnimate from 'angular-animate';
 import ngLocalStorage from 'angular-local-storage';
 import uiRouter from 'angular-ui-router';
@@ -62,7 +62,7 @@ export const AppModule = angular
         uiRouter,
         uiBootstrap,
         ngLocalStorage,
-        // ngMaterial
+        ngMaterial,
         ngAnimate,
         ngRedux,
         'dynamicBindHtml' //'dynamic-bind-html'

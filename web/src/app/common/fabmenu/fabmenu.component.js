@@ -1,11 +1,9 @@
-import template from './content.html';
+import template from './fabmenu.html';
 import addSvg from '../../../assets/img/icons/add.svg';
 import createSvg from '../../../assets/img/icons/create.svg';
 import addNoteSvg from '../../../assets/img/icons/note_add.svg';
+import { books } from '../data/bible-books';
 
-
-//let img = require('svg-url!../../../assets/img/icons/add.svg');
-//console.log('>>', img);
 class Controller {
     constructor() {
 
@@ -15,10 +13,11 @@ class Controller {
         this.addSvg = addSvg;
         this.createSvg = createSvg;
         this.addNoteSvg = addNoteSvg;
-
+        this.books = books;
+        console.log(this.books);
     }
 }
-export const ContentComponent = {
+export const FabMenuComponent = {
     template,
     controller: Controller
 };

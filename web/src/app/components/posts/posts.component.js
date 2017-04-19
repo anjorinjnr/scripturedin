@@ -9,7 +9,6 @@ class PostsController {
 
     $onInit() {
         this.unsubscribe = this.store.connect(this.mapStateToThis, this.PostsActions)(this);
-        console.log('here..');
         this.getPosts();
     }
 

@@ -1,5 +1,6 @@
-import { isEmpty } from 'lodash';
+import { isEmpty, isObject } from 'lodash';
 import moment from 'moment';
+import $ from 'jquery';
 
 
 
@@ -8,6 +9,15 @@ export const USER_ROLES = {
     pastor: 'pastor',
     user: 'user',
     admin: 'admin'
+};
+
+
+export const toQueryString = obj => {
+    if (isObject(obj)) {
+        let qryString = $.param(obj);
+        return qryString.replace(/%5B%5D/g, '');
+    }
+    return '';
 };
 
 export const toLocalFormat = (ms, format) => {
@@ -70,3 +80,8 @@ export const canAccessState = (user, state) => {
 
     return true;
 };
+
+export const helper = {
+    toQueryString
+
+}
