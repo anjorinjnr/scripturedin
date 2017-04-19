@@ -1,44 +1,73 @@
-hi# README #
+# README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+## Quick summary
+The server code live in the server directory.
 
-### What is this repository for? ###
-
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+The web app code lives in the web directory.
 
 ### How do I get set up? ###
 
-* Summary of set up
-* Configuration
+
+#### Web Client
 * Dependencies
-To install cloud storage client library
+    * NPM  - [Install Node](https://nodejs.org/en/download/)
+    * Bower  - `npm install -g bower`
+
+
+To run the web project locally
+
+*  change to web directory `> cd web `
+
+* Install dependencies
+<pre>
+> npm install
+> bower install
+</pre>
+
+* create proxy.js (file should be ignored)
+<pre>
+var url = '[enter localhost server url]';
+exports.url = url;
+</pre>
+
+* run app locally
+<pre>
+> npm start
+</pre>
+
+
+#### Server
+
+* To install cloud storage client library
 
 `pip install GoogleAppEngineCloudStorageClient -t lib`
 
-* Database configuration
 * How to run tests
 
     * Python Tests
     
         Make sure webtest is installed, if not, run
 
-        `sudo easy_install WebTest`
+        <pre> sudo easy_install WebTest </pre>
 
         If using mac, run test from the project root as 
 
-        `python tests/runner.py /usr/local/google_appengine `
-### Who do I talk to? ###
+        <pre> python tests/runner.py /usr/local/google_appengine </pre>
+        
 
-* Repo owner or admin
-* Other community or team contact
-* Deployment instructions
+### How to deploy
+@TODO (Tola)
 
 ### Contribution guidelines ###
 
 * Writing tests
+    * Testing Web Client
+        * @TODO (Tola)
+    * Testing Server
+        * Refer to [Appengine Doc](https://cloud.google.com/appengine/docs/standard/python/tools/localunittesting) 
 * Code review
 * Other guidelines
+   * Javascript [style guide](https://github.com/airbnb/javascript)
+   * Python [style guide](https://google.github.io/styleguide/pyguide.html)
 
 

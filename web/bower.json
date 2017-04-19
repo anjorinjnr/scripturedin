@@ -1,0 +1,21 @@
+{
+  "name": "scripturedin",
+  "description": "social platform for christians to engage with God's works and one another",
+  "main": "src/app/index.js",
+  "authors": [
+    "Tola Anjorin"
+  ],
+  "license": "MIT",
+  "homepage": "www.scripturedin.com",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "remarkable-bootstrap-notify": "^3.1.3"
+  }
+}

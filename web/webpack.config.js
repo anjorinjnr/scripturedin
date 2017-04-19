@@ -1,6 +1,14 @@
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var proxy;
+try {
+    proxy = require('./proxy');
+} catch (e) {
+    console.info('ATTN: You might be missing a proxy.js file. Your API request might not work \n\n');
+}
+
+
 
 var config = {
     contexts: __dirname + '/src',
@@ -45,7 +53,7 @@ var config = {
     },
     devServer: {
         proxy: {
-            '**': 'http://localhost:13000'
+            '**': proxy ? proxy.url : ''
         }
     }
 };

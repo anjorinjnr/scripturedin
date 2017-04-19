@@ -1,5 +1,7 @@
 .idea/*
 web/node_modules/
 web/bower_components/
+web/proxy.js
 app/*
 server/lib/
+server/.vscode/
