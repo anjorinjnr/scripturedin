@@ -1,0 +1,15 @@
+<aside id="sidebar" class="menu" ng-class="{toggled: $ctrl.sidebar.open}">
+    <div class="sidebar-inner c-overflow">
+        <ul class="main-menu">
+            <li data-ui-sref-active="active">
+                <a data-ui-sref="base.home" data-ng-click="mactrl.sidebarStat($event)">Home</a>
+            </li>
+            <li data-ui-sref-active="active">
+                <a data-ui-sref="base.sermon-browse" data-ng-click="appCtrl.sideMenu=false;mainCtrl.showSignup()">Sign Up</a>
+            </li>
+            <li data-ui-sref-active="active">
+                <a data-ui-sref="base.sermon-browse" data-ng-click="appCtrl.sideMenu=false;mainCtrl.showLogin()">Login</a>
+            </li>
+        </ul>
+    </div>
+</aside>

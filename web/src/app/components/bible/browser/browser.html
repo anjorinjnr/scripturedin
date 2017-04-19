@@ -1,0 +1,103 @@
+<div class="container">
+    <div ng-if="$ctrl.mode=='BOOKS'" class="card p-10" id="books">
+        <div class="card-header bible-header p-t-0">
+            <h1>Bible</h1>
+            <div>
+                <input type="text" class="filter-bible" ng-model="$ctrl.filter" placeholder="filter books">
+            </div>
+
+        </div>
+
+
+        <!--<div class="block-header">-->
+        <!---->
+
+        <!--</div>-->
+        <div style="clear: both" class="card-body card-padding bible-toc" ng-if="!$ctrl.filter">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h4 class="m-b-20">Old Testament</h4>
+                        </div>
+                        <div class="col-sm-4 col-xs-4">
+                            <p ng-repeat="book in $ctrl.booksOt[0]">
+                                <a ng-click="$ctrl.viewBook(book.abbreviation)"> {{book.human}}</a>
+                            </p>
+                        </div>
+                        <div class="col-sm-4 col-xs-4">
+                            <p ng-repeat="book in $ctrl.booksOt[1]">
+                                <a ng-click="$ctrl.viewBook(book.abbreviation)"> {{book.human}}</a>
+                            </p>
+                        </div>
+                        <div class="col-sm-4 col-xs-4">
+                            <p ng-repeat="book in $ctrl.booksOt[2]">
+                                <a ng-click="$ctrl.viewBook(book.abbreviation)"> {{book.human}}</a>
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h4 class="m-b-20" ng-if="!$ctrl.filter">New Testament</h4>
+                        </div>
+                        <div class="col-sm-4 col-xs-4">
+                            <p ng-repeat="book in $ctrl.booksNt[0]">
+                                <a ng-click="$ctrl.viewBook(book.abbreviation)"> {{book.human}}</a>
+                            </p>
+                        </div>
+                        <div class="col-sm-4 col-xs-4">
+                            <p ng-repeat="book in $ctrl.booksNt[1]">
+                                <a ng-click="$ctrl.viewBook(book.abbreviation)"> {{book.human}}</a>
+                            </p>
+                        </div>
+                        <div class="col-sm-4 col-xs-4">
+                            <p ng-repeat="book in $ctrl.booksNt[2]">
+                                <a ng-click="$ctrl.viewBook(book.abbreviation)"> {{book.human}}</a>
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div style="clear: both" class="card-body card-padding bible-toc" ng-if="$ctrl.filter">
+            <div class="row">
+                <div ng-if="$ctrl.filtered.length == 0" class="col-sm-12">No books found for {{$ctrl.filter}}</div>
+                <div class="col-sm-2 col-xs-4" ng-repeat="books in $ctrl.filtered">
+                    <p ng-repeat="book in books">
+                        <a ng-click="$ctrl.viewBook(book.abbreviation)"> {{book.human}}</a>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div ng-if="$ctrl.mode=='BOOK'" class="card p-10" id="book">
+        <div class="card-header chapter-header p-t-0">
+            <h1><a ng-click="$ctrl.mode='BOOKS'" ui-sref="bible">Bible</a> > {{::$ctrl.book.human}}</h1>
+        </div>
+        <div style="clear: both" class="card-body card-padding bible-book">
+            <div class="row">
+                <div class="col-sm-1 col-xs-2" ng-repeat="c in ::$ctrl.book.chapters">
+                    <a ui-sref="read({p: $ctrl.book.human + ' ' + c.human})">
+                        <div class="bs-item z-depth-1">
+                            {{::c.human}}
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+</div>
