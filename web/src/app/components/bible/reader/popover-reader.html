@@ -1,0 +1,23 @@
+<div>
+    <style>
+        .verse {
+            font-size: 14px !important;
+        }
+    </style>
+
+    <div class="chapter" style="padding:5px">
+        <h3 class="title">{{$ctrl.scripture.book}} Chapter {{$ctrl.scripture.chapter}}
+        </h3>
+        <div id="verses" style="max-height:150px; overflow-y:auto">
+            <div ng-repeat="v in $ctrl.scripture.verses">
+                <h4 ng-if="v.heading">{{v.heading}}</h4>
+                <p id="v{{verse}}" class="verse" ng-class="{highlight: $ctrl.selected[book][verse]}">
+                    <a ng-if="v.verse" href="" ng-click="$ctrl.highlight(verse, book)">
+                        <span style="margin-right: 15px">{{v.verse}}:</span>
+                    </a>
+                    {{v.content}}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

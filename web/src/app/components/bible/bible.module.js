@@ -3,12 +3,13 @@ import uiRouter from 'angular-ui-router';
 
 import { USER_ROLES } from '../../common/helper';
 import { BibleBrowserComponent } from './browser/browser.component';
-import { BibleReaderComponent } from './reader/reader.component';
+import { FullReaderComponent, PopoverReaderComponent } from './reader/reader.component';
 
 export const BibleModule = angular
     .module('app.bible', [uiRouter])
     .component('bibleBrowser', BibleBrowserComponent)
-    .component('bibleReader', BibleReaderComponent)
+    .component('bibleReader', FullReaderComponent)
+    .component('bibleReaderPopover', PopoverReaderComponent)
     .config(($stateProvider, $urlRouterProvider) => {
         'ngInject';
         $stateProvider

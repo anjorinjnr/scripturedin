@@ -1,50 +1,29 @@
-import template from './reader.html';
+import fullTemplate from './full-reader.html';
+import popoverTemplate from './popover-reader.html';
+import { ReaderController } from './reader-controller';
+import './reader.css';
 
-class ReaderController {
+const bindings = {
+    scriptureText: '<'
+};
 
-    constructor(bibleService) {
-        this.bibleService = bibleService;
-    }
+const controller = ReaderController;
 
-    $onInit() {
-        console.log('text', this.scriptureText)
-        this.scripture_ = this.bibleService.parseScripture(this.scriptureText);
-        this.getPassage(this.scripture_);
-        this.getVersions();
-    }
 
-    getVersions() {
-        this.bibleService.versions().then(resp => {
-            this.versions = resp.data;
-        });
-    }
+/**
+ * This component renders a bible passage in full display.
+ */
+export const FullReaderComponent = {
+    template: fullTemplate,
+    bindings,
+    controller
+};
 
-    /**
-     * Reload scripture using selected translation
-     * @param {Object} trans
-     */
-    changeTranslation(trans) {
-        this.scripture_.translation = trans.abbr.toLowerCase();
-        this.getPassage(this.scripture_);
-    };
-
-    /**
-     * Load scripture from server
-     * @param {Object} scripture
-     */
-    getPassage(scripture) {
-        this.loading = true;
-        this.bibleService.getPassage(this.scripture_).then(resp => {
-            this.loading = false;
-            this.scripture = resp.data;
-        });
-    }
-}
-
-export const BibleReaderComponent = {
-    template,
-    bindings: {
-        scriptureText: '<'
-    },
-    controller: ReaderController
+/**
+ * This component renders a bible passage as a popover
+ */
+export const PopoverReaderComponent = {
+    template: popoverTemplate,
+    bindings,
+    controller
 };
