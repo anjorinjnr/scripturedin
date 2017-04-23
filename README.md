@@ -13,6 +13,14 @@ The web app code lives in the web directory.
     * NPM  - [Install Node](https://nodejs.org/en/download/)
     * Bower  - `npm install -g bower`
 
+* Create the following symlinks
+<pre>
+> cd web/src/assets
+> cd styles
+> ln -s [path/to/assets/fonts] fonts
+> ln -s [path/to/asserts/img] img
+</pre>
+
 
 To run the web project locally
 
@@ -38,22 +46,29 @@ exports.url = url;
 
 #### Server
 
-* To install cloud storage client library
+* Instal server dependencies
+<pre>
+> cd server
+> pip install beautifulsoup4 -t lib
+</pre>
 
-`pip install GoogleAppEngineCloudStorageClient -t lib`
+* To install cloud storage client library
+<pre>
+pip install GoogleAppEngineCloudStorageClient -t lib
+</pre>
 
 * How to run tests
 
     * Python Tests
-    
+
         Make sure webtest is installed, if not, run
 
         <pre> sudo easy_install WebTest </pre>
 
-        If using mac, run test from the project root as 
+        If using mac, run test from the project root as
 
         <pre> python tests/runner.py /usr/local/google_appengine </pre>
-        
+
 
 ### How to deploy
 @TODO (Tola)
@@ -64,7 +79,7 @@ exports.url = url;
     * Testing Web Client
         * @TODO (Tola)
     * Testing Server
-        * Refer to [Appengine Doc](https://cloud.google.com/appengine/docs/standard/python/tools/localunittesting) 
+        * Refer to [Appengine Doc](https://cloud.google.com/appengine/docs/standard/python/tools/localunittesting)
 * Code review
 * Other guidelines
    * Javascript [style guide](https://github.com/airbnb/javascript)
