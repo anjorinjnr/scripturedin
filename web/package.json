@@ -64,16 +64,19 @@
     "angular-ui-router": "^1.0.0-rc.1",
     "bootstrap": "^3.3.7",
     "dynamic-bind-html": "^1.0.1",
+    "fullcalendar": "^3.4.0",
     "jquery": "^3.2.1",
     "lodash": "^4.14.1",
     "material-design-iconic-font": "2",
     "material-shadows": "^2.0.1",
     "moment": "^2.14.1",
+    "ng-quill": "^3.1.0",
     "ng-redux": "^3.4.0-beta.1",
     "ng-table": "^1.0.0",
     "normalizr": "^3.1.0",
     "redux": "^3.6.0",
     "redux-thunk": "^2.2.0",
+    "sweetalert2": "^6.6.1",
     "typescript": "^2.1.5"
   }
 }

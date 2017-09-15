@@ -80,7 +80,6 @@ class SermonHandler(base_handler.BaseHandler):
 
             self.write_model(results)
 
-
     @user_required
     def save_note(self):
         data = self.request_data()

@@ -7,15 +7,17 @@ import { CommentsModule } from './comments/comments.module';
 import { PostsModule } from './posts/posts.module';
 import { BibleModule } from './bible/bible.module';
 import { NameTagModule } from './name-tag/name-tag.component';
+import { SermonModule } from './sermon/sermon.module';
 
 export const ComponentsModule = angular
     .module('app.components', [
+        BibleModule,
+        CommentsModule,
         LandingPageModule,
         LoginModule,
-        WallModule,
-        CommentsModule,
-        PostsModule,
         NameTagModule,
-        BibleModule
+        PostsModule,
+        SermonModule,
+        WallModule
     ])
     .name;

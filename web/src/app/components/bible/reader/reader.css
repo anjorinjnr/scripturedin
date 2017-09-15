@@ -1,3 +1,7 @@
 .popover-reader {
     border-radius: 10px;
 }
+
+.reader-popover {
+    color: black;
+}

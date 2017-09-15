@@ -1,13 +1,13 @@
 import template from './login.html';
 
 class LoginController {
-    constructor($ngRedux, LoginActions, authService, $state, alert) {
+    constructor($ngRedux, LoginActions, authService, $state, alertService) {
         'ngInject';
         this.store = $ngRedux;
         this.router = $state;
         this.authService = authService;
         this.LoginActions = LoginActions;
-        this.alert = alert;
+        this.alert = alertService;
     }
     $onInit() {
         this.unsubscribe = this.store.connect(this.mapStateToThis, this.LoginActions)(this);

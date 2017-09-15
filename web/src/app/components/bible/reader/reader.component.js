@@ -4,7 +4,8 @@ import { ReaderController } from './reader-controller';
 import './reader.css';
 
 const bindings = {
-    scriptureText: '<'
+    scriptureText: '<',
+    scripture: '<'
 };
 
 const controller = ReaderController;

@@ -12,6 +12,7 @@ export const USER_ROLES = {
 };
 
 
+
 export const toQueryString = obj => {
     if (isObject(obj)) {
         let qryString = $.param(obj);
@@ -26,15 +27,18 @@ export const toLocalFormat = (ms, format) => {
     return local.format(format);
 };
 
-export const toUtcMilliseconds = data => {
+export const toUtcMilliseconds = date => {
     return moment(date).utc().unix() * 1000;
 }
+
 export const toLocalDate = ms => {
-    return self.toLocalMoment(ms).toDate();
+    return toLocalMoment(ms).toDate();
 };
+
 export const toLocalMoment = ms => {
     return moment.utc(parseInt(ms)).local();
 };
+
 export const trim = (text, length) => {
     //trim the string to the maximum length
     const trimmedString = text.substr(0, length);

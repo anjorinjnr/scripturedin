@@ -8,6 +8,6 @@ import { BibleService } from './bible.service';
 
 export const ServicesModule = angular.module('app.services', [])
     .service('authService', AuthService)
-    .service('alert', AlertService)
+    .service('alertService', AlertService)
     .service('bibleService', BibleService)
     .name;

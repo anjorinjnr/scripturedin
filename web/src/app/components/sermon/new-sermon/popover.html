@@ -1,0 +1,53 @@
+<div>
+    <style>
+        .verse {
+            font-size: 14px !important;
+        }
+    </style>
+
+    <div class="chapter" style="padding:5px">
+        <h3 class="title ng-binding">Chapter 3</h3>
+
+        <div id="verses" style="max-height:150px; overflow-y:auto">
+            <!-- ngRepeat: v in scripture.verses -->
+            <div>
+                <!-- ngIf: v.heading -->
+                <p id="v" class="verse ng-binding" ng-class="{highlight: readCtrl.selected[book][verse]}">
+                    <!-- ngIf: v.verse -->
+                    <a ng-if="v.verse" href="" ng-click="readCtrl.highlight(verse, book)" class="ng-scope">
+                        <span style="margin-right: 15px" class="ng-binding">6:</span>
+                    </a>
+                    <!-- end ngIf: v.verse -->
+                    That which is born of the flesh is flesh; and that which is born of the Spirit is spirit.
+                </p>
+                <p id="v" class="verse ng-binding" ng-class="{highlight: readCtrl.selected[book][verse]}">
+                    <!-- ngIf: v.verse -->
+                    <a ng-if="v.verse" href="" ng-click="readCtrl.highlight(verse, book)" class="ng-scope">
+                        <span style="margin-right: 15px" class="ng-binding">6:</span>
+                    </a>
+                    <!-- end ngIf: v.verse -->
+                    That which is born of the flesh is flesh; and that which is born of the Spirit is spirit.
+                </p>
+                <p id="v" class="verse ng-binding" ng-class="{highlight: readCtrl.selected[book][verse]}">
+                    <!-- ngIf: v.verse -->
+                    <a ng-if="v.verse" href="" ng-click="readCtrl.highlight(verse, book)" class="ng-scope">
+                        <span style="margin-right: 15px" class="ng-binding">6:</span>
+                    </a>
+                    <!-- end ngIf: v.verse -->
+                    That which is born of the flesh is flesh; and that which is born of the Spirit is spirit.
+                </p>
+                <p id="v" class="verse ng-binding" ng-class="{highlight: readCtrl.selected[book][verse]}">
+                    <!-- ngIf: v.verse -->
+                    <a ng-if="v.verse" href="" ng-click="readCtrl.highlight(verse, book)" class="ng-scope">
+                        <span style="margin-right: 15px" class="ng-binding">6:</span>
+                    </a>
+                    <!-- end ngIf: v.verse -->
+                    That which is born of the flesh is flesh; and that which is born of the Spirit is spirit.
+                </p>
+            </div>
+            <!-- end ngRepeat: v in scripture.verses -->
+
+        </div>
+
+    </div>
+</div>

@@ -73,13 +73,11 @@ class User(AuthUser):
     profile_info = type_string()
     gender = type_string(choices=('f', 'm'))
     church_key = type_key()
-    is_pastor = type_bool()
+    is_pastor = type_bool(default=False)
     fav_sermon_keys = type_key(kind='Sermon', repeated=True)
     profile_photo = type_string()
     avatar = type_blob()
-
     _has_index = True
-
     created_at = type_int()
     modified_at = type_int()
     deleted = type_bool()

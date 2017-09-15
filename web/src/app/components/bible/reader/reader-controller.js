@@ -1,3 +1,5 @@
+import {isEmpty} from 'lodash';
+
 /**
  * Loads the input scripture from the server and renders in the view.
  * Handles all the interactions for the views that displays the scripture.
@@ -12,8 +14,13 @@ export class ReaderController {
      * Load the scripture and available versions on init
      */
     $onInit() {
-        this.scripture_ = this.bibleService.parseScripture(this.scriptureText);
-        this.getPassage(this.scripture_);
+        this.name = 'RC*';
+        if (isEmpty(this.scripture)) {
+            this.scripture_ = this.bibleService.parseScripture(this.scriptureText);
+            this.getPassage(this.scripture_);
+
+        }
+
         this.getVersions();
     }
 
@@ -44,6 +51,7 @@ export class ReaderController {
         this.bibleService.getPassage(this.scripture_).then(resp => {
             this.loading = false;
             this.scripture = resp.data;
+            console.log('scripture>>', this.scripture);
         });
     }
 }

@@ -5,8 +5,10 @@ import addNoteSvg from '../../../assets/img/icons/note_add.svg';
 import { books } from '../data/bible-books';
 
 class Controller {
-    constructor() {
-
+    constructor(authService) {
+        this.auth = authService;
+        this.user = this.auth.currentUser();
+        this.user.is_pastor = true; //temp
     }
 
     $onInit() {

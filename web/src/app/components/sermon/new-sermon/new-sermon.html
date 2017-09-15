@@ -1,0 +1,250 @@
+<!-- ideas todo
+   show bible in side
+   allow user to specify translation
+    -->
+<div class="container">
+    <div class="card" id="sermon">
+        <form id="sermonForm">
+            <div class="listview lv-bordered lv-lg">
+                <div class="lv-header-alt clearfix">
+                    <h2 class="lvh-label" style="font-size: 20px">New Sermon</h2>
+                    <!--<div class="lvh-search"-->
+                    <!---->
+                    <!--data-ng-click="mactrl.listviewSearchStat">-->
+                    <!--<input type="text" placeholder="Start typing..."-->
+                    <!--class="lvhs-input">-->
+                    <!--<i class="lvh-search-close"-->
+                    <!--data-ng-click="mactrl.listviewSearchStat = false">&times;</i>-->
+                    <!--</div>-->
+                </div>
+                <div class="lv-body" style="padding: 20px">
+                    <div class="row m-b-20">
+                        <div class="col-sm-8">
+                            <h4 class="m-b-10">Sermon Title</h4>
+                            <div class="form-group" ng-class="{'has-error': $ctrl.submitted && $ctrl.sermon.title.length < 1}">
+                                <div class="fg-line">
+                                    <input type="text" class="form-control input-sm" style="font-size: 16px" ng-model="$ctrl.sermon.title" placeholder="Sermon Title">
+                                </div>
+                                <small ng-show="$ctrl.submitted && $ctrl.sermon.title.length < 1" class="help-block">Sermon title cannot be
+                                    empty
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row m-b-20">
+                        <div class="col-sm-8">
+                            <h4 class="m-b-10">Sermon Date</h4>
+                            <div class="row" ng-repeat="d in $ctrl.sermon._dates">
+                                <div class="col-sm-4">
+                                    <div class="form-group pull-left p-t-25 p-b-0">
+                                        <p class="input-group p-b-0">
+                                            <input type="text" class="form-control" uib-datepicker-popup="yyyy-MM-dd" ng-model="d.date" is-open="status.opened" close-text="Close" />
+                                            <span class="input-group-btn">
+                                 <button type="button"
+                                         class="btn btn-default"
+                                         ng-click="status.opened=true"><i
+                                         class="glyphicon glyphicon-calendar"></i>
+                                 </button>
+                                 </span>
+                                        </p>
+                                        <!--<small ng-show="$ctrl.submitted && $ctrl.sermon.title.length < 1"-->
+                                        <!--class="help-block">Sermon title cannot be empty-->
+                                        <!--</small>-->
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <p class="input-group">
+                                        <uib-timepicker ng-model="d.date" ng-change="changed()" minute-step="5" show-meridian="true"></uib-timepicker>
+                                    </p>
+                                </div>
+                                <div class="col-sm-2 p-t-20">
+                                    <a ng-if="$index > 0" href ng-click="$ctrl.sermon._dates.splice($index, 1)">
+                                        <i class="f-20  p-t-15 zmdi zmdi-close zmdi-hc-fw"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <a href data-ng-click="$ctrl.addDate()">
+                                Add another date</a>
+                        </div>
+                    </div>
+                    <div class="row m-b-20">
+                        <div class="col-sm-8">
+                            <h4>Main Scriptures</h4>
+
+                            <div class="form-group" ng-class="{'has-error': $ctrl.submitted && $ctrl.sermon.scriptures.length < 1}">
+                                <div class="fg-line">
+                                    <!--<label>Main Scriptures</label>-->
+                                    <md-chips ng-model="$ctrl.sermon.scriptures" md-transform-chip="$ctrl.onScriptureAdd($chip)" placeholder="Enter a scripture" secondary-placeholder="e.g John 3:16">
+                                        <md-chip-template show-scripture-on-chip-click text="{{$chip}}" popover-trigger="'outsideClick'" uib-popover-html="$scripturePopover">
+                                            {{$chip}}
+                                        </md-chip-template>
+                                    </md-chips>
+                                </div>
+                                <small style="color:#9e9e9e; float: right" class="help-block">Type a
+                                    scripture
+                                    then press enter.
+                                </small>
+                                <small ng-show="$ctrl.submitted && $ctrl.sermon.scriptures.length < 1" class="help-block">This field is required
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row m-b-20">
+                        <div class="col-sm-12">
+                            <h4> Select content for this sermon:</h4>
+                            <label class="checkbox checkbox-inline m-r-20">
+                                <input type="checkbox" ng-model="$ctrl.sermonContent.summary" >
+                                <i class="input-helper"></i>
+                                Summary
+                            </label>
+                            <label class="checkbox checkbox-inline m-r-20">
+                                <input type="checkbox" ng-model="$ctrl.sermonContent.notes" disabled>
+                                <i class="input-helper"></i>
+                                Notes
+                            </label>
+                            <label class="checkbox checkbox-inline m-r-20">
+                                <input type="checkbox" ng-model="$ctrl.sermonContent.questions">
+                                <i class="input-helper"></i>
+                                Questions
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="row m-b-30">
+                        <div class="col-sm-12">
+                            <md-tabs md-dynamic-height md-border-bottom md-selected="$ctrl.selectedTab">
+                                <md-tab label="Summary" ng-disabled="!$ctrl.sermonContent.summary">
+                                    <md-content class="md-padding">
+                                        <p>Provide a short summary or introduction for sermon. This is highly recommended but not required.</p>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <!--<wysiwyg-edit class="summary" config="editorConfig" content="$ctrl.sermon.summary">-->
+
+                                                <!--</wysiwyg-edit>-->
+                                                {{$ctrl.message}}
+                                                <ng-quill-editor ng-model="$ctrl.message"></ng-quill-editor>
+                                            </div>
+                                        </div>
+
+                                    </md-content>
+                                </md-tab>
+                                <md-tab label="Sermon Notes" ng-disabled="!$ctrl.sermonContent.notes">
+                                    <md-content class=" md-padding ">
+
+
+                                        <div class="m-b-10 ">
+                                            <span>Enter the main sermon notes here.</span>
+                                            <span ng-if="$ctrl.noteStyle=='note' ">
+                                                  <a ng-click="$ctrl.noteStyle='point' " href>
+                                                      <strong>Switch to point style</strong>
+                                                  </a>
+                                            <small>(note is a list of specific points)</small>
+                                            </span>
+
+                                            <span ng-if="$ctrl.noteStyle=='point' ">
+                                                  <a ng-click="$ctrl.noteStyle='note' "
+                                                     href>
+                                                      <strong>Switch to note style</strong>
+
+                                                  </a>
+                                           <small>(note is free form text)</small>
+                                            </span>
+
+                                        </div>
+
+
+                                        <div class="style_point " ng-if="$ctrl.noteStyle=='point' ">
+                                            <div class="row " ng-repeat="note in $ctrl.sermon.notes ">
+                                                <div class="col-sm-2 " style="padding-top: 20px;    text-align: center ">
+                                                    <h4>{{$index + 1}}</h4>
+                                                    <a class="f-25 " href ng-click="$ctrl.sermon.notes.push({content: ''}) ">
+                                                        <i class="zmdi zmdi-plus-circle "></i>
+                                                    </a>
+                                                    <a ng-if="$index> 0" href class="c-red f-25" ng-click="$ctrl.sermon.notes.splice($index, 1)">
+                                                        <i class="zmdi zmdi-minus-circle"></i>
+                                                    </a>
+                                                </div>
+                                                <div class="col-sm-9" ng-class="{'has-error' : $ctrl.submitted && note.content.length == 0}">
+                                                    <div class="form-group">
+                                                        <ng-quill-editor modules="$ctrl.MODULE_CONFIG" ng-model="note.content"></ng-quill-editor>
+                                                    </div>
+                                                    <small ng-if="$index == 0 &&
+                                       $ctrl.submitted && note.content.length < 1" class="help-block">At
+                                                        least one sermon note is
+                                                        required
+                                                    </small>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div class="style_note" ng-if="$ctrl.noteStyle == 'note'">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <ng-quill-editor modules="$ctrl.MODULE_CONFIG" ng-model="$ctrl.sermon.note"></ng-quill-editor>
+                                                    <small ng-if="$ctrl.submitted && $ctrl.sermon.note.trim().length == 0" class="help-block">At
+                                                        least one sermon note is
+                                                        required
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </md-content>
+                                </md-tab>
+                                <md-tab label="Sermon Questions" ng-disabled="!$ctrl.sermonContent.questions">
+                                    <md-content class="md-padding">
+                                        <p>Enter questions for readers to reflect on. This is highly recommended but not required.</p>
+                                        <div class="row" ng-repeat="question in $ctrl.sermon.questions">
+                                            <div class="col-sm-2" style="padding-top: 20px; text-align: center">
+                                                <h4>{{$index + 1}}</h4>
+                                                <a class="f-25" href ng-click="$ctrl.sermon.questions.push({content:''})">
+                                                    <i class="zmdi zmdi-plus-circle"></i>
+                                                </a>
+                                                <a ng-if="$index > 0" href class="c-red f-25" ng-click="$ctrl.sermon.questions.splice($index, 1)">
+                                                    <i class="zmdi zmdi-minus-circle"></i>
+                                                </a>
+                                            </div>
+                                            <div class="col-sm-9">
+                                                <div class="form-group">
+                                                    <wysiwyg-edit class="point" config="editorConfig" content="question.content"></wysiwyg-edit>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </md-content>
+                                </md-tab>
+                            </md-tabs>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="btn-group dropdown m-r-5" uib-dropdown>
+                                <button title="button" class="btn btn-default btn-sm waves-effect">
+                                    <span ng-if="!$ctrl.sermon.privacy">Who should see this?</span>
+                                    <span ng-if="$ctrl.sermon.privacy">{{$ctrl.sermon.privacy}}</span>
+                                </button>
+                                <button type="button" class="btn btn-default dropdown-toggle waves-effect" uib-dropdown-toggle>
+                                    <span class="caret"></span>
+                                    <span class="sr-only">Split button dropdowns</span>
+                                </button>
+                                <ul class="dropdown-menu privacy">
+                                    <li ng-class="{selected: $ctrl.sermon.privacy==p.key}" data-ng-repeat="p in $ctrl.privacy">
+                                        <a ng-click="$ctrl.sermon.privacy=p.key" href>{{p.value}} <br>
+                                            <strong class="m-t-5">{{p.info
+                                                }}</strong></a>
+                                    </li>
+                                </ul>
+                                </ul>
+                            </div>
+                            <button ng-click="$ctrl.publish()" class="m-r-5 btn btn-primary waves-effect">
+                                Publish
+                            </button>
+                            <button ng-click="$ctrl.save()" class="btn btn-default waves-effect">
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+        </form>
+        </div>
+    </div>

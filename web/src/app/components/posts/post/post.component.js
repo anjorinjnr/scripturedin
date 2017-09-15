@@ -11,7 +11,7 @@ class PostController {
     }
     $onInit() {
         // this.unsubscribe = this.store.connect(this.mapStateToThis, {})(this);
-        console.log(this.post);
+        //console.log(this.post);
         this.processPost();
     }
 

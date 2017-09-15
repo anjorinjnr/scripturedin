@@ -12,12 +12,23 @@ try {
 
 var config = {
     contexts: __dirname + '/src',
-    entry: './src/app/index.js',
+    entry: {
+        app: './src/app/index.js',
+        vendor: [
+            'jquery',
+            'moment',
+            'fullcalendar'
+        ]
+    },
     output: {
         path: __dirname + '/dist',
-        filename: 'bundle.js'
+        filename: 'app.[chunkhash].js'
     },
     plugins: [
+        new webpack.optimize.CommonsChunkPlugin({
+            name: ['vendor'],
+            filename: 'vendor.[chunkhash].js'
+        }),
         new webpack.ProvidePlugin({
             jQuery: 'jquery',
             $: 'jquery',
@@ -30,13 +41,19 @@ var config = {
     ],
     devtool: 'source-map',
     resolve: {
+        modulesDirectories: ['node_modules'],
+        alias: {
+            jquery: 'jquery',
+            fullcalendar: 'fullcalendar/dist/fullcalendar'
+        },
         extensions: ['', '.js', '.ts']
     },
     module: {
         loaders: [
             { test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader') },
             { test: /\.less$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader!less-loader') },
-            { test: /jquery\.js$/, loader: 'expose?jquery' },
+            { test: require.resolve('jquery'), loader: 'expose?$!expose?jquery' },
+            { test: require.resolve('moment'), loader: 'expose?moment' },
             {
                 test: /\.js$/,
                 loader: 'ng-annotate!babel',
